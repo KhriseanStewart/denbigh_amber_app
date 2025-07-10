@@ -2,8 +2,6 @@
 // User authentication service with Firebase
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
@@ -77,5 +75,34 @@ class AuthService {
   Future<bool> isSignedIn() async {
     User? user = _auth.currentUser;
     return user != null;
+  }
+
+  /// Re-authenticates the user, then updates their password.
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = _auth.currentUser!;
+      final cred = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      // 1️⃣ Re-authenticate
+      await user.reauthenticateWithCredential(cred);
+
+      // 2️⃣ Update to the new password
+      await user.updatePassword(newPassword);
+      return true;
+    } catch (e) {
+      print('Password change failed: $e');
+      return false;
+    }
+  }
+
+  /// Sends a password-reset email to the given address.
+  Future<void> sendPasswordResetEmail(String email) {
+    return _auth.sendPasswordResetEmail(email: email);
   }
 }
