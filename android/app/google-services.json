@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "300840934452",
+    "project_id": "farmers-app-fbdb3",
+    "storage_bucket": "farmers-app-fbdb3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300840934452:android:6c2a478d04d68e8aeefe61",
+        "android_client_info": {
+          "package_name": "com.example.denbigh_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgAej9FXPUUcXkmfzJlYJFGmGvb1E1ICY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
