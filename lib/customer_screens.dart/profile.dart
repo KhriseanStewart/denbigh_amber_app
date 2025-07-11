@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:denbigh_app/utils/file_picker.dart';
+import 'package:denbigh_app/utils/routes.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -27,41 +31,44 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-           SizedBox(height: 32),
-          Center(
-            child: CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.blue,
-              child:  CircleAvatar(
-                radius: 56,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  size: 72,
-                  color: Colors.black87,
-                ),
-              ),
+      body: 
+      SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: 32),
+            Center(
+              child: Builder(
+                builder: (context) {
+                  try {
+                    return ProfilePictureUploader();
+                  } catch (e) {
+                    return Column(
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text('Failed to load profile picture.', style: TextStyle(color: Colors.red)),
+                      ],
+                    );
+                  }
+                },
+              )
             ),
-          ),
-           SizedBox(height: 40),
-          _profileContainer('Account Information', () {
-            // logic to Navigate to account information page
-          }),
-          _profileContainer('Card Information', () {
-            // logic to Navigate to card information page
-          }),
-          _profileContainer('Others', () {
-            // logic to Navigate to others page
-          }),
-          _profileContainer('Preferences', () {
-            // logic to Navigate to preferences page
-          }),
-          _profileContainer('Settings', () {
-            // logic to Navigate to settings page
-          }),
-        ],
+            SizedBox(height: 40),
+            _profileContainer('Account Information', () {
+              Navigator.pushNamed(context, AppRoutes.accountInformation);
+            }),
+            _profileContainer('Card Information', () {
+              Navigator.pushNamed(context, AppRoutes.card);
+            }),
+           
+            _profileContainer('Preferences', () {
+              // logic to Navigate to preferences page
+            }),
+            _profileContainer('About Us', () {
+              // logic to Navigate to about us page
+            }),
+          ],
+        ),
       ),
     );
 

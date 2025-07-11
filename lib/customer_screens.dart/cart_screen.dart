@@ -37,6 +37,15 @@ class _CartScreenState extends State<CartScreen> {
       'quantity': 1,
       'farmerName': 'jones',
     },
+    {
+      'image': 'assets/banana.webp',
+      'name': 'banana',
+      'category': 'Legumes',
+      'price': 120.00,
+      'unit': 'per hand',
+      'quantity': 1,
+      'farmerName': 'jones janebuebuyhb',
+    },
 
   ];
 
@@ -64,8 +73,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         backgroundColor: Colors.white,
-        elevation: 6,
-        shadowColor: Colors.grey,
+        
       ),
       backgroundColor: Color(0xffF9F9F9),
       body: Column(
@@ -142,7 +150,7 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       // Product Image goes here
                       Container(
-                        width: 150,
+                        width: 140,
                         height: 150,
                         child: AspectRatio(
                           aspectRatio: 4,
@@ -152,7 +160,7 @@ class _CartScreenState extends State<CartScreen> {
                             child: item['image'] != null
                                 ? Image.asset(
                                     item['image'],
-                                    width: 150,
+                                    width: 140,
                                     height: 150,
                                     fit: BoxFit.cover,
                                   )
@@ -198,37 +206,62 @@ class _CartScreenState extends State<CartScreen> {
                                 children: [
                                   Text(
                                     "\$${item['price'].toStringAsFixed(2)}",
-                                    style:  TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
                                   ),
-                                  
+                                  SizedBox(width: 4),
                                   Text(
                                     "/${item['unit']}",
-                                    style:  TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
                                     ),
                                   ),
+                                  
+                                
                                 ],
                               ),
-                               SizedBox(height: 6),
+                               SizedBox(height: 16),
                               // Quantity selector
                               //the logic to show the unit of the product to be added
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Farmer: ${item['farmerName']}'),
-                                  Container(
+                              SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Farmer: ${item['farmerName']}'),
+                                   
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Delete button
+                      Column(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.black54,
+                            ),
+                            onPressed: () {
+                              //logic to remove the item from the cart to add here
+                            },
+                          ),
+                          SizedBox(height: 30),
+                            Container(
                                     decoration: BoxDecoration(
-                                      color:  Color(0xffF5F5F5),
+                                      color: Color(0xffF5F5F5),
                                       borderRadius: BorderRadius.circular(7),
                                     ),
                                     child: Row(
                                       children: [
                                         IconButton(
-                                          icon:  Icon(
+                                          icon: Icon(
                                             Icons.remove,
                                             size: 18,
                                           ),
@@ -238,10 +271,10 @@ class _CartScreenState extends State<CartScreen> {
                                         ),
                                         Text(
                                           "${item['quantity']}",
-                                          style:  TextStyle(fontSize: 16),
+                                          style: TextStyle(fontSize: 16),
                                         ),
                                         IconButton(
-                                          icon:  Icon(Icons.add, size: 18),
+                                          icon: Icon(Icons.add, size: 18),
                                           onPressed: () {
                                             // increase quantity logic should go here
                                           },
@@ -249,22 +282,9 @@ class _CartScreenState extends State<CartScreen> {
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                        ],
                       ),
-                      // Delete button
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.black54,
-                        ),
-                        onPressed: () {
-                          //logic to remove the item from the cart to add here
-                        },
-                      ),
+                       
                     ],
                   ),
                 );
