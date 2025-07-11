@@ -11,8 +11,8 @@ class _CartScreenState extends State<CartScreen> {
   // this list is a simulated list add cart from firebase
   final List<Map<String, dynamic>> cartItems = [
     {
-      'image': 'assets/banna.webp',
-      'name': 'banna',
+      'image': 'assets/banana.webp',
+      'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
@@ -20,8 +20,8 @@ class _CartScreenState extends State<CartScreen> {
       'farmerName': ' John',
     },
     {
-      //'image': 'assets/banna.webp',
-      'name': 'banna',
+      //'image': 'assets/banana.webp',
+      'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
@@ -29,7 +29,7 @@ class _CartScreenState extends State<CartScreen> {
       'farmerName': 'winston',
     },
     {
-      'image': 'assets/banna.webp',
+      'image': 'assets/banana.webp',
       'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
@@ -53,10 +53,8 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: true,
+       
         title: Text(
           'Your Cart',
           style: TextStyle(
@@ -91,6 +89,7 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                //logic to show the total cost, sub-tax, and delivery fee
                 Text("Total Cost:", style: TextStyle(fontSize: 15)),
                 SizedBox(height: 6),
                 Text("Sub-Tax:", style: TextStyle(fontSize: 15)),
