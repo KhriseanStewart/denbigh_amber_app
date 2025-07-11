@@ -1,7 +1,7 @@
-import 'package:denbigh_app/customer_screens.dart/account_information_screen.dart';
-import 'package:denbigh_app/customer_screens.dart/card_screeen.dart' show CardScreen;
-import 'package:denbigh_app/customer_screens.dart/cart_screen.dart';
-import 'package:denbigh_app/customer_screens.dart/profile.dart';
+import 'package:denbigh_app/screens/profile/account_information_screen.dart';
+import 'package:denbigh_app/screens/profile/credit_card_screen.dart' show CardScreen;
+import 'package:denbigh_app/screens/cart_screen/cart_screen.dart';
+import 'package:denbigh_app/screens/profile/profile.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {

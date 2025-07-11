@@ -1,4 +1,7 @@
+import 'package:denbigh_app/screens/cart_screen/cart_screen.dart';
 import 'package:denbigh_app/screens/dashboard/home.dart';
+import 'package:denbigh_app/screens/profile/profile.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
@@ -10,7 +13,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  List<Widget> _screen = [HomeScreen()];
+  List<Widget> _screen = [HomeScreen(), CartScreen(), ProfileScreen()];
   int _currentIndex = 0;
   void onTap(index) {
     setState(() {
@@ -27,9 +30,9 @@ class _MainLayoutState extends State<MainLayout> {
         currentIndex: _currentIndex,
         items: [
           BottomBarItem(icon: Icon(Icons.home), title: Text("Home")),
-          BottomBarItem(icon: Icon(Icons.home), title: Text("Home")),
-          BottomBarItem(icon: Icon(Icons.home), title: Text("Home")),
-          ],
+          BottomBarItem(icon: Icon(FeatherIcons.truck), title: Text("Cart")),
+          BottomBarItem(icon: Icon(FeatherIcons.user), title: Text("Profile")),
+        ],
         option: DotBarOptions(),
       ),
     );

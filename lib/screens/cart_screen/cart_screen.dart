@@ -1,3 +1,4 @@
+import 'package:denbigh_app/widgets/misc.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -9,11 +10,10 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  bool _isLoading = true;
-
   final List<Map<String, dynamic>> cartItems = [
     {
-      'image': 'assets/banana.webp',
+      'image':
+          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
       'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
@@ -31,7 +31,8 @@ class _CartScreenState extends State<CartScreen> {
       'farmerName': 'winston',
     },
     {
-      'image': 'assets/banana.webp',
+      'image':
+          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
       'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
@@ -40,7 +41,8 @@ class _CartScreenState extends State<CartScreen> {
       'farmerName': 'jones',
     },
     {
-      'image': 'assets/banana.webp',
+      'image':
+          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
       'name': 'banana',
       'category': 'Legumes',
       'price': 120.00,
@@ -49,16 +51,16 @@ class _CartScreenState extends State<CartScreen> {
       'farmerName': 'jones janebuebuyhb',
     },
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _isLoading = false;
-      });
-    });
-  }
+  //commented no use for loading as yet, changed asset to network so it will load automatically
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   Future.delayed(const Duration(seconds: 2), () {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +70,8 @@ class _CartScreenState extends State<CartScreen> {
       (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as num)),
     );
     double subTax = itemCost * 0.08;
-    double deliveryFee = 10.0;// This can be dynamic based on location or other factors
+    double deliveryFee =
+        10.0; // This can be dynamic based on location or other factors
 
     double totalCost = itemCost + subTax + deliveryFee;
 
@@ -76,6 +79,7 @@ class _CartScreenState extends State<CartScreen> {
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: true,
+        surfaceTintColor: Colors.white,
         title: Text(
           'Your Cart',
           style: TextStyle(
@@ -86,15 +90,16 @@ class _CartScreenState extends State<CartScreen> {
         ),
         backgroundColor: Colors.white,
       ),
-      backgroundColor: Color(0xffF9F9F9),
+      backgroundColor: hexToColor("F4F6F8"),
       body: Column(
         children: [
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20)),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.1),
@@ -109,15 +114,29 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Item Cost: \$${itemCost.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
+                Text(
+                  "Item Cost: \$${itemCost.toStringAsFixed(2)}",
+                  style: TextStyle(fontSize: 15),
+                ),
                 SizedBox(height: 6),
-                Text("Sub-Tax: \$${subTax.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
+                Text(
+                  "Sub-Tax: \$${subTax.toStringAsFixed(2)}",
+                  style: TextStyle(fontSize: 15),
+                ),
                 SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
-                    Text(itemCost == 0 ? "" : "Total: \$${totalCost.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
+                    Text(
+                      "Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    Text(
+                      itemCost == 0
+                          ? ""
+                          : "Total: \$${totalCost.toStringAsFixed(2)}",
+                      style: TextStyle(fontSize: 15),
+                    ),
                   ],
                 ),
                 SizedBox(height: 12),
@@ -156,6 +175,7 @@ class _CartScreenState extends State<CartScreen> {
               itemBuilder: (context, index) {
                 final item = cartItems[index];
                 return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(17),
@@ -164,42 +184,55 @@ class _CartScreenState extends State<CartScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 150,
-                        height: 150,
+                      Expanded(
                         child: AspectRatio(
-                          aspectRatio: 4,
+                          aspectRatio: 1,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(17),
-                            child: _isLoading
-                                ? Shimmer.fromColors(
-                                    baseColor: Colors.grey.shade300,
-                                    highlightColor: Colors.grey.shade100,
-                                    child: Container(
-                                      width: 150,
-                                      height: 150,
-                                      color: Colors.grey.shade300,
-                                    ),
+                            child: (item['image'] != null
+                                ? Image.network(
+                                    item['image'],
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress != null) {
+                                            return Shimmer.fromColors(
+                                              baseColor: Colors.grey.shade300,
+                                              highlightColor:
+                                                  Colors.grey.shade100,
+                                              child: Container(
+                                                width: 150,
+                                                height: 150,
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            );
+                                          } else {
+                                            return child;
+                                          }
+                                        },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              color: Colors.grey.shade200,
+                                              width: 150,
+                                              height: 150,
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                                size: 50,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
                                   )
-                                : (item['image'] != null
-                                    ? Image.asset(
-                                        item['image'],
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          color: Colors.grey.shade200,
-                                          width: 150,
-                                          height: 150,
-                                          child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                                        ),
-                                      )
-                                    : Container(
-                                        color: Colors.grey.shade200,
-                                        width: 150,
-                                        height: 150,
-                                        child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                                      )),
+                                : Container(
+                                    color: Colors.grey.shade200,
+                                    width: 150,
+                                    height: 150,
+                                    child: const Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                  )),
                           ),
                         ),
                       ),
@@ -259,7 +292,8 @@ class _CartScreenState extends State<CartScreen> {
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('Farmer: ${item['farmerName']}'),
                                   ],
@@ -291,7 +325,9 @@ class _CartScreenState extends State<CartScreen> {
                                 IconButton(
                                   icon: Icon(
                                     Icons.remove,
-                                    color: item['quantity'] == 0 ? Colors.grey : Colors.black,
+                                    color: item['quantity'] == 0
+                                        ? Colors.grey
+                                        : Colors.black,
                                   ),
                                   onPressed: item['quantity'] == 0
                                       ? null
@@ -304,7 +340,9 @@ class _CartScreenState extends State<CartScreen> {
                                 // Show quantity only if quantity >= 1
                                 if (item['quantity'] >= 1)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
                                     child: Text(
                                       '${item['quantity']}',
                                       style: TextStyle(fontSize: 18),
