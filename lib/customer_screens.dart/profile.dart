@@ -76,6 +76,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _profileContainer(String title, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
+      
       child: Container(
         width: double.infinity,
         padding:  EdgeInsets.symmetric(vertical: 20, horizontal: 16),

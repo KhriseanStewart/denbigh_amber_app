@@ -11,6 +11,7 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   // Add this for shimmer loading simulation
   bool _isLoading = true;
+  int quantity = 0; // this is the quantity of the product to be added to the cart
 
   // this list is a simulated list add cart from firebase
   final List<Map<String, dynamic>> cartItems = [
@@ -296,24 +297,37 @@ class _CartScreenState extends State<CartScreen> {
                                     child: Row(
                                       children: [
                                         IconButton(
-                                          icon: Icon(
-                                            Icons.remove,
-                                            size: 18,
-                                          ),
-                                          onPressed: () {
-                                            // decrease quantity logic should go here
-                                          },
-                                        ),
-                                        Text(
-                                          "${item['quantity']}",
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.add, size: 18),
-                                          onPressed: () {
-                                            // increase quantity logic should go here
-                                          },
-                                        ),
+                        icon: Icon(
+                          Icons.remove,
+                          color: quantity == 0 ? Colors.grey : Colors.black,
+                        ),
+                        onPressed:
+                            quantity == 0
+                                ? null
+                                : () {
+                                  setState(() {
+                                    quantity--;
+                                  });
+                                },
+                      ),
+                      // Show quantity only if quantity >= 1
+                      if (quantity >= 1)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            '$quantity',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      // Plus button
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            quantity++;
+                          });
+                        },
+                      ),
                                       ],
                                     ),
                                   ),
