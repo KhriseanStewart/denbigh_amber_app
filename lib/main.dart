@@ -1,16 +1,32 @@
+import 'package:denbigh_app/firebase_options.dart';
+import 'package:denbigh_app/screens/dashboard/home.dart';
+import 'package:denbigh_app/screens/dashboard/search_screen.dart';
+import 'package:denbigh_app/screens/main_layout/main_layout.dart';
+import 'package:denbigh_app/screens/notification/notification_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
 import 'package:denbigh_app/utils/routes.dart';
-// Import your home page widget
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  runApp(const MyApp());
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    runApp(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(body: Center(child: Text('Firebase init failed: $e'))),
+      ),
+    );
+    print(e);
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -21,51 +37,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-      routes: AppRoutes.routes,
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.cart);
-              },
-              child: const Text("Go to Cart"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.profile);
-              },
-              child: const Text("Go to Profile"),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+home: const MainLayout().
+      )
+    }
 }
