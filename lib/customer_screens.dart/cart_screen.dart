@@ -9,11 +9,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  // Add this for shimmer loading simulation
   bool _isLoading = true;
-  int quantity = 0; // this is the quantity of the product to be added to the cart
 
-  // this list is a simulated list add cart from firebase
   final List<Map<String, dynamic>> cartItems = [
     {
       'image': 'assets/banana.webp',
@@ -21,7 +18,7 @@ class _CartScreenState extends State<CartScreen> {
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
-      'quantity': 1,
+      'quantity': 0,
       'farmerName': ' John',
     },
     {
@@ -30,7 +27,7 @@ class _CartScreenState extends State<CartScreen> {
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
-      'quantity': 1,
+      'quantity': 0,
       'farmerName': 'winston',
     },
     {
@@ -39,7 +36,7 @@ class _CartScreenState extends State<CartScreen> {
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
-      'quantity': 1,
+      'quantity': 0,
       'farmerName': 'jones',
     },
     {
@@ -48,16 +45,14 @@ class _CartScreenState extends State<CartScreen> {
       'category': 'Legumes',
       'price': 120.00,
       'unit': 'per hand',
-      'quantity': 1,
+      'quantity': 0,
       'farmerName': 'jones janebuebuyhb',
     },
-
   ];
 
   @override
   void initState() {
     super.initState();
-    // Simulate loading for 2 seconds, then show images
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _isLoading = false;
@@ -67,19 +62,20 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Example calculations
-    double totalCost = cartItems.fold(
+    // this logic is to be change to suit the cart items from the database
+    double itemCost = cartItems.fold(
       0.0,
-      (sum, item) => sum + item['price'] * item['quantity'],
+      (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as num)),
     );
-    double subTax = totalCost * 0.08; // Example sub-tax
-    double deliveryFee = 10.0;
+    double subTax = itemCost * 0.08;
+    double deliveryFee = 10.0;// This can be dynamic based on location or other factors
+
+    double totalCost = itemCost + subTax + deliveryFee;
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: true,
-       
         title: Text(
           'Your Cart',
           style: TextStyle(
@@ -89,7 +85,6 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         backgroundColor: Colors.white,
-        
       ),
       backgroundColor: Color(0xffF9F9F9),
       body: Column(
@@ -97,7 +92,9 @@ class _CartScreenState extends State<CartScreen> {
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20) ),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.1),
@@ -109,16 +106,20 @@ class _CartScreenState extends State<CartScreen> {
             ),
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                //logic to show the total cost, sub-tax, and delivery fee
-                Text("Total Cost:", style: TextStyle(fontSize: 15)),
+                Text("Item Cost: \$${itemCost.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
                 SizedBox(height: 6),
-                Text("Sub-Tax:", style: TextStyle(fontSize: 15)),
+                Text("Sub-Tax: \$${subTax.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
                 SizedBox(height: 6),
-                Text("Delivery Fee:", style: TextStyle(fontSize: 15)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
+                    Text(itemCost == 0 ? "" : "Total: \$${totalCost.toStringAsFixed(2)}", style: TextStyle(fontSize: 15)),
+                  ],
+                ),
                 SizedBox(height: 12),
                 Center(
                   child: ElevatedButton(
@@ -141,14 +142,13 @@ class _CartScreenState extends State<CartScreen> {
                     onPressed: () {
                       // add the logic to continue to checkout with the arguments
                     },
-                    child:  Text("Continue to Checkout"),
+                    child: Text("Continue to Checkout"),
                   ),
                 ),
               ],
             ),
           ),
           SizedBox(height: 10),
-          // Cart items list
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -160,11 +160,10 @@ class _CartScreenState extends State<CartScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(17),
                   ),
-                  margin:  EdgeInsets.symmetric(vertical: 4),
+                  margin: EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product Image goes here
                       Container(
                         width: 150,
                         height: 150,
@@ -204,8 +203,7 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ),
                       ),
-                     SizedBox(width: 12),
-                      // Product Info goes here
+                      SizedBox(width: 12),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -214,31 +212,31 @@ class _CartScreenState extends State<CartScreen> {
                             children: [
                               Text(
                                 item['name'],
-                                style:  TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 17,
                                 ),
                               ),
-                               SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Container(
-                                padding:  EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:  Color(0xffF5F5F5),
+                                  color: Color(0xffF5F5F5),
                                   borderRadius: BorderRadius.circular(7),
                                 ),
                                 child: Text(
                                   item['category'],
-                                  style:  TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: Color(0xff828282),
                                   ),
                                 ),
                               ),
-                               SizedBox(height: 8),
-                             Row(
+                              SizedBox(height: 8),
+                              Row(
                                 children: [
                                   Text(
                                     "\$${item['price'].toStringAsFixed(2)}",
@@ -255,20 +253,15 @@ class _CartScreenState extends State<CartScreen> {
                                       color: Colors.grey,
                                     ),
                                   ),
-                                  
-                                
                                 ],
                               ),
-                               SizedBox(height: 16),
-                              // Quantity selector
-                              //the logic to show the unit of the product to be added
+                              SizedBox(height: 16),
                               SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
+                                scrollDirection: Axis.horizontal,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('Farmer: ${item['farmerName']}'),
-                                   
                                   ],
                                 ),
                               ),
@@ -276,7 +269,6 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ),
                       ),
-                      // Delete button
                       Column(
                         children: [
                           IconButton(
@@ -289,56 +281,52 @@ class _CartScreenState extends State<CartScreen> {
                             },
                           ),
                           SizedBox(height: 30),
-                            Container(
-                                    decoration: BoxDecoration(
-                                      color: Color(0xffF5F5F5),
-                                      borderRadius: BorderRadius.circular(7),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        IconButton(
-                        icon: Icon(
-                          Icons.remove,
-                          color: quantity == 0 ? Colors.grey : Colors.black,
-                        ),
-                        onPressed:
-                            quantity == 0
-                                ? null
-                                : () {
-                                  setState(() {
-                                    quantity--;
-                                  });
-                                },
-                      ),
-                      // Show quantity only if quantity >= 1
-                      if (quantity >= 1)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            '$quantity',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
-                      // Plus button
-                      IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {
-                          setState(() {
-                            quantity++;
-                          });
-                        },
-                      ),
-                                      ],
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xffF5F5F5),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.remove,
+                                    color: item['quantity'] == 0 ? Colors.grey : Colors.black,
+                                  ),
+                                  onPressed: item['quantity'] == 0
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            cartItems[index]['quantity']--;
+                                          });
+                                        },
+                                ),
+                                // Show quantity only if quantity >= 1
+                                if (item['quantity'] >= 1)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      '${item['quantity']}',
+                                      style: TextStyle(fontSize: 18),
                                     ),
                                   ),
+                                IconButton(
+                                  icon: Icon(Icons.add),
+                                  onPressed: () {
+                                    setState(() {
+                                      cartItems[index]['quantity']++;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                       
                     ],
                   ),
                 );
               },
-              
             ),
           ),
         ],
