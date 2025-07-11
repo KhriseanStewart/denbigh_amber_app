@@ -40,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
               child: Builder(
                 builder: (context) {
                   try {
-                    return ProfilePictureUploader();
+                    return ProfilePictureUploader();//curent logic is dependent on a logged in user
                   } catch (e) {
                     return Column(
                       children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -8,6 +9,9 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  // Add this for shimmer loading simulation
+  bool _isLoading = true;
+
   // this list is a simulated list add cart from firebase
   final List<Map<String, dynamic>> cartItems = [
     {
@@ -48,6 +52,17 @@ class _CartScreenState extends State<CartScreen> {
     },
 
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate loading for 2 seconds, then show images
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,21 +165,41 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       // Product Image goes here
                       Container(
-                        width: 140,
+                        width: 150,
                         height: 150,
                         child: AspectRatio(
                           aspectRatio: 4,
-                        
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(17),
-                            child: item['image'] != null
-                                ? Image.asset(
-                                    item['image'],
-                                    width: 140,
-                                    height: 150,
-                                    fit: BoxFit.cover,
+                            child: _isLoading
+                                ? Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(
+                                      width: 150,
+                                      height: 150,
+                                      color: Colors.grey.shade300,
+                                    ),
                                   )
-                                : Icon(Icons.image_not_supported, size: 50, color: Colors.grey)
+                                : (item['image'] != null
+                                    ? Image.asset(
+                                        item['image'],
+                                        width: 150,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          color: Colors.grey.shade200,
+                                          width: 150,
+                                          height: 150,
+                                          child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                                        ),
+                                      )
+                                    : Container(
+                                        color: Colors.grey.shade200,
+                                        width: 150,
+                                        height: 150,
+                                        child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                                      )),
                           ),
                         ),
                       ),
