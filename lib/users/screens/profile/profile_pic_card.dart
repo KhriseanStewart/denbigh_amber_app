@@ -73,7 +73,7 @@ class _ProfilePictureUploaderState extends State<ProfilePictureUploader> {
       return Column(
         children: [
           CircleAvatar(
-            radius: 89,
+            radius: 90,
             backgroundColor: Colors.green,
             child: CircleAvatar(
               radius: 80,

@@ -1,6 +1,5 @@
 import 'package:denbigh_app/firebase_options.dart';
 import 'package:denbigh_app/routes.dart';
-import 'package:denbigh_app/screens/main_layout/main_layout.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Denbigh App',
-      initialRoute: AppRouter.mainlayout,
+      initialRoute: AppRouter.login,
       routes: AppRouter.routes,
     );
   }

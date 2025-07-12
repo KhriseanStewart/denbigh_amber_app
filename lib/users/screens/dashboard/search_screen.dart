@@ -1,4 +1,4 @@
-import 'package:denbigh_app/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,9 @@ class SearchScreen extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                         icon: Icon(Icons.arrow_back),
                       ),
                       Expanded(

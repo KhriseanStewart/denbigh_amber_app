@@ -1,3 +1,4 @@
+import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -78,7 +79,7 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
         surfaceTintColor: Colors.white,
         title: Text(
           'Your Cart',
@@ -141,27 +142,15 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 SizedBox(height: 12),
                 Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200],
-                      foregroundColor: Colors.black87,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 36,
-                        vertical: 14,
-                      ),
-                      textStyle: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      elevation: 2,
-                    ),
-                    onPressed: () {
-                      // add the logic to continue to checkout with the arguments
+                  child: CustomButton(
+                    btntext: "Continue to Checkout",
+                    onpress: () {
+                      displaySnackBar(context, "Checkout soon");
                     },
-                    child: Text("Continue to Checkout"),
+                    isBoldtext: true,
+                    bgcolor: Colors.grey.shade300,
+                    textcolor: Colors.black,
+                    size: 16,
                   ),
                 ),
               ],

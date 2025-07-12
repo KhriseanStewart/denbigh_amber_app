@@ -1,24 +1,32 @@
+import 'package:denbigh_app/routes.dart';
 import 'package:flutter/material.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
+class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  bool _rememberMe = false;
 
   @override
   Widget build(BuildContext context) {
+    void handleSubmit() {
+      Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+    }
+
+    void pushSignUp() {
+      Navigator.pushReplacementNamed(context, AppRouter.signUp);
+    }
+
+    void pushForgetPassword() {
+      //TODO:ADD FORGET PASSWORD HERE
+    }
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -35,7 +43,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Center(
-                  child: Icon(Icons.agriculture, size: 64, color: Colors.greenAccent),
+                  child: Icon(
+                    Icons.agriculture,
+                    size: 64,
+                    color: Colors.greenAccent,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 const Center(
@@ -51,29 +63,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 8),
                 const Center(
                   child: Text(
-                    "Create a new account",
+                    "Sign in to your account",
                     style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Center(
+                  child: Text(
+                    "Welcome back! Select method to log in",
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ),
                 const SizedBox(height: 32),
 
-                // 👤 Name
-                TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration("Enter Your Full Name", Icons.person),
-                ),
-                const SizedBox(height: 16),
-
-                // 📍 Location
-                TextField(
-                  controller: locationController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration("Enter Your Location", Icons.location_on),
-                ),
-                const SizedBox(height: 16),
-
-                // 📧 Email
+                // 📧 Email Field
                 TextField(
                   controller: emailController,
                   style: const TextStyle(color: Colors.white),
@@ -81,17 +84,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 🔒 Password
+                // 🔒 Password Field
                 TextField(
                   controller: passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white),
                   decoration: _inputDecoration(
-                    "Create a Password",
+                    "Enter Your Password",
                     Icons.lock,
                     suffix: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: Colors.white54,
                       ),
                       onPressed: () {
@@ -102,44 +107,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+
+                // 🔘 Remember me & Forgot Password
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value!;
+                            });
+                          },
+                          activeColor: Colors.greenAccent,
+                          checkColor: Colors.black,
+                        ),
+                        const Text(
+                          "Remember me",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Add forgot password logic here
+                      },
+                      child: const Text(
+                        "Forget Password?",
+                        style: TextStyle(color: Colors.greenAccent),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
 
-                // 🔒 Confirm Password
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration(
-                    "Confirm Password",
-                    Icons.lock_outline,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.white54,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 🟢 Sign Up Button
+                // 🟢 Log In Button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Hook up registration logic here
+                      // Hook up login logic here
+                      handleSubmit();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.greenAccent,
                     ),
                     child: const Text(
-                      "Sign Up",
+                      "Log In",
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -156,8 +174,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Expanded(child: Divider(color: Colors.white24)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("Or Register With",
-                          style: TextStyle(color: Colors.white70)),
+                      child: Text(
+                        "Or Continue With",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                     ),
                     Expanded(child: Divider(color: Colors.white24)),
                   ],
@@ -173,23 +193,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
- 
-                // 🔁 Sign In Prompt
+
+                // 🆕 Sign Up prompt
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Already have an account? ",
-                          style: TextStyle(color: Colors.white70)),
+                      const Text(
+                        "Don't have an account? ",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context); // Go back to login screen
+                          // Navigate to Sign Up
+                          pushSignUp();
                         },
                         child: const Text(
-                          "Log in",
+                          "Sign up",
                           style: TextStyle(
-                              color: Colors.greenAccent,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.greenAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -204,7 +228,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon, {Widget? suffix}) {
+  InputDecoration _inputDecoration(
+    String hint,
+    IconData icon, {
+    Widget? suffix,
+  }) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Colors.white54),

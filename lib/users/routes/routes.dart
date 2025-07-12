@@ -1,5 +1,5 @@
 
-import 'package:denbigh_app/screens/security/welcome_screen.dart';
+import 'package:denbigh_app/users/auth/welcome_screen.dart';
 import 'package:flutter/material.dart';
 
 

@@ -1,4 +1,4 @@
-import 'package:denbigh_app/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
 import 'package:flutter/material.dart';
 
 class ViewAllItems extends StatelessWidget {

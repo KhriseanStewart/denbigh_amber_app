@@ -1,20 +1,30 @@
+import 'package:denbigh_app/routes.dart';
 import 'package:flutter/material.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
   bool _obscurePassword = true;
-  bool _rememberMe = false;
+  bool _obscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
+    void handleSubmit() {
+      Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+    }
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -31,8 +41,11 @@ class _SignInScreenState extends State<SignInScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Center(
-                  child: Icon(Icons.agriculture,
-                      size: 64, color: Colors.greenAccent),
+                  child: Icon(
+                    Icons.agriculture,
+                    size: 64,
+                    color: Colors.greenAccent,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 const Center(
@@ -48,20 +61,35 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 8),
                 const Center(
                   child: Text(
-                    "Sign in to your account",
+                    "Create a new account",
                     style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Center(
-                  child: Text(
-                    "Welcome back! Select method to log in",
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ),
                 const SizedBox(height: 32),
 
-                // 📧 Email Field
+                // 👤 Name
+                TextField(
+                  controller: nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _inputDecoration(
+                    "Enter Your Full Name",
+                    Icons.person,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 📍 Location
+                TextField(
+                  controller: locationController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _inputDecoration(
+                    "Enter Your Location",
+                    Icons.location_on,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 📧 Email
                 TextField(
                   controller: emailController,
                   style: const TextStyle(color: Colors.white),
@@ -69,13 +97,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 🔒 Password Field
+                // 🔒 Password
                 TextField(
                   controller: passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white),
                   decoration: _inputDecoration(
-                    "Enter Your Password",
+                    "Create a Password",
                     Icons.lock,
                     suffix: IconButton(
                       icon: Icon(
@@ -92,54 +120,47 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-
-                // 🔘 Remember me & Forgot Password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) {
-                            setState(() {
-                              _rememberMe = value!;
-                            });
-                          },
-                          activeColor: Colors.greenAccent,
-                          checkColor: Colors.black,
-                        ),
-                        const Text("Remember me",
-                            style: TextStyle(color: Colors.white70)),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // Add forgot password logic here
-                      },
-                      child: const Text(
-                        "Forget Password?",
-                        style: TextStyle(color: Colors.greenAccent),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 16),
 
-                // 🟢 Log In Button
+                // 🔒 Confirm Password
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _inputDecoration(
+                    "Confirm Password",
+                    Icons.lock_outline,
+                    suffix: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.white54,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 🟢 Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Hook up login logic here
+                      // Hook up registration logic here
+                      handleSubmit();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.greenAccent,
                     ),
                     child: const Text(
-                      "Log In",
+                      "Sign Up",
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -156,8 +177,10 @@ class _SignInScreenState extends State<SignInScreen> {
                     Expanded(child: Divider(color: Colors.white24)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("Or Continue With",
-                          style: TextStyle(color: Colors.white70)),
+                      child: Text(
+                        "Or Register With",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                     ),
                     Expanded(child: Divider(color: Colors.white24)),
                   ],
@@ -174,22 +197,28 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // 🆕 Sign Up prompt
+                // 🔁 Sign In Prompt
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account? ",
-                          style: TextStyle(color: Colors.white70)),
+                      const Text(
+                        "Already have an account? ",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       GestureDetector(
                         onTap: () {
-                          // Navigate to Sign Up
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRouter.login,
+                          );
                         },
                         child: const Text(
-                          "Sign up",
+                          "Log in",
                           style: TextStyle(
-                              color: Colors.greenAccent,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.greenAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -204,8 +233,11 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon,
-      {Widget? suffix}) {
+  InputDecoration _inputDecoration(
+    String hint,
+    IconData icon, {
+    Widget? suffix,
+  }) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Colors.white54),

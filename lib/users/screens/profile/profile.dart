@@ -1,7 +1,5 @@
-import 'dart:math';
-
-import 'package:denbigh_app/utils/file_picker.dart';
-import 'package:denbigh_app/utils/routes.dart';
+import 'package:denbigh_app/routes.dart';
+import 'package:denbigh_app/users/screens/profile/profile_pic_card.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -55,10 +53,10 @@ class ProfileScreen extends StatelessWidget {
             ),
             SizedBox(height: 40),
             _profileContainer('Account Information', () {
-              Navigator.pushNamed(context, AppRoutes.accountInformation);
+              Navigator.pushNamed(context, AppRouter.accountInformation);
             }),
             _profileContainer('Card Information', () {
-              Navigator.pushNamed(context, AppRoutes.card);
+              Navigator.pushNamed(context, AppRouter.card);
             }),
            
             _profileContainer('Preferences', () {

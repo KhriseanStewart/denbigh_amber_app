@@ -1,4 +1,6 @@
-import 'package:denbigh_app/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/routes.dart';
+import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -44,16 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
-          decoration: BoxDecoration(color: hexToColor("438823")),
+          decoration: BoxDecoration(color: Colors.green),
           padding: EdgeInsets.symmetric(horizontal: 10.0),
           child: AppBar(
             titleSpacing: 10,
-            backgroundColor: hexToColor("438823"),
+            backgroundColor: Colors.green,
             leading: Container(
               decoration: BoxDecoration(shape: BoxShape.circle),
               width: 50,
-              height: 50,
-              child: Placeholder(),
+              height: 100,
+              child: PicCard(),
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             actions: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRouter.notificationscreen);
+                },
                 icon: Icon(FeatherIcons.bell, color: Colors.black),
                 style: IconButton.styleFrom(backgroundColor: Colors.white),
               ),
@@ -227,6 +231,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               Divider(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    child: Text("Filter"),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -248,7 +262,12 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
-              //TODO: push to detail page
+              //TODO: push agruments
+              Navigator.pushNamed(
+                context,
+                AppRouter.productdetail,
+                arguments: null,
+              );
             },
             child: ProductCard(),
           );
@@ -278,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildHeader() {
     return Container(
       decoration: BoxDecoration(
-        color: hexToColor("438823"),
+        color: Colors.green,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
       ),
       padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
@@ -288,7 +307,9 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           TextField(
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, AppRouter.searchscreen);
+            },
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),

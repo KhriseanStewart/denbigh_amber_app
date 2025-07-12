@@ -1,6 +1,6 @@
-import 'package:denbigh_app/screens/cart_screen/cart_screen.dart';
-import 'package:denbigh_app/screens/dashboard/home.dart';
-import 'package:denbigh_app/screens/profile/profile.dart';
+import 'package:denbigh_app/users/screens/cart_screen/cart_screen.dart';
+import 'package:denbigh_app/users/screens/dashboard/home.dart';
+import 'package:denbigh_app/users/screens/profile/profile.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';

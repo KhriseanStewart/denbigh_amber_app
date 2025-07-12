@@ -1,5 +1,5 @@
-import 'package:denbigh_app/screens/security/signin_screen.dart';
-import 'package:denbigh_app/screens/security/signup_screen.dart';
+import 'package:denbigh_app/users/auth/signin_screen.dart';
+import 'package:denbigh_app/users/auth/signup_screen.dart';
 import 'package:flutter/material.dart';
 
 class FarmerWelcomeScreen extends StatefulWidget {
@@ -97,7 +97,7 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                 // 📦 Track Order Button
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => SignInScreen()),
                     );
@@ -115,11 +115,11 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                 // 🔐 Sign In Button
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => SignUpScreen()),
                     );
-                    
+
                     // Navigate to sign in
                   },
                   style: ElevatedButton.styleFrom(
@@ -160,7 +160,6 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                 //     ),
                 //   ],
                 // ),
-
                 const SizedBox(height: 20),
               ],
             ),
