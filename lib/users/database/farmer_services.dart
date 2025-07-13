@@ -23,6 +23,7 @@ class FarmerService {
     required String farmersAddress,
     required GeoPoint location,
     required String locationName,
+    required String radaRegistrationNumber,
   }) {
     return _col.doc(uid).set({
       'userId': uid,
@@ -31,6 +32,7 @@ class FarmerService {
       'location': location,
       'locationName': locationName,
       'createdAt': FieldValue.serverTimestamp(),
+      'radaRegistrationNumber': radaRegistrationNumber,
     });
   }
 
@@ -47,12 +49,16 @@ class FarmerService {
     String? farmersAddress,
     GeoPoint? location,
     String? locationName,
+    String? radaRegistrationNumber,
   }) {
     final updates = <String, dynamic>{};
     if (farmName != null) updates['farmName'] = farmName;
     if (farmersAddress != null) updates['farmersAddress'] = farmersAddress;
     if (location != null) updates['location'] = location;
     if (locationName != null) updates['locationName'] = locationName;
+    if (radaRegistrationNumber != null) {
+      updates['radaRegistrationNumber'] = radaRegistrationNumber;
+    }
     return _col.doc(uid).update(updates);
   }
 }
