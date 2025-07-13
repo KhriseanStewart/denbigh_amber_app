@@ -1,3 +1,4 @@
+
 // lib/services/product_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +7,12 @@ class ProductService {
   final CollectionReference _col = FirebaseFirestore.instance.collection(
     'products',
   );
+  
+    final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final user = FirebaseAuth.instance.currentUser;
+
+  Stream<QuerySnapshot> getProducts() {
+    return _db.collection("products").snapshots();
 
   /// Create or overwrite a product.
   /// If you pass `productId`, it’ll use that; otherwise Firestore will auto-ID.

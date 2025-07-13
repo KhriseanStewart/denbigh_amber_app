@@ -1,8 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:denbigh_app/routes.dart';
+import 'package:denbigh_app/users/database/auth_service.dart';
+import 'package:denbigh_app/users/database/customer_service.dart';
+import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:feather_icons/feather_icons.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,6 +17,8 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+
+final auth = AuthService().currentUser;
 
 class _HomeScreenState extends State<HomeScreen> {
   double _currentSliderPrice = 100;
@@ -30,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _selectedValue = 'default';
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(statusBarColor: Colors.red),
+      SystemUiOverlayStyle(statusBarColor: Colors.green),
     );
   }
 
@@ -40,56 +47,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  final userData = CustomerService().getUserInformation(auth!.uid);
+
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData) {
+          Future.microtask(() {
+            Navigator.pushReplacementNamed(context, AppRouter.login);
+          });
+        }
+        return buildUserHome(context);
+      },
+    );
+  }
+
+  Widget buildUserHome(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(color: Colors.green),
-          padding: EdgeInsets.symmetric(horizontal: 10.0),
-          child: AppBar(
-            titleSpacing: 10,
-            backgroundColor: Colors.green,
-            leading: Container(
-              decoration: BoxDecoration(shape: BoxShape.circle),
-              width: 50,
-              height: 100,
-              child: PicCard(),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Welcome",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                Text(
-                  "Khrisean Stewart",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRouter.notificationscreen);
-                },
-                icon: Icon(FeatherIcons.bell, color: Colors.black),
-                style: IconButton.styleFrom(backgroundColor: Colors.white),
-              ),
-            ],
-          ),
-        ),
-      ),
+      appBar: buildAppBar(context),
       backgroundColor: hexToColor("F4F6F8"),
       drawerEnableOpenDragGesture: false,
       endDrawer: buildEndDrawer(),
@@ -100,20 +80,74 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               buildHeader(),
               SizedBox(height: 10),
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: buildFilterRow(),
-                  ),
-                  SizedBox(height: 4),
-                  //TODO: gridview needs some tweaks with sizing
-                  buildGridViewProducts(),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: buildFilterRow(),
               ),
+              SizedBox(height: 4),
+              Expanded(child: buildGridViewProducts()),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  PreferredSize buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(kToolbarHeight),
+      child: FutureBuilder(
+        future: userData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          final data = snapshot.data;
+          return Container(
+            decoration: BoxDecoration(color: Colors.green),
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            child: AppBar(
+              titleSpacing: 10,
+              backgroundColor: Colors.green,
+              leading: Container(
+                decoration: BoxDecoration(shape: BoxShape.circle),
+                width: 50,
+                height: 100,
+                child: PicCard(),
+              ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Welcome",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  Text(
+                    data!['name'] ?? 'user',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRouter.notificationscreen);
+                  },
+                  icon: Icon(FeatherIcons.bell, color: Colors.black),
+                  style: IconButton.styleFrom(backgroundColor: Colors.white),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -249,30 +283,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildGridViewProducts() {
-    return SizedBox(
-      height: 500,
-      child: GridView.builder(
-        itemCount: 6,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
-          childAspectRatio: 0.65,
-        ),
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              //TODO: push agruments
-              Navigator.pushNamed(
-                context,
-                AppRouter.productdetail,
-                arguments: null,
-              );
-            },
-            child: ProductCard(),
-          );
-        },
-      ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final itemWidth = (screenWidth - 4) / 2;
+    final itemHeight = itemWidth * 1.55; // or a fixed ratio
+    final streamList = ProductServices().getProducts();
+
+    return StreamBuilder(
+      stream: streamList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData) {
+          return Center(child: Text("No Products"));
+        }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        final productdata = snapshot.data!.docs;
+        return GridView.builder(
+          itemCount: productdata.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+            childAspectRatio: itemWidth / itemHeight,
+          ),
+          itemBuilder: (context, index) {
+            final data = productdata[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.productdetail,
+                  arguments: data,
+                );
+              },
+              child: ProductCard(data: data),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -289,7 +340,12 @@ class _HomeScreenState extends State<HomeScreen> {
             style: IconButton.styleFrom(backgroundColor: Colors.white),
           ),
         ),
-        TextButton(onPressed: () {}, child: Text("View All")),
+        TextButton(
+          onPressed: () {
+            Navigator.pushNamed(context, AppRouter.viewallitem);
+          },
+          child: Text("View All"),
+        ),
       ],
     );
   }
