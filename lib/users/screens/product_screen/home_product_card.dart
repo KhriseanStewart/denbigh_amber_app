@@ -91,7 +91,7 @@ class _ProductCardState extends State<ProductCard> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               Text(
-                "/${data['sizeOpt']}",
+                "/${data['unitType']}",
                 style: TextStyle(color: Colors.black),
               ),
               Spacer(),

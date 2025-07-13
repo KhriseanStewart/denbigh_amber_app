@@ -98,7 +98,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   // 📧 Email Field
                   TextFormField(
                     controller: emailController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Email",
                       Icons.email,
@@ -111,7 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Password",
                       Icons.lock,
