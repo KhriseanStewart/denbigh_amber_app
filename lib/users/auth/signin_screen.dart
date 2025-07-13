@@ -52,13 +52,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.green],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        decoration: BoxDecoration(color: hexToColor("F4F6F8")),
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Center(
           child: SingleChildScrollView(
@@ -71,7 +65,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Icon(
                       Icons.agriculture,
                       size: 64,
-                      color: Colors.greenAccent,
+                      color: Colors.green,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -79,7 +73,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Text(
                       "AgriConnect",
                       style: TextStyle(
-                        color: Colors.greenAccent,
+                        color: Colors.green,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
@@ -89,14 +83,14 @@ class _SignInScreenState extends State<SignInScreen> {
                   const Center(
                     child: Text(
                       "Sign in to your account",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Center(
                     child: Text(
                       "Welcome back! Select method to log in",
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                      style: TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -152,12 +146,12 @@ class _SignInScreenState extends State<SignInScreen> {
                                 _rememberMe = value!;
                               });
                             },
-                            activeColor: Colors.greenAccent,
+                            activeColor: Colors.black,
                             checkColor: Colors.black,
                           ),
                           const Text(
                             "Remember me",
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(color: Colors.black54),
                           ),
                         ],
                       ),
@@ -168,7 +162,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                         child: const Text(
                           "Forget Password?",
-                          style: TextStyle(color: Colors.greenAccent),
+                          style: TextStyle(color: Colors.green),
                         ),
                       ),
                     ],
@@ -185,12 +179,12 @@ class _SignInScreenState extends State<SignInScreen> {
                         handleSubmit();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: Colors.green.shade800,
                       ),
                       child: const Text(
                         "Log In",
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -202,15 +196,15 @@ class _SignInScreenState extends State<SignInScreen> {
                   // ⚫ Divider
                   Row(
                     children: const [
-                      Expanded(child: Divider(color: Colors.white24)),
+                      Expanded(child: Divider(color: Colors.black)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           "Or Continue With",
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Colors.black38),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.white24)),
+                      Expanded(child: Divider(color: Colors.black)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -232,7 +226,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       children: [
                         const Text(
                           "Don't have an account? ",
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -267,15 +261,10 @@ class _SignInScreenState extends State<SignInScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white54),
-      filled: true,
-      fillColor: Colors.white12,
-      prefixIcon: Icon(icon, color: Colors.white54),
+      hintStyle: const TextStyle(color: Colors.black),
+      prefixIcon: Icon(icon, color: Colors.grey),
       suffixIcon: suffix,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
@@ -289,7 +278,7 @@ class _SignInScreenState extends State<SignInScreen> {
           height: 48,
           margin: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: Colors.white12,
+            color: Colors.grey,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white24),
           ),

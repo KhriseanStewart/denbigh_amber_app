@@ -1,5 +1,6 @@
 import 'package:denbigh_app/users/auth/signin_screen.dart';
 import 'package:denbigh_app/users/auth/signup_screen.dart';
+import 'package:denbigh_app/widgets/misc.dart';
 import 'package:flutter/material.dart';
 
 class FarmerWelcomeScreen extends StatefulWidget {
@@ -23,7 +24,7 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(),
+        decoration: BoxDecoration(color: hexToColor("F4F6F8")),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

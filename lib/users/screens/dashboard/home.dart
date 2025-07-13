@@ -286,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final itemWidth = (screenWidth - 4) / 2;
     final itemHeight = itemWidth * 1.55; // or a fixed ratio
-    final streamList = ProductServices().getProducts();
+    final streamList = ProductService().getProducts();
 
     return StreamBuilder(
       stream: streamList,

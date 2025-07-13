@@ -77,7 +77,7 @@ class SearchScreen extends StatelessWidget {
 
   Widget buildGridViewProducts() {
     return StreamBuilder(
-      stream: ProductServices().getProducts(),
+      stream: ProductService().getProducts(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();

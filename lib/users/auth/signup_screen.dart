@@ -78,8 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-        ),
+        decoration: BoxDecoration(color: hexToColor("F4F6F8")),
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Center(
           child: SingleChildScrollView(
@@ -92,7 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Icon(
                       Icons.agriculture,
                       size: 64,
-                      color: Colors.greenAccent,
+                      color: Colors.green,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -100,7 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Text(
                       "AgriConnect",
                       style: TextStyle(
-                        color: Colors.greenAccent,
+                        color: Colors.green,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
@@ -110,7 +109,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const Center(
                     child: Text(
                       "Create a new account",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -148,7 +147,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             hint: Center(
                               child: Text(
                                 selectedRole ?? "Who are you?",
-                                style: TextStyle(color: Colors.white60),
+                                style: TextStyle(color: Colors.black),
                               ),
                             ),
                             items: [
@@ -216,7 +215,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Create a Password",
                       Icons.lock,
@@ -276,7 +275,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isLoggingIn
                             ? Colors.transparent
-                            : Colors.greenAccent,
+                            : Colors.green.shade800,
                       ),
                       child: isLoggingIn
                           ? CircularProgressIndicator()
@@ -284,8 +283,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               "Sign Up",
                               style: TextStyle(
                                 color: isLoggingIn
-                                    ? Colors.white
-                                    : Colors.black,
+                                    ? Colors.black
+                                    : Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -297,15 +296,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // ⚫ Divider
                   Row(
                     children: const [
-                      Expanded(child: Divider(color: Colors.white24)),
+                      Expanded(child: Divider(color: Colors.black)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           "Or Register With",
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.white24)),
+                      Expanded(child: Divider(color: Colors.black)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -327,7 +326,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         const Text(
                           "Already have an account? ",
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -364,15 +363,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white54),
-      filled: true,
-      fillColor: Colors.white12,
-      prefixIcon: Icon(icon, color: Colors.white54),
+      hintStyle: const TextStyle(color: Colors.black),
+      prefixIcon: Icon(icon, color: Colors.grey),
       suffixIcon: suffix,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
@@ -382,7 +376,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         height: 48,
         margin: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white12,
+          color: Colors.grey,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white24),
         ),

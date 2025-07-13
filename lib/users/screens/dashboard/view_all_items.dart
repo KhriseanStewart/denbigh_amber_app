@@ -18,7 +18,7 @@ class ViewAllItems extends StatelessWidget {
   Widget buildGridViewProducts() {
     return Expanded(
       child: StreamBuilder(
-        stream: ProductServices().getProducts(),
+        stream: ProductService().getProducts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
