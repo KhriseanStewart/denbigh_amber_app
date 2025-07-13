@@ -1,11 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
-class ProductCard extends StatelessWidget {
-  const ProductCard({super.key});
+class ProductCard extends StatefulWidget {
+  final QueryDocumentSnapshot data;
+  const ProductCard({super.key, required this.data});
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  @override
   Widget build(BuildContext context) {
+    final data = widget.data;
+    //function to turn int to string with ,s
+    final numberFromFirebase = data['price']; // Example fetched data
+    final formatter = NumberFormat('#,###');
+    final displayNumber = formatter.format(numberFromFirebase);
+    //
     return Container(
       width: 200,
       decoration: BoxDecoration(
@@ -30,7 +44,7 @@ class ProductCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: Image.network(
                 //TODO: ADD FIRESTORE STORAGE LINK
-                "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
+                data['imageUrl'],
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(Icons.image_not_supported_outlined);
@@ -54,7 +68,7 @@ class ProductCard extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            "Ripe Banana",
+            data['name'],
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
           ),
           SizedBox(height: 4),
@@ -64,16 +78,22 @@ class ProductCard extends StatelessWidget {
               color: Colors.grey.shade400,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text("Legumes", style: TextStyle(fontSize: 14)),
+            child: Text(
+              "${data['category'] ?? 'null'}",
+              style: TextStyle(fontSize: 14),
+            ),
           ),
           SizedBox(height: 8),
           Row(
             children: [
               Text(
-                "\$120.00",
+                "\$$displayNumber",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
-              Text("/per hand", style: TextStyle(color: Colors.black)),
+              Text(
+                "/${data['sizeOpt']}",
+                style: TextStyle(color: Colors.black),
+              ),
               Spacer(),
               //TODO: to be added back probably
               // IconButton(

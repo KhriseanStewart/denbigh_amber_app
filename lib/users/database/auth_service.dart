@@ -42,6 +42,8 @@ class AuthService {
     required String email,
     required String password,
     required String role, // 'customer', 'farmer', or 'admin'
+    required String name,
+    required String location,
   }) async {
     try {
       // 1️⃣ Create the Auth user
@@ -57,6 +59,8 @@ class AuthService {
         'email': email,
         'role': role,
         'createdAt': FieldValue.serverTimestamp(),
+        'name': name,
+        'location': location,
       });
 
       return cred.user;
@@ -105,4 +109,7 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) {
     return _auth.sendPasswordResetEmail(email: email);
   }
+
+  // Get current user
+  User? get currentUser => _auth.currentUser;
 }

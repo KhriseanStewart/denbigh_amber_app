@@ -23,13 +23,7 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.green],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        decoration: const BoxDecoration(),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -66,8 +60,8 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                       width: _currentPage == index ? 20 : 8,
                       decoration: BoxDecoration(
                         color: _currentPage == index
-                            ? Colors.greenAccent
-                            : Colors.grey.shade700,
+                            ? Colors.black
+                            : Colors.grey.shade400,
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -82,14 +76,14 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   "Smarter way to sell crops, manage farm\n& connect with local buyers.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                  style: TextStyle(fontSize: 14, color: Colors.black),
                 ),
 
                 const SizedBox(height: 30),
@@ -107,7 +101,10 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                     backgroundColor: Colors.green.shade800,
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text("Sign in", style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    "Sign in",
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
                 ),
 
                 const SizedBox(height: 12),
@@ -123,7 +120,7 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                     // Navigate to sign in
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
+                    backgroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: const Text(

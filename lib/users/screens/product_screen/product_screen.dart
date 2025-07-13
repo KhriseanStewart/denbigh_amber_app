@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/widgets/misc.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -25,9 +29,21 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
-    final args = ModalRoute.of(context)!.settings.arguments;
+    final args =
+        ModalRoute.of(context)!.settings.arguments as QueryDocumentSnapshot;
     return Scaffold(
-      appBar: AppBar(title: Text("Ripe Banana"), centerTitle: true),
+      backgroundColor: hexToColor("F4F6F8"),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(FeatherIcons.shoppingCart),
+            style: IconButton.styleFrom(backgroundColor: Colors.white24),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -40,21 +56,28 @@ class _ProductScreenState extends State<ProductScreen> {
                     controller: _pageController,
                     itemCount: 1,
                     itemBuilder: (context, index) {
-                      final scale = (1 - (_currentPage - index)).abs().clamp(
-                        0.8,
-                        1.0,
-                      );
-                      return Transform.scale(
-                        scale: scale,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: Image.asset(
-                              '',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                      return SizedBox(
+                        width: double.infinity,
+                        child: Image.network(
+                          args['imageUrl'],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child;
+                            } else {
+                              return Shimmer.fromColors(
+                                baseColor: Colors.grey.shade400,
+                                highlightColor: Colors.grey.shade200,
+                                child: Container(color: Colors.grey),
+                              );
+                            }
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 90,
+                            );
+                          },
                         ),
                       );
                     },
@@ -68,14 +91,14 @@ class _ProductScreenState extends State<ProductScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                           '',
+                            args['name'],
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
-                            "Type: ",
+                            "Type: ${args['category']}",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
@@ -85,7 +108,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        'destination.description',
+                        '',
                         style: TextStyle(fontSize: 16),
                       ),
                       SizedBox(height: 10),

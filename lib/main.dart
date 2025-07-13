@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Denbigh App',
-      initialRoute: AppRouter.login,
+      initialRoute: AppRouter.intro,
       routes: AppRouter.routes,
     );
   }
