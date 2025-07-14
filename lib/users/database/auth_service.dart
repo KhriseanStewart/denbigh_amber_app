@@ -9,13 +9,10 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // Sign in with email and password
-  Future<User?> signInWithEmail(String email, String password) async {
+  Future<bool?> signInWithEmail(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return userCredential.user; // Returns user object if successful
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return true; // Returns user object if successful
     } catch (e) {
       print("Error signing in: $e");
       return null; // Returns null if sign-in fails
@@ -67,6 +64,25 @@ class AuthService {
     } catch (e) {
       print('Error signing up: $e');
       return null;
+    }
+  }
+
+  //Add away to update email later
+  Future<void> updateInformation({
+    required String uid,
+    required String name,
+    required String location,
+    required String telephone,
+  }) async {
+    try {
+      await _db.collection('users').doc(uid).update({
+        'createdAt': FieldValue.serverTimestamp(),
+        'name': name,
+        'location': location,
+        'telephone': telephone,
+      });
+    } catch (e) {
+      print(e);
     }
   }
 

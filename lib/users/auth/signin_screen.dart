@@ -14,27 +14,50 @@ class SignInScreen extends StatefulWidget {
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
-  final _signinkey = GlobalKey<FormState>();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _rememberMe = false;
+final _signinkey = GlobalKey<FormState>();
+final TextEditingController emailController = TextEditingController();
+final TextEditingController passwordController = TextEditingController();
+bool _obscurePassword = true;
+bool _rememberMe = false;
+bool isLoggin = false;
 
+class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     void handleSubmit() async {
+      setState(() {
+        isLoggin = true;
+      });
       if (_signinkey.currentState?.validate() ?? false) {
-        final email = emailController.text;
+        final email = emailController.text.trim();
         final password = passwordController.text;
-        print(_signinkey.currentState!.validate());
+        print(email);
+        print(password);
         try {
-          await AuthService().signInWithEmail(email, password);
-          Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+          final result = await AuthService().signInWithEmail(email, password);
+          if (result == true) {
+            Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+          } else {
+            displaySnackBar(
+              context,
+              "Invalid email or password",
+              backgroundColor: Colors.red,
+            );
+          }
         } on FirebaseAuth catch (e) {
-          displaySnackBar(context, "Error happened: $e");
+          displaySnackBar(
+            context,
+            "Error happened: $e",
+            backgroundColor: Colors.red,
+          );
+          setState(() {
+            isLoggin = false;
+          });
         }
       }
+      setState(() {
+        isLoggin = false;
+      });
     }
 
     void pushSignUp() {
@@ -176,19 +199,21 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                         //loginLogic
-                        handleSubmit();
+                        isLoggin ? null : handleSubmit();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade800,
                       ),
-                      child: const Text(
-                        "Log In",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      child: isLoggin
+                          ? CircularProgressIndicator()
+                          : Text(
+                              "Log In",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 24),

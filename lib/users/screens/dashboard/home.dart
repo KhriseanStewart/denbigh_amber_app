@@ -58,9 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData) {
-          Future.microtask(() {
-            Navigator.pushReplacementNamed(context, AppRouter.login);
-          });
+          return Center(child: Text("data"));
         }
         return buildUserHome(context);
       },
@@ -114,8 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: Colors.green,
               leading: Container(
                 decoration: BoxDecoration(shape: BoxShape.circle),
-                width: 50,
-                height: 100,
                 child: PicCard(),
               ),
               title: Column(

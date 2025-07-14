@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/users/database/cart.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -11,47 +14,9 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final List<Map<String, dynamic>> cartItems = [
-    {
-      'image':
-          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
-      'name': 'banana',
-      'category': 'Legumes',
-      'price': 120.00,
-      'unit': 'per hand',
-      'quantity': 0,
-      'farmerName': ' John',
-    },
-    {
-      //'image': 'assets/banana.webp',
-      'name': 'banana',
-      'category': 'Legumes',
-      'price': 120.00,
-      'unit': 'per hand',
-      'quantity': 0,
-      'farmerName': 'winston',
-    },
-    {
-      'image':
-          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
-      'name': 'banana',
-      'category': 'Legumes',
-      'price': 120.00,
-      'unit': 'per hand',
-      'quantity': 0,
-      'farmerName': 'jones',
-    },
-    {
-      'image':
-          "https://agrilinkages.gov.jm/storage/product/649/image/Screenshot_20250611_123227_Google_1749664701.jpg",
-      'name': 'banana',
-      'category': 'Legumes',
-      'price': 120.00,
-      'unit': 'per hand',
-      'quantity': 0,
-      'farmerName': 'jones janebuebuyhb',
-    },
-  ];
+  Map<String, int> cartQuantities = {};
+
+  final userId = FirebaseAuth.instance.currentUser!.uid;
   //commented no use for loading as yet, changed asset to network so it will load automatically
   // @override
   // void initState() {
@@ -66,10 +31,11 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     // this logic is to be change to suit the cart items from the database
-    double itemCost = cartItems.fold(
-      0.0,
-      (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as num)),
-    );
+    double itemCost = 0;
+    // item.fold(
+    //   0.0,
+    //   (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as num)),
+    // );
     double subTax = itemCost * 0.08;
     double deliveryFee =
         10.0; // This can be dynamic based on location or other factors
@@ -158,203 +124,216 @@ class _CartScreenState extends State<CartScreen> {
           ),
           SizedBox(height: 10),
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(17),
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(17),
-                            child: (item['image'] != null
-                                ? Image.network(
-                                    item['image'],
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress != null) {
-                                            return Shimmer.fromColors(
-                                              baseColor: Colors.grey.shade300,
-                                              highlightColor:
-                                                  Colors.grey.shade100,
-                                              child: Container(
-                                                width: 150,
-                                                height: 150,
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            );
-                                          } else {
-                                            return child;
-                                          }
-                                        },
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              color: Colors.grey.shade200,
-                                              width: 150,
-                                              height: 150,
-                                              child: const Icon(
-                                                Icons.image_not_supported,
-                                                size: 50,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                  )
-                                : Container(
-                                    color: Colors.grey.shade200,
-                                    width: 150,
-                                    height: 150,
-                                    child: const Icon(
-                                      Icons.image_not_supported,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    ),
-                                  )),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item['name'],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 17,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Color(0xffF5F5F5),
-                                  borderRadius: BorderRadius.circular(7),
-                                ),
-                                child: Text(
-                                  item['category'],
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xff828282),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(
-                                    "\$${item['price'].toStringAsFixed(2)}",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "/${item['unit']}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Farmer: ${item['farmerName']}'),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.black54,
-                            ),
-                            onPressed: () {
-                              //logic to remove the item from the cart to add here
-                            },
-                          ),
-                          SizedBox(height: 30),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xffF5F5F5),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.remove,
-                                    color: item['quantity'] == 0
-                                        ? Colors.grey
-                                        : Colors.black,
-                                  ),
-                                  onPressed: item['quantity'] == 0
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            cartItems[index]['quantity']--;
-                                          });
-                                        },
-                                ),
-                                // Show quantity only if quantity >= 1
-                                if (item['quantity'] >= 1)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                    ),
-                                    child: Text(
-                                      '${item['quantity']}',
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                  ),
-                                IconButton(
-                                  icon: Icon(Icons.add),
-                                  onPressed: () {
-                                    setState(() {
-                                      cartItems[index]['quantity']++;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+            child: StreamBuilder(
+              stream: Cart_Service().readCart(userId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData) {
+                  return Center(child: Text("No data found"));
+                }
+                final cartItem = snapshot.data!.docs;
+                for (var doc in cartItem) {
+                  if (!cartQuantities.containsKey(doc.id)) {
+                    cartQuantities[doc.id] = doc['customerQuantity'];
+                  }
+                }
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  itemCount: cartItem.length,
+                  itemBuilder: (context, index) {
+                    final item = cartItem[index];
+                    return buildProductCard(item);
+                  },
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildProductCard(QueryDocumentSnapshot<Object?> item) {
+    final totalPrice = item['price'] * item['customerQuantity'];
+    //int finalQuantity = item['customerQuantity'];
+    final id = item.id;
+    final currentQuantity = cartQuantities[id] ?? item['customerQuantity'];
+    //final totalPriceTwo = item['price'] * currentQuantity;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+      ),
+      margin: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(17),
+                child: (item['imageUrl'] != null
+                    ? Image.network(
+                        item['imageUrl'],
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress != null) {
+                            return Shimmer.fromColors(
+                              baseColor: Colors.grey.shade300,
+                              highlightColor: Colors.grey.shade100,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                color: Colors.grey.shade300,
+                              ),
+                            );
+                          } else {
+                            return child;
+                          }
+                        },
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey.shade200,
+                          width: 150,
+                          height: 150,
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.grey.shade200,
+                        width: 150,
+                        height: 150,
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      )),
+              ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['name'],
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Color(0xffF5F5F5),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(
+                      item['category'],
+                      style: TextStyle(fontSize: 11, color: Color(0xff828282)),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        "\$$totalPrice",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        "/${item['unitType']}",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text('Farmer: Unknown')],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.black54),
+                onPressed: () {
+                  //logic to remove the item from the cart to add here
+                  Cart_Service().removeFromCart(userId, item['productId']);
+                },
+              ),
+              SizedBox(height: 30),
+              Container(
+                decoration: BoxDecoration(
+                  color: Color(0xffF5F5F5),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.remove,
+                        color: item['quantity'] == 0
+                            ? Colors.grey
+                            : Colors.black,
+                      ),
+                      onPressed: item['quantity'] == 0
+                          ? null
+                          : () {
+                              print(currentQuantity);
+                              setState(() {
+                                if (currentQuantity > item['minUnitNum']) {
+                                  cartQuantities[id] = currentQuantity - 1;
+                                } else {
+                                  displaySnackBar(
+                                    context,
+                                    "Cannot go below minimum unit number (${item["minUnitNum"]})",
+                                  );
+                                }
+                              });
+                            },
+                    ),
+                    // Show quantity only if quantity >= 1
+                    if (item['quantity'] >= 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          '$currentQuantity',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: () {
+                        print(currentQuantity);
+                        setState(() {
+                          cartQuantities[id] = currentQuantity + 1;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

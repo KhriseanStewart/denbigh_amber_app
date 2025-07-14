@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../screens/dashboard/home.dart';
 import '../auth/signin_screen.dart';
-import '../auth/signup_screen.dart';
 
 class AuthGate extends StatefulWidget {
   @override

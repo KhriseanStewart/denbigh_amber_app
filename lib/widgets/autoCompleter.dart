@@ -39,7 +39,7 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
             return TextFormField(
               controller: controller,
               focusNode: focusNode,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Enter Location",
                 hintStyle: const TextStyle(color: Colors.black),

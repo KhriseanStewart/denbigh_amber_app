@@ -117,7 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // 👤 Name
                   TextFormField(
                     controller: nameController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Full Name",
                       Icons.person,
@@ -179,7 +179,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: locationController,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.black),
                           decoration: _inputDecoration(
                             "Farmer ID",
                             Icons.verified_user_outlined,
@@ -202,7 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // 📧 Email
                   TextFormField(
                     controller: emailController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Email",
                       Icons.email,
@@ -241,7 +241,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Confirm Password",
                       Icons.lock_outline,
