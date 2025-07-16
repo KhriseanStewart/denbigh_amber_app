@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/users/database/cart.dart';
+import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:denbigh_app/widgets/ExpandedText.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:feather_icons/feather_icons.dart';
@@ -341,7 +343,9 @@ class _ProductScreenState extends State<ProductScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: CustomButtonElevated(
                   btntext: "Add to Cart",
-                  onpress: () {},
+                  onpress: () {
+                    Cart_Service().addToCart(auth!.uid, args, quantity);
+                  },
                   bgcolor: Colors.grey.shade400,
                   textcolor: Colors.black,
                   isBoldtext: true,

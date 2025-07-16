@@ -108,14 +108,14 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 SizedBox(height: 12),
                 Center(
-                  child: CustomButton(
+                  child: CustomButtonElevated(
                     btntext: "Continue to Checkout",
                     onpress: () {
                       displaySnackBar(context, "Checkout soon");
                     },
                     isBoldtext: true,
-                    bgcolor: Colors.grey.shade300,
-                    textcolor: Colors.black,
+                    bgcolor: Colors.green,
+                    textcolor: Colors.white,
                     size: 16,
                   ),
                 ),

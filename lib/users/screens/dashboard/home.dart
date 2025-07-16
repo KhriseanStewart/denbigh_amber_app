@@ -76,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              buildHeader(),
               SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -93,60 +92,77 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSize buildAppBar(BuildContext context) {
     return PreferredSize(
-      preferredSize: Size.fromHeight(kToolbarHeight),
-      child: FutureBuilder(
-        future: userData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData) {
-            return Text("No document");
-          }
-          final data = snapshot.data;
-          return Container(
-            decoration: BoxDecoration(color: Colors.green),
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            child: AppBar(
-              titleSpacing: 10,
-              backgroundColor: Colors.green,
-              leading: Container(
-                decoration: BoxDecoration(shape: BoxShape.circle),
-                child: PicCard(),
-              ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Welcome",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  Text(
-                    data!['name'] ?? 'user',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRouter.notificationscreen);
-                  },
-                  icon: Icon(FeatherIcons.bell, color: Colors.black),
-                  style: IconButton.styleFrom(backgroundColor: Colors.white),
-                ),
-              ],
+      preferredSize: Size.fromHeight(150),
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3), // adjust opacity here
+              BlendMode.darken, // or use BlendMode.srcOver
             ),
-          );
-        },
+            fit: BoxFit.cover,
+            image: AssetImage('assets/images/header_background_dashboard.jpeg'),
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            FutureBuilder(
+              future: userData,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData) {
+                  return Text("No document");
+                }
+                final data = snapshot.data;
+                return AppBar(
+                  backgroundColor:
+                      Colors.transparent, // make AppBar transparent
+                  titleSpacing: 10,
+                  leading: Container(
+                    decoration: BoxDecoration(shape: BoxShape.circle),
+                    child: PicCard(),
+                  ),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      Text(
+                        data!['name'] ?? 'user',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRouter.notificationscreen,
+                        );
+                      },
+                      icon: Icon(FeatherIcons.bell, color: Colors.black),
+                    ),
+                  ],
+                );
+              },
+            ),
+            buildHeader(),
+          ],
+        ),
       ),
     );
   }
@@ -335,7 +351,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Scaffold.of(context).openEndDrawer();
             },
-            icon: Icon(FeatherIcons.sliders, size: 28),
+            icon: Row(
+              spacing: 6,
+              children: [Icon(Icons.filter_list, size: 28), Text('Filter')],
+            ),
             style: IconButton.styleFrom(backgroundColor: Colors.white),
           ),
         ),
@@ -343,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () {
             Navigator.pushNamed(context, AppRouter.viewallitem);
           },
-          child: Text("View All"),
+          child: Text("View All", style: TextStyle(color: Colors.black)),
         ),
       ],
     );
@@ -352,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildHeader() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.green,
+        color: Colors.transparent,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
       ),
       padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
