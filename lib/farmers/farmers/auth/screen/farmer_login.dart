@@ -1,27 +1,31 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:denbigh_app/farmers/farmers/auth/authentification/auth.dart';
+import 'package:denbigh_app/farmers/farmers/screens/dashboard.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
+import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class FarmerLogin extends StatefulWidget {
+  const FarmerLogin({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<FarmerLogin> createState() => _FarmerLoginState();
 }
 
 bool _obscurePassword = true;
 bool _rememberMe = false;
 bool isLoggin = false;
 
-class _SignInScreenState extends State<SignInScreen> {
+class _FarmerLoginState extends State<FarmerLogin> {
   final _signinkey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController radaNumController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +36,28 @@ class _SignInScreenState extends State<SignInScreen> {
       if (_signinkey.currentState?.validate() ?? false) {
         final email = emailController.text.trim();
         final password = passwordController.text;
-        print(email);
-        print(password);
+        final radaNum = radaNumController.text;
         try {
-          final result = await AuthService().signInWithEmail(email, password);
+          final result = await FarmerAuthService().logInWithEmail(
+            email,
+            password,
+          );
+          final currentUser = FirebaseAuth.instance.currentUser;
+
           if (result == true) {
-            Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+            final uid = await FirebaseAuth.instance.currentUser!.uid;
+            final radaResult = await FarmerAuthService().checkRadaId(
+              uid,
+              radaNum,
+            );
+            if (radaResult == true) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => DashboardScreen()),
+              );
+            } else {
+              displaySnackBar(context, "Incorrect RADA ID doesnt work");
+            }
           } else {
             displaySnackBar(
               context,
@@ -45,10 +65,10 @@ class _SignInScreenState extends State<SignInScreen> {
               backgroundColor: Colors.red,
             );
           }
-        } on FirebaseAuth catch (e) {
+        } on FirebaseAuthException catch (e) {
           displaySnackBar(
             context,
-            "Error happened: $e",
+            "Error happened: ${e.message}",
             backgroundColor: Colors.red,
           );
           setState(() {
@@ -62,7 +82,7 @@ class _SignInScreenState extends State<SignInScreen> {
     }
 
     void pushSignUp() {
-      Navigator.pushReplacementNamed(context, AppRouter.signUp);
+      Navigator.pushReplacementNamed(context, AppRouter.farmersignup);
     }
 
     void pushForgetPassword() async {
@@ -74,8 +94,8 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     }
 
-    void pushFarmerLogin() {
-      Navigator.pushNamed(context, AppRouter.farmerlogin);
+    void pushUserLogin() {
+      Navigator.pushNamed(context, AppRouter.login);
     }
 
     return Scaffold(
@@ -99,7 +119,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 10),
                   const Center(
                     child: Text(
-                      "AgriConnect",
+                      "AgriConnect - Farmer",
                       style: TextStyle(
                         color: Colors.green,
                         fontSize: 28,
@@ -159,6 +179,32 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     validator: passwordValidator,
                   ),
+                  const SizedBox(height: 8),
+
+                  TextFormField(
+                    controller: radaNumController,
+                    obscureText: _obscurePassword,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: _inputDecoration(
+                      "Enter Your RADA ID",
+                      Icons.lock,
+                      suffix: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.white54,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: validateNotEmpty,
+                  ),
+
                   const SizedBox(height: 8),
 
                   // 🔘 Remember me & Forgot Password
@@ -255,7 +301,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          "Don't have an account? ",
+                          "Don't have a Farmer account? ",
                           style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
@@ -280,13 +326,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          "Log in as Farmer? ",
+                          "Log in as User? ",
                           style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
                             // Navigate to Sign Up
-                            pushFarmerLogin();
+                            pushUserLogin();
                           },
                           child: const Text(
                             "Log in",

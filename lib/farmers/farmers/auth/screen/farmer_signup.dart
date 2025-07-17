@@ -1,27 +1,36 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:denbigh_app/farmers/farmers/auth/authentification/auth.dart';
+import 'package:denbigh_app/farmers/farmers/auth/screen/farmer_login.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
+import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
+import 'package:denbigh_app/widgets/autoCompleter.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class FarmerSignUp extends StatefulWidget {
+  const FarmerSignUp({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<FarmerSignUp> createState() => _FarmerSignUpState();
 }
 
 bool _obscurePassword = true;
+bool _obscureId = true;
 bool _rememberMe = false;
 bool isLoggin = false;
 
-class _SignInScreenState extends State<SignInScreen> {
+class _FarmerSignUpState extends State<FarmerSignUp> {
+  String? location;
   final _signinkey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController radaNumberController = TextEditingController();
+  final TextEditingController authpasswordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,28 +41,50 @@ class _SignInScreenState extends State<SignInScreen> {
       if (_signinkey.currentState?.validate() ?? false) {
         final email = emailController.text.trim();
         final password = passwordController.text;
-        print(email);
-        print(password);
-        try {
-          final result = await AuthService().signInWithEmail(email, password);
-          if (result == true) {
-            Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
-          } else {
+        final radaNum = radaNumberController.text;
+        final authpassword = authpasswordController.text;
+        final name = nameController.text;
+        if (password == authpassword) {
+          try {
+            final result = await FarmerAuthService().signUpWithEmail(
+              email,
+              password,
+            );
+            if (result == true) {
+              final dataResult = await FarmerAuthService().setUpdateFarmerData(
+                auth!.uid,
+                name,
+                location ?? '',
+                radaNum,
+              );
+              if (dataResult == true) {
+                //TODO: add farmer mainLayout
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => FarmerLogin()),
+                );
+              } else {
+                displaySnackBar(context, "Something went wrong");
+              }
+            } else {
+              displaySnackBar(
+                context,
+                "Invalid email or password",
+                backgroundColor: Colors.red,
+              );
+            }
+          } on FirebaseAuth catch (e) {
             displaySnackBar(
               context,
-              "Invalid email or password",
+              "Error happened: $e",
               backgroundColor: Colors.red,
             );
+            setState(() {
+              isLoggin = false;
+            });
           }
-        } on FirebaseAuth catch (e) {
-          displaySnackBar(
-            context,
-            "Error happened: $e",
-            backgroundColor: Colors.red,
-          );
-          setState(() {
-            isLoggin = false;
-          });
+        } else {
+          displaySnackBar(context, "Passwords incorrect");
         }
       }
       setState(() {
@@ -61,8 +92,8 @@ class _SignInScreenState extends State<SignInScreen> {
       });
     }
 
-    void pushSignUp() {
-      Navigator.pushReplacementNamed(context, AppRouter.signUp);
+    void pushFarmerLogIn() {
+      Navigator.pushReplacementNamed(context, AppRouter.farmerlogin);
     }
 
     void pushForgetPassword() async {
@@ -74,8 +105,8 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     }
 
-    void pushFarmerLogin() {
-      Navigator.pushNamed(context, AppRouter.farmerlogin);
+    void pushUserLogin() {
+      Navigator.pushNamed(context, AppRouter.login);
     }
 
     return Scaffold(
@@ -99,7 +130,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 10),
                   const Center(
                     child: Text(
-                      "AgriConnect",
+                      "AgriConnect - Farmer",
                       style: TextStyle(
                         color: Colors.green,
                         fontSize: 28,
@@ -110,18 +141,31 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 8),
                   const Center(
                     child: Text(
-                      "Sign in to your account",
+                      "Create Farmer Account",
                       style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Center(
                     child: Text(
-                      "Welcome back! Select method to log in",
+                      "Welcome to AgriConnect - Enjoy your stay",
                       style: TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 32),
+
+                  // 📧 Name Field
+                  TextFormField(
+                    controller: nameController,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: _inputDecoration(
+                      "Enter Your Name",
+                      Icons.person,
+                    ),
+                    validator: validateNotEmpty,
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // 📧 Email Field
                   TextFormField(
@@ -133,7 +177,46 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     validator: emailValidator,
                   ),
+
                   const SizedBox(height: 16),
+
+                  Row(
+                    spacing: 10,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: radaNumberController,
+                          obscureText: _obscureId,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: _inputDecoration(
+                            "RADA ID Number",
+                            Icons.lock,
+                            suffix: IconButton(
+                              icon: Icon(
+                                _obscureId
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: Colors.black,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureId = !_obscureId;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: validateNotEmpty,
+                        ),
+                      ),
+                      Expanded(
+                        child: //Location
+                        LocationAutoComplete(
+                          onCategorySelected: (p0) {},
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
 
                   // 🔒 Password Field
                   TextFormField(
@@ -142,13 +225,13 @@ class _SignInScreenState extends State<SignInScreen> {
                     style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Password",
-                      Icons.lock,
+                      Icons.password,
                       suffix: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white54,
+                          color: Colors.black,
                         ),
                         onPressed: () {
                           setState(() {
@@ -160,7 +243,19 @@ class _SignInScreenState extends State<SignInScreen> {
                     validator: passwordValidator,
                   ),
                   const SizedBox(height: 8),
-
+                  // 🔒 Password Field
+                  TextFormField(
+                    controller: authpasswordController,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: _inputDecoration(
+                      "Confirm Password",
+                      Icons.lock,
+                      suffix: Icon(Icons.visibility_off, color: Colors.black),
+                    ),
+                    validator: passwordValidator,
+                  ),
+                  const SizedBox(height: 8),
                   // 🔘 Remember me & Forgot Password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -212,7 +307,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       child: isLoggin
                           ? CircularProgressIndicator()
                           : Text(
-                              "Log In",
+                              "Sign Up",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -255,13 +350,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          "Don't have an account? ",
+                          "Don't have a Farmer account? ",
                           style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
                             // Navigate to Sign Up
-                            pushSignUp();
+                            pushFarmerLogIn();
                           },
                           child: const Text(
                             "Sign up",
@@ -280,13 +375,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          "Log in as Farmer? ",
+                          "Log in as User? ",
                           style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
                             // Navigate to Sign Up
-                            pushFarmerLogin();
+                            pushUserLogin();
                           },
                           child: const Text(
                             "Log in",
