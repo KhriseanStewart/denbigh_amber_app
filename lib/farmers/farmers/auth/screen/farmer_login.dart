@@ -177,7 +177,7 @@ class _FarmerLoginState extends State<FarmerLogin> {
                         },
                       ),
                     ),
-                    validator: passwordValidator,
+                    validator: validateNotEmpty,
                   ),
                   const SizedBox(height: 8),
 

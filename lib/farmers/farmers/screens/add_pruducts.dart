@@ -8,7 +8,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import 'package:provider/provider.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -28,17 +27,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _minSaleAmountController =
       TextEditingController();
   final TextEditingController _stockController = TextEditingController();
-  String _name = '';
+
   String? _category;
-  String _description = '';
   String? _unit;
-  int _stock = 0;
-  String _minSaleAmount = '';
-  double _price = 0;
   String? _imageUrl;
+  File? _imageFile; // New: To hold the selected image file locally
+
   bool _loading = false;
-  bool _uploadingImage = false;
-  bool _allFieldsFilled = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -46,168 +41,136 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.initState();
     final p = widget.product;
     if (p != null) {
-      _name = p.name;
-      _category = p.category.isNotEmpty ? p.category.first : null;
-      _description = p.description;
-      _unit = p.unit.isNotEmpty ? p.unit.first : null;
-      _stock = p.stock;
-      _minSaleAmount = p.minSaleAmount;
-      _price = p.price;
-      _imageUrl = p.imageUrl;
-
-      _nameController.text = _name;
-      _descriptionController.text = _description;
-      _priceController.text = _price == 0 ? '' : _price.toString();
-      _minSaleAmountController.text = _minSaleAmount == '0'
+      // Pre-fill fields if editing an existing product
+      _nameController.text = p.name;
+      _descriptionController.text = p.description;
+      _priceController.text = p.price == 0 ? '' : p.price.toString();
+      _minSaleAmountController.text = p.minSaleAmount == '0'
           ? ''
-          : _minSaleAmount;
-      _stockController.text = _stock == 0 ? '' : _stock.toString();
-    }
-    _nameController.addListener(_checkAllFieldsFilled);
-    _descriptionController.addListener(_checkAllFieldsFilled);
-    _priceController.addListener(_checkAllFieldsFilled);
-    _minSaleAmountController.addListener(_checkAllFieldsFilled);
-    _stockController.addListener(_checkAllFieldsFilled);
-  }
-
-  void _checkAllFieldsFilled() {
-    final bool filled =
-        _nameController.text.trim().isNotEmpty &&
-        _descriptionController.text.trim().isNotEmpty &&
-        _priceController.text.trim().isNotEmpty &&
-        double.tryParse(_priceController.text.trim()) != null &&
-        _minSaleAmountController.text.trim().isNotEmpty &&
-        int.tryParse(_minSaleAmountController.text.trim()) != null &&
-        _stockController.text.trim().isNotEmpty &&
-        int.tryParse(_stockController.text.trim()) != null &&
-        _category != null &&
-        _category!.isNotEmpty &&
-        _unit != null &&
-        _unit!.isNotEmpty;
-    if (filled != _allFieldsFilled) {
-      setState(() {
-        _allFieldsFilled = filled;
-      });
+          : p.minSaleAmount;
+      _stockController.text = p.stock == 0 ? '' : p.stock.toString();
+      _category = p.category.isNotEmpty ? p.category.first : null;
+      _unit = p.unit.isNotEmpty ? p.unit.first : null;
+      _imageUrl = p.imageUrl;
     }
   }
 
-  Future<void> _pickAndUploadImage() async {
-    // Ask to choose the photo source
+  /// New: This function now only picks an image and stores it locally.
+  /// The upload happens when the user presses "Save".
+  Future<void> _pickImage() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => Container(
-        height: 200,
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo_camera),
-              title: Text('Camera'),
-              onTap: () => Navigator.of(context).pop(ImageSource.camera),
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('Gallery'),
-              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
-            ),
-          ],
-        ),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.photo_camera),
+            title: Text('Camera'),
+            onTap: () => Navigator.of(context).pop(ImageSource.camera),
+          ),
+          ListTile(
+            leading: Icon(Icons.photo_library),
+            title: Text('Gallery'),
+            onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+          ),
+        ],
       ),
     );
 
     if (source == null) return;
 
-    final picked = await _picker.pickImage(source: source, imageQuality: 80);
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 80,
+    );
 
-    if (picked == null) return;
-
-    setState(() => _uploadingImage = true);
-
-    try {
-      final productId = widget.productId;
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('product_pictures')
-          .child(productId);
-      final uploadTask = storageRef.putFile(File(picked.path));
-      final snapshot = await uploadTask;
-
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .update({'imageUrl': downloadUrl});
-
+    if (pickedFile != null) {
       setState(() {
-        _imageUrl = downloadUrl;
+        _imageFile = File(pickedFile.path);
       });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Item picture uploaded!')));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
-    } finally {
-      setState(() => _uploadingImage = false);
     }
   }
 
+  /// New: This function now handles everything: image upload and saving all data.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() ||
         _category == null ||
         _unit == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields.')),
+      );
       return;
     }
-    _formKey.currentState!.save();
-
-    _name = _nameController.text.trim();
-    _description = _descriptionController.text.trim();
-    _price = double.tryParse(_priceController.text) ?? 0;
-    _minSaleAmount = _minSaleAmountController.text.trim();
-    _stock = int.tryParse(_stockController.text) ?? 0;
 
     setState(() => _loading = true);
 
-    final userId = Provider.of<AuthService>(context, listen: false).farmer!.id;
+    String? finalImageUrl = _imageUrl; // Start with the existing image URL
 
+    // Step 1: Upload the new image if one was picked
+    if (_imageFile != null) {
+      try {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('product_images')
+            .child('${widget.productId}.jpg'); // Use product ID for unique name
+
+        final uploadTask = storageRef.putFile(_imageFile!);
+        final snapshot = await uploadTask;
+        finalImageUrl = await snapshot.ref
+            .getDownloadURL(); // Get the public URL
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Image upload failed: $e')));
+        setState(() => _loading = false);
+        return;
+      }
+    }
+
+    // Step 2: Gather all data and save to Firestore
     try {
+      final userId = Provider.of<AuthService>(
+        context,
+        listen: false,
+      ).farmer!.id;
+      final productData = {
+        'productId': widget.productId,
+        'farmerId': userId,
+        'name': _nameController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'category': _category, // Save as a single string
+        'price': double.tryParse(_priceController.text.trim()) ?? 0,
+        'unitType': _unit, // Save as 'unitType' for consistency
+        'stock': int.tryParse(_stockController.text.trim()) ?? 0,
+        'minSaleAmount': _minSaleAmountController.text.trim(),
+        'imageUrl': finalImageUrl ?? '', // Use the final URL
+        'updatedAt': FieldValue.serverTimestamp(),
+        'createdAt': widget.product == null
+            ? FieldValue.serverTimestamp()
+            : widget.product!.createdAt,
+      };
+
+      // Use .set with merge:true to create or update the document
       await FirebaseFirestore.instance
           .collection('products')
           .doc(widget.productId)
-          .update({
-            'productId': widget.productId,
-            'farmerId': userId,
-            'name': _name,
-            'description': _description,
-            'category': [_category!],
-            'price': _price,
-            'unit': [_unit!],
-            'stock': _stock,
-            'minSaleAmount': _minSaleAmount,
-            'imageUrl': _imageUrl ?? '',
-            'createdAt': Timestamp.now(),
-          });
+          .set(productData, SetOptions(merge: true));
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Product info Added!')));
+      ).showSnackBar(SnackBar(content: Text('Product saved successfully!')));
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error saving product: $e')));
+    } finally {
       setState(() => _loading = false);
     }
   }
 
   @override
   void dispose() {
-    _nameController.removeListener(_checkAllFieldsFilled);
-    _descriptionController.removeListener(_checkAllFieldsFilled);
-    _priceController.removeListener(_checkAllFieldsFilled);
-    _minSaleAmountController.removeListener(_checkAllFieldsFilled);
-    _stockController.removeListener(_checkAllFieldsFilled);
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
@@ -220,244 +183,160 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_name.isEmpty ? 'Add New Product' : 'Edit Product'),
+        title: Text(
+          widget.product == null ? 'Add New Product' : 'Edit Product',
+        ),
       ),
-      body: ListView(
-        children: [
-          // Image at the top (not stretched)
-          if (_imageUrl != null && _imageUrl!.isNotEmpty)
-            ProductImageDisplay(
-              imageUrl: _imageUrl!,
-              height: 300,
-              borderRadius: 12,
-            ),
-          Center(
-            child: SizedBox(
-              width: 540,
-              child: Card(
-                margin: EdgeInsets.all(24),
-                child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: ClampingScrollPhysics(),
-                      children: [
-                        CustomTextFormField(
-                          controller: _nameController,
-                          inputType: TextInputType.text,
-                          label: 'Product Name *',
-                          hintText: 'e.g., Fresh Tomatoes',
-                          underlineborder: true,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Required' : null,
-                          onSaved: (v) {},
-                        ),
-                        SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _category,
-                          items: categories
-                              .map(
-                                (cat) => DropdownMenuItem(
-                                  value: cat,
-                                  child: Text(cat),
-                                ),
-                              )
-                              .toList(),
-                          decoration: InputDecoration(
-                            labelText: 'Category *',
-                            border: UnderlineInputBorder(),
-                          ),
-                          validator: (v) =>
-                              v == null || v.isEmpty ? 'Required' : null,
-                          onChanged: (v) {
-                            setState(() => _category = v);
-                            _checkAllFieldsFilled();
-                          },
-                          onSaved: (v) => _category = v,
-                        ),
-                        SizedBox(height: 16),
-                        CustomTextFormField(
-                          controller: _descriptionController,
-                          inputType: TextInputType.multiline,
-                          underlineborder: true,
-                          label: 'Description',
-                          hintText: 'Describe your product...',
-                          maxLines: 2,
-                          onSaved: (v) {},
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomTextFormField(
-                                hintText: 'e.g., 200',
-                                underlineborder: true,
-                                controller: _priceController,
-                                label: 'Price *',
-                                inputType: TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                validator: (v) =>
-                                    v == null || double.tryParse(v) == null
-                                    ? 'Required'
-                                    : null,
-                                onSaved: (v) {},
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _unit,
-                                items: units
-                                    .map(
-                                      (unit) => DropdownMenuItem(
-                                        value: unit,
-                                        child: Text(unit),
-                                      ),
-                                    )
-                                    .toList(),
-                                decoration: InputDecoration(
-                                  labelText: 'Unit *',
-                                  border: UnderlineInputBorder(),
-                                ),
-                                validator: (v) =>
-                                    v == null || v.isEmpty ? 'Required' : null,
-                                onChanged: (v) {
-                                  setState(() => _unit = v);
-                                  _checkAllFieldsFilled();
-                                },
-                                onSaved: (v) => _unit = v,
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: CustomTextFormField(
-                                underlineborder: true,
-                                hintText: 'e.g., 100',
-                                controller: _stockController,
-                                label: 'Stock Quantity',
-                                inputType: TextInputType.number,
-                                validator: (v) =>
-                                    v == null || int.tryParse(v) == null
-                                    ? 'Required'
-                                    : null,
-                                onSaved: (v) {},
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        CustomTextFormField(
-                          underlineborder: true,
-                          controller: _minSaleAmountController,
-                          label: 'Minimum Sale Amount *',
-                          hintText: 'e.g., 100 , ',
-                          inputType: TextInputType.text,
-                          validator: (v) => v == null || int.tryParse(v) == null
-                              ? 'Required'
-                              : null,
-                          onSaved: (v) {},
-                        ),
-                        SizedBox(height: 24),
-                        // Only show Add/Change Image Button if all fields are filled
-                        if (_allFieldsFilled)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: _uploadingImage
-                                  ? null
-                                  : _pickAndUploadImage,
-                              icon: _uploadingImage
-                                  ? SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Icon(Icons.upload),
-                              label: Text(
-                                _imageUrl != null && _imageUrl!.isNotEmpty
-                                    ? 'Change Item Picture'
-                                    : 'Add Item Picture',
-                              ),
-                            ),
-                          ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                onPressed:
-                                    _loading ||
-                                        _category == null ||
-                                        categories.isEmpty ||
-                                        _unit == null ||
-                                        units.isEmpty
-                                    ? null
-                                    : _submit,
-                                child: _loading
-                                    ? SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        _name.isEmpty
-                                            ? 'Save Product Info'
-                                            : 'Save Changes',
-                                      ),
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: _loading
-                                    ? null
-                                    : () async {
-                                        // this part is for deleting the product
-                                        if (widget.product == null) {
-                                          await FirebaseFirestore.instance
-                                              .collection('products')
-                                              .doc(widget.productId)
-                                              .delete();
-                                        }
-                                        Navigator.of(
-                                          context,
-                                        ).pop(); // Navigate back in both cases
-                                      },
-                                child: Text('Cancel'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // --- New: Image display logic ---
+              // Show the newly picked image, or the existing one, or a placeholder
+              InkWell(
+                onTap: _pickImage,
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.grey.shade200,
                   ),
+                  child: _imageFile != null
+                      ? Image.file(_imageFile!, fit: BoxFit.cover)
+                      : (_imageUrl != null && _imageUrl!.isNotEmpty
+                            ? Image.network(_imageUrl!, fit: BoxFit.cover)
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_a_photo,
+                                    size: 40,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text('Add Product Image'),
+                                ],
+                              )),
                 ),
               ),
-            ),
+              SizedBox(height: 24),
+
+              // Your TextFields and Dropdowns remain here...
+              // (The following is a condensed version of your form fields for brevity)
+              CustomTextFormField(
+                controller: _nameController,
+                label: 'Product Name *',
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Required' : null,
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _category,
+                items: categories
+                    .map(
+                      (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                    )
+                    .toList(),
+                decoration: InputDecoration(
+                  labelText: 'Category *',
+                  border: UnderlineInputBorder(),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                onChanged: (v) => setState(() => _category = v),
+              ),
+              SizedBox(height: 16),
+              CustomTextFormField(
+                controller: _descriptionController,
+                label: 'Description',
+                maxLines: 2,
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextFormField(
+                      controller: _priceController,
+                      label: 'Price *',
+                      inputType: TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) => v == null || double.tryParse(v) == null
+                          ? 'Required'
+                          : null,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _unit,
+                      items: units
+                          .map(
+                            (u) => DropdownMenuItem(value: u, child: Text(u)),
+                          )
+                          .toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Unit *',
+                        border: UnderlineInputBorder(),
+                      ),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required' : null,
+                      onChanged: (v) => setState(() => _unit = v),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              CustomTextFormField(
+                controller: _stockController,
+                label: 'Stock Quantity *',
+                inputType: TextInputType.number,
+                validator: (v) =>
+                    v == null || int.tryParse(v) == null ? 'Required' : null,
+              ),
+              SizedBox(height: 16),
+              CustomTextFormField(
+                controller: _minSaleAmountController,
+                label: 'Minimum Sale Amount *',
+                inputType: TextInputType.number,
+                validator: (v) =>
+                    v == null || int.tryParse(v) == null ? 'Required' : null,
+              ),
+              SizedBox(height: 32),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        widget.product == null
+                            ? 'Save Product'
+                            : 'Save Changes',
+                      ),
+              ),
+              SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: _loading ? null : () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

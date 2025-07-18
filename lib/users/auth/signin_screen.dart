@@ -157,7 +157,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                       ),
                     ),
-                    validator: passwordValidator,
+                    validator: validateNotEmpty,
                   ),
                   const SizedBox(height: 8),
 
