@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/cart.dart';
+import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,8 +16,36 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   Map<String, int> cartQuantities = {};
+  bool _isProcessingOrder = false;
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
+
+  /// Handle checkout process
+  Future<void> _handleCheckout() async {
+    if (_isProcessingOrder) return;
+
+    setState(() {
+      _isProcessingOrder = true;
+    });
+
+    try {
+      final success = await OrderService().createOrderFromCart(userId);
+
+      if (success) {
+        displaySnackBar(context, "Order placed successfully!");
+        // Optionally navigate to order confirmation screen
+        // Navigator.pushNamed(context, AppRouter.orderConfirmation);
+      } else {
+        displaySnackBar(context, "Failed to place order. Please try again.");
+      }
+    } catch (e) {
+      displaySnackBar(context, "Error: ${e.toString()}");
+    } finally {
+      setState(() {
+        _isProcessingOrder = false;
+      });
+    }
+  }
   //commented no use for loading as yet, changed asset to network so it will load automatically
   // @override
   // void initState() {
@@ -109,12 +138,12 @@ class _CartScreenState extends State<CartScreen> {
                 SizedBox(height: 12),
                 Center(
                   child: CustomButtonElevated(
-                    btntext: "Continue to Checkout",
-                    onpress: () {
-                      displaySnackBar(context, "Checkout soon");
-                    },
+                    btntext: _isProcessingOrder
+                        ? "Processing..."
+                        : "Continue to Checkout",
+                    onpress: _isProcessingOrder ? null : _handleCheckout,
                     isBoldtext: true,
-                    bgcolor: Colors.green,
+                    bgcolor: _isProcessingOrder ? Colors.grey : Colors.green,
                     textcolor: Colors.white,
                     size: 16,
                   ),
@@ -265,7 +294,46 @@ class _CartScreenState extends State<CartScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text('Farmer: Unknown')],
+                      children: [
+                        FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('farmers')
+                              .doc(item['farmerId'])
+                              .get(),
+                          builder: (context, farmerSnapshot) {
+                            String farmerName = 'Unknown Farmer';
+                            if (farmerSnapshot.hasData &&
+                                farmerSnapshot.data!.exists) {
+                              final farmerData =
+                                  farmerSnapshot.data!.data()
+                                      as Map<String, dynamic>?;
+                              farmerName =
+                                  farmerData?['name'] ??
+                                  farmerData?['firstName'] ??
+                                  'Unknown Farmer';
+                            }
+
+                            return Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade100,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Farmer: $farmerName',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],

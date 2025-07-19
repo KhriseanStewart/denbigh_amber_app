@@ -27,7 +27,7 @@ class ProductService {
     required num quantity,
     required String unitType,
     required String location,
-    required String sellerId,
+    required String farmerId,
     List<String>? imageUrl,
   }) {
     final data = {
@@ -39,7 +39,7 @@ class ProductService {
       'quantity': quantity,
       'unitType': unitType,
       'location': location,
-      'sellerId': sellerId,
+      'farmerId': farmerId,
       'imageUrls': imageUrl ?? [],
       'isActive': true,
       'createdAt': FieldValue.serverTimestamp(),
@@ -97,10 +97,10 @@ class ProductService {
     });
   }
 
-  /// List all products for a given seller (farmer)
-  Stream<QuerySnapshot> streamProductsBySeller(String sellerId) {
+  /// List all products for a given farmer
+  Stream<QuerySnapshot> streamProductsByFarmer(String farmerId) {
     return _col
-        .where('sellerId', isEqualTo: sellerId)
+        .where('farmerId', isEqualTo: farmerId)
         .where('isActive', isEqualTo: true)
         .orderBy('createdAt', descending: true)
         .snapshots();

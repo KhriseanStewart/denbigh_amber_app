@@ -58,6 +58,9 @@ class ProfileScreen extends StatelessWidget {
             _profileContainer('Account Information', () {
               Navigator.pushNamed(context, AppRouter.accountInformation);
             }),
+            _profileContainer('My Orders', () {
+              Navigator.pushNamed(context, AppRouter.userorders);
+            }),
             _profileContainer('Card Information', () {
               Navigator.pushNamed(context, AppRouter.card);
             }),

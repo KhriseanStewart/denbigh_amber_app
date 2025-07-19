@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:denbigh_app/farmers/farmers/model/products.dart';
-import 'package:denbigh_app/farmers/farmers/model/sales.dart';
-import 'package:denbigh_app/farmers/farmers/screens/add_pruducts.dart';
-import 'package:denbigh_app/farmers/farmers/services/sales_order.services.dart';
+import 'package:denbigh_app/farmers/model/products.dart';
+import 'package:denbigh_app/farmers/model/sales.dart';
+import 'package:denbigh_app/farmers/screens/add_pruducts.dart';
+import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
+import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -80,8 +82,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   Future<void> _editProduct() async {
     final updatedProduct = await Navigator.of(context).push<Product>(
       MaterialPageRoute(
-        builder: (_) =>
-            AddProductScreen(productId: _product.productId, product: _product),
+        builder: (_) => ChangeNotifierProvider<farmer_auth.AuthService>.value(
+          value: Provider.of<farmer_auth.AuthService>(context, listen: false),
+          child: AddProductScreen(
+            productId: _product.productId,
+            product: _product,
+          ),
+        ),
       ),
     );
     if (updatedProduct != null) {

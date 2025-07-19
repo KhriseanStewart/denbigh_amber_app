@@ -1,6 +1,6 @@
+import 'package:denbigh_app/farmers/model/products.dart';
+import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:flutter/material.dart';
-import 'package:denbigh_app/farmers/farmers/model/products.dart';
-import 'package:denbigh_app/farmers/farmers/widgets/used_list/list.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -8,7 +8,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onTap;
 
- const ProductCard({
+  const ProductCard({
     super.key,
     required this.product,
     required this.onEdit,
@@ -18,7 +18,19 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if stock is low (at or below minimum sales amount)
+    final minSaleAmount = int.tryParse(product.minSaleAmount) ?? 0;
+    final isLowStock = product.stock <= minSaleAmount && minSaleAmount > 0;
+
     return Card(
+      color: isLowStock ? Colors.red.shade50 : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: isLowStock ? Colors.red : Colors.transparent,
+          width: isLowStock ? 2 : 0,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -85,7 +97,24 @@ class ProductCard extends StatelessWidget {
                     SizedBox(height: 6),
                     Row(
                       children: [
-                        Text('Stock: ${product.stock} ${product.unit.first}'), 
+                        // Display stock with red color if low stock
+                        Row(
+                          children: [
+                            Text(
+                              'Stock: ${product.stock} ${product.unit.first}',
+                              style: TextStyle(
+                                color: isLowStock ? Colors.red : null,
+                                fontWeight: isLowStock
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            if (isLowStock) ...[
+                              SizedBox(width: 4),
+                              Icon(Icons.warning, color: Colors.red, size: 16),
+                            ],
+                          ],
+                        ),
                         SizedBox(width: 14),
                         Row(
                           children: [
@@ -96,7 +125,9 @@ class ProductCard extends StatelessWidget {
                             ) ...[
                               Chip(
                                 label: Text(product.category[i]),
-                                backgroundColor: categoryColors[product.category[i]] ?? Colors.grey.shade100,
+                                backgroundColor:
+                                    categoryColors[product.category[i]] ??
+                                    Colors.grey.shade100,
                               ),
                               if (i != product.category.length - 1)
                                 SizedBox(width: 4), // space between chips

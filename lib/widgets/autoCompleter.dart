@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 class LocationAutoComplete extends StatefulWidget {
   final Function(String?) onCategorySelected;
-
-  const LocationAutoComplete({Key? key, required this.onCategorySelected})
+  final bool? underlineBorder;
+  const LocationAutoComplete({Key? key, required this.onCategorySelected, this.underlineBorder})
     : super(key: key);
 
   @override
@@ -47,6 +47,11 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                enabledBorder: widget.underlineBorder == true
+                    ? UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      )
+                    : null, 
               ),
               validator: validateNotEmpty,
             );

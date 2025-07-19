@@ -1,5 +1,6 @@
+import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/product_services.dart';
-import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:flutter/material.dart';
 
@@ -40,9 +41,13 @@ class ViewAllItems extends StatelessWidget {
                 final data = productdata[index];
                 return GestureDetector(
                   onTap: () {
-                    //TODO: push to detail page
+                    Navigator.pushNamed(
+                      context,
+                      AppRouter.productdetail,
+                      arguments: data,
+                    );
                   },
-                  child: ProductCard(data: data),
+                  child: UserProductCard(data: data),
                 );
               },
             ),

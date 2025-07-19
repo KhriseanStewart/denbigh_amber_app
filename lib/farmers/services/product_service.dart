@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/farmers/farmers/model/products.dart';
+
+import 'package:denbigh_app/farmers/model/products.dart';
 
 class ProductService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;

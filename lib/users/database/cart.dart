@@ -41,6 +41,7 @@ class Cart_Service {
         'unitType': productData['unitType'],
         'quantity': productData['quantity'],
         'location': productData['location'],
+        'farmerId': productData['farmerId'], // Add farmerId for order grouping
       });
     }
   }
