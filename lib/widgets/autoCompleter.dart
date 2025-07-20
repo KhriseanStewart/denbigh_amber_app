@@ -42,7 +42,7 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
               style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Enter Location",
-                hintStyle: const TextStyle(color: Colors.black),
+                hintStyle: TextStyle(color: Colors.black),
                 prefixIcon: Icon(Icons.location_on, color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

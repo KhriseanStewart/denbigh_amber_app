@@ -107,15 +107,14 @@ class _FarmerLoginState extends State<FarmerLogin> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
+                   Center(
                     child: Icon(
                       Icons.agriculture,
                       size: 64,
                       color: Colors.green,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Center(
+                  Center(
                     child: Text(
                       "AgriConnect - Farmer",
                       style: TextStyle(
@@ -125,8 +124,7 @@ class _FarmerLoginState extends State<FarmerLogin> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
                       "Sign in to your account",
                       style: TextStyle(color: Colors.black, fontSize: 16),

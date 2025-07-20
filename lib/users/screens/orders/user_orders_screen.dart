@@ -18,7 +18,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title:  Text(
           'My Orders',
           style: TextStyle(
             color: Colors.black,
@@ -35,7 +35,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
         stream: _orderService.getOrdersForCustomer(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return  Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -45,7 +45,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
           final orders = snapshot.data ?? [];
 
           if (orders.isEmpty) {
-            return const Center(
+            return  Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -74,7 +74,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding:  EdgeInsets.all(16),
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
@@ -110,7 +110,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -120,7 +120,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   'Order #${orderId.substring(0, 8)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -128,23 +128,23 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                 _buildStatusChip(status),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Date: $formattedDate',
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Order items
             ...items.map((item) => _buildOrderItem(item)).toList(),
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _buildReceiptSection(receiptImageUrl),
             ],
 
-            const Divider(),
+            Divider(),
 
             // Order total and actions
             Row(
@@ -152,7 +152,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   'Total: \$${totalPrice.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -160,7 +160,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                 if (status == 'pending')
                   TextButton(
                     onPressed: () => _cancelOrder(orderId),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(color: Colors.red),
                     ),
@@ -198,13 +198,13 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                       imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.image_not_supported);
+                        return  Icon(Icons.image_not_supported);
                       },
                     ),
                   )
-                : const Icon(Icons.image_not_supported),
+                :  Icon(Icons.image_not_supported),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
 
           // Item details
           Expanded(
@@ -213,7 +213,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
                   ),
@@ -279,15 +279,15 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       children: [
         Row(
           children: [
-            const Icon(Icons.receipt_long, size: 16, color: Colors.green),
-            const SizedBox(width: 8),
-            const Text(
+           Icon(Icons.receipt_long, size: 16, color: Colors.green),
+            SizedBox(width: 8),
+            Text(
               'Receipt',
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         GestureDetector(
           onTap: () => _showReceiptDialog(receiptImageUrl),
           child: Container(
@@ -304,10 +304,10 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
-                  return const Center(child: CircularProgressIndicator());
+                  return  Center(child: CircularProgressIndicator());
                 },
                 errorBuilder: (context, error, stackTrace) {
-                  return const Center(
+                  return  Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -324,8 +324,8 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        const Text(
+         SizedBox(height: 4),
+         Text(
           'Tap to view full size',
           style: TextStyle(
             fontSize: 12,
@@ -355,12 +355,12 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                   fit: BoxFit.contain,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
-                    return const Center(
+                    return  Center(
                       child: CircularProgressIndicator(color: Colors.white),
                     );
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         'Failed to load receipt',
                         style: TextStyle(color: Colors.white),
@@ -374,7 +374,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               top: 40,
               right: 20,
               child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                icon: Icon(Icons.close, color: Colors.white, size: 30),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
@@ -389,16 +389,16 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
-        content: const Text('Are you sure you want to cancel this order?'),
+        title:  Text('Cancel Order'),
+        content:  Text('Are you sure you want to cancel this order?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+            child:  Text('No'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
+            child: Text('Yes'),
           ),
         ],
       ),

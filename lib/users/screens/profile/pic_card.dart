@@ -50,7 +50,7 @@ class _PicCardState extends State<PicCard> {
             child: CircleAvatar(
               radius: 80,
               backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, size: 40, color: Colors.white),
+              child:  Icon(Icons.person, size: 40, color: Colors.white),
             ),
           )
         : CircleAvatar(
