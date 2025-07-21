@@ -5,6 +5,7 @@ class CustomerService {
   final CollectionReference _col = FirebaseFirestore.instance.collection(
     'customersData',
   );
+  final _ref = FirebaseFirestore.instance;
 
   /// Creates (or overwrites) the customer’s data doc with the fields:
   /// userId, firstName, lastName, address, currentLocation, joinedAt
@@ -23,6 +24,10 @@ class CustomerService {
       'currentLocation': currentLocation,
       'joinedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<DocumentSnapshot> getUserInformation(String uid) async {
+    return _ref.collection("users").doc(uid).get();
   }
 
   /// Fetches the customer’s data
