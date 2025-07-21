@@ -4,11 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/farmers/model/products.dart';
 import 'package:denbigh_app/farmers/screens/add_pruducts.dart'
     as add_product_screen;
+import 'package:denbigh_app/farmers/screens/components/summary_card.dart';
 import 'package:denbigh_app/farmers/screens/product_detail.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/farmers/simulation/ordersim.dart';
 import 'package:denbigh_app/farmers/widgets/product_card.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:provider/provider.dart';
 
@@ -24,6 +27,22 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
+    void submitProduct() async {
+      final productsRef = FirebaseFirestore.instance.collection('products');
+      final newDoc = await productsRef.add({'createdAt': Timestamp.now()});
+
+      await newDoc.update({'id': newDoc.id});
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider<farmer_auth.AuthService>.value(
+            value: Provider.of<farmer_auth.AuthService>(context, listen: false),
+            child: add_product_screen.AddProductScreen(productId: newDoc.id),
+          ),
+        ),
+      );
+    }
+
     final auth = Provider.of<farmer_auth.AuthService>(context);
     final productService = ProductService();
 
@@ -32,66 +51,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         automaticallyImplyLeading: false,
         title: Text('Dashboard'),
         actions: [
-          Icon(Icons.person),
-          SizedBox(width: 8),
+          IconButton(icon: Icon(Icons.person), onPressed: () {}),
           Text(auth.farmer?.farmerName ?? 'No Name'),
           SizedBox(width: 8),
           _logout(context),
         ],
       ),
       body: auth.farmer == null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading farmer data...'),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/farmerlogin');
-                    },
-                    child: Text('Go to Login'),
-                  ),
-                ],
-              ),
-            )
+          ? buildNullFarmer(context)
           : StreamBuilder<List<Product>>(
               stream: productService.getProductsForFarmer(auth.farmer!.id),
               builder: (context, productSnapshot) {
                 if (productSnapshot.connectionState ==
                     ConnectionState.waiting) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('Loading products...'),
-                      ],
-                    ),
-                  );
+                  return Center(child: CircularProgressIndicator());
                 }
 
                 if (productSnapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 48),
-                        SizedBox(height: 16),
-                        Text('Error loading products'),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {}); // Trigger rebuild
-                          },
-                          child: Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
+                  return buildSnapShotError();
                 }
 
                 if (!productSnapshot.hasData) {
@@ -132,32 +109,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         children: [
                           Column(
+                            spacing: 4,
                             children: [
                               Row(
+                                spacing: 4,
                                 children: [
-                                  _SummaryCard(
-                                    'Total Products',
+                                  SummaryCard(
+                                    'Total \nProducts',
                                     '${products.length}',
-                                    '📦',
+                                    Icon(FontAwesomeIcons.chartBar),
                                   ),
-                                  _SummaryCard(
-                                    'Revenue',
+                                  SummaryCard(
+                                    'Total \nRevenue',
                                     '\$${totalRevenueFromSales.toStringAsFixed(2)}',
-                                    '💰',
+                                    Icon(FeatherIcons.dollarSign),
                                   ),
                                 ],
                               ),
                               Row(
+                                spacing: 4,
                                 children: [
-                                  _SummaryCard(
-                                    'Total Stock',
+                                  SummaryCard(
+                                    'Total \nStock',
                                     '$totalStock',
-                                    '📊',
+                                    Icon(FontAwesomeIcons.box),
                                   ),
-                                  _SummaryCard(
-                                    'Total Sales',
+                                  SummaryCard(
+                                    'Total \nSales',
                                     '$totalQuantitySold',
-                                    '📈',
+                                    Icon(FeatherIcons.shoppingCart),
                                   ),
                                 ],
                               ),
@@ -165,10 +145,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           SizedBox(height: 24),
                           Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                             padding: EdgeInsets.symmetric(
                               vertical: 4.0,
                               horizontal: 8.0,
@@ -190,38 +166,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
                                       ),
-                                      icon: Icon(Icons.add),
+                                      icon: Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                      ),
                                       label: Text(
                                         'Add Product',
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       onPressed: () async {
-                                        final productsRef = FirebaseFirestore
-                                            .instance
-                                            .collection('products');
-                                        final newDoc = await productsRef.add({
-                                          'createdAt': Timestamp.now(),
-                                        });
-
-                                        await newDoc.update({'id': newDoc.id});
-
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                ChangeNotifierProvider<
-                                                  farmer_auth.AuthService
-                                                >.value(
-                                                  value:
-                                                      Provider.of<
-                                                        farmer_auth.AuthService
-                                                      >(context, listen: false),
-                                                  child:
-                                                      add_product_screen.AddProductScreen(
-                                                        productId: newDoc.id,
-                                                      ),
-                                                ),
-                                          ),
-                                        );
+                                        submitProduct();
                                       },
                                     ),
                                   ],
@@ -351,6 +305,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Center buildNullFarmer(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Loading farmer data...'),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/farmerlogin');
+            },
+            child: Text('Go to Login'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Center buildSnapShotError() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error, color: Colors.red, size: 48),
+          SizedBox(height: 16),
+          Text('Error loading products'),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {}); // Trigger rebuild
+            },
+            child: Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _logout(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.logout, color: Colors.red),
@@ -384,48 +378,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         );
       },
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final String emoji;
-
-  const _SummaryCard(this.label, this.value, this.emoji);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(label, style: TextStyle(fontSize: 16)),
-                  SizedBox(width: 8),
-                  Text(emoji, style: TextStyle(fontSize: 30)),
-                ],
-              ),
-              SizedBox(height: 12),
-              Text(
-                value,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

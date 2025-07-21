@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class SalesManagementPage extends StatefulWidget {
   const SalesManagementPage({Key? key}) : super(key: key);
 
@@ -22,8 +21,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   bool _ordersExpanded = false;
   bool _salesExpanded = false;
   final String farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-  
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
     await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
@@ -40,6 +37,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
       appBar: AppBar(
         title: Text('Sales and Orders Management'),
         centerTitle: true,
+        leading: Container(),
       ),
       body: SingleChildScrollView(
         child: Padding(

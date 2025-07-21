@@ -150,45 +150,52 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ],
                     ),
-                SizedBox(height: 12),
-                Center(
-                  child: CustomButtonElevated(
-                    btntext: _isProcessingOrder
-                        ? "Processing..."
-                        : "Continue to Checkout",
-                    onpress: _isProcessingOrder ? null : _handleCheckout,
-                    isBoldtext: true,
-                    bgcolor: _isProcessingOrder ? Colors.grey : Colors.green,
-                    textcolor: Colors.white,
-                    size: 16,
-                  ),
+                    SizedBox(height: 12),
+                    Center(
+                      child: CustomButtonElevated(
+                        btntext: _isProcessingOrder
+                            ? "Processing..."
+                            : "Continue to Checkout",
+                        onpress: _isProcessingOrder ? null : _handleCheckout,
+                        isBoldtext: true,
+                        bgcolor: _isProcessingOrder
+                            ? Colors.grey
+                            : Colors.green,
+                        textcolor: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: StreamBuilder(
-              stream: Cart_Service().readCart(userId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData) {
-                  return Center(child: Text("No data found"));
-                }
-                final cartItem = snapshot.data!.docs;
-                for (var doc in cartItem) {
-                  if (!cartQuantities.containsKey(doc.id)) {
-                    cartQuantities[doc.id] = doc['customerQuantity'];
-                  }
-                }
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  itemCount: cartItem.length,
-                  itemBuilder: (context, index) {
-                    final item = cartItem[index];
-                    return buildProductCard(item);
+              ),
+              SizedBox(height: 10),
+              Expanded(
+                child: StreamBuilder(
+                  stream: Cart_Service().readCart(userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData) {
+                      return Center(child: Text("No data found"));
+                    }
+                    final cartItem = snapshot.data!.docs;
+                    for (var doc in cartItem) {
+                      if (!cartQuantities.containsKey(doc.id)) {
+                        cartQuantities[doc.id] = doc['customerQuantity'];
+                      }
+                    }
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      itemCount: cartItem.length,
+                      itemBuilder: (context, index) {
+                        final item = cartItem[index];
+                        return buildProductCard(item);
+                      },
+                    );
                   },
                 ),
               ),

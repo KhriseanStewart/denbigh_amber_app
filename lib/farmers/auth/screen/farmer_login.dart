@@ -40,7 +40,6 @@ class _FarmerLoginState extends State<FarmerLogin> {
             email,
             password,
           );
-          final currentUser = FirebaseAuth.instance.currentUser;
 
           if (result == true) {
             final uid = await FirebaseAuth.instance.currentUser!.uid;
