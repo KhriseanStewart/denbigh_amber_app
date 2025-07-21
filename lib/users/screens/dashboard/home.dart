@@ -74,16 +74,19 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: onRefresh,
         child: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: buildFilterRow(),
-              ),
-              SizedBox(height: 4),
-              Expanded(child: buildGridViewProducts()),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            child: Column(
+              children: [
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: buildFilterRow(),
+                ),
+                SizedBox(height: 4),
+                Expanded(child: buildGridViewProducts()),
+              ],
+            ),
           ),
         ),
       ),
