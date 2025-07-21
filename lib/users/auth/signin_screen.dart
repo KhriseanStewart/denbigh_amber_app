@@ -37,7 +37,25 @@ class _SignInScreenState extends State<SignInScreen> {
         try {
           final result = await AuthService().signInWithEmail(email, password);
           if (result == true) {
-            Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+            // Get the current user
+            final user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+              // Get user role from Firestore
+              final userRole = await AuthService().getUserRole(user.uid);
+
+              // Navigate based on role
+              if (userRole == 'farmer') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRouter.farmermainlayout,
+                );
+              } else {
+                // For users and other roles, go to main layout
+                Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+              }
+            } else {
+              Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+            }
           } else {
             displaySnackBar(
               context,
@@ -148,7 +166,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           _obscurePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white54,
+                          color: Colors.black,
                         ),
                         onPressed: () {
                           setState(() {
@@ -157,7 +175,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                       ),
                     ),
-                    validator: passwordValidator,
+                    validator: validateNotEmpty,
                   ),
                   const SizedBox(height: 8),
 

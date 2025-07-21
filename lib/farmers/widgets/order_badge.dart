@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/farmers/farmers/services/auth.dart';
+
 import 'package:provider/provider.dart';
 
 // This badge shows the LIVE count of processing orders from Firestore

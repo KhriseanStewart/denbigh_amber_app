@@ -84,7 +84,7 @@ class _ProfilePictureUploaderState extends State<ProfilePictureUploader> {
             child: CircleAvatar(
               radius: 80,
               backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, size: 80, color: Colors.white70),
+              child:  Icon(Icons.person, size: 80, color: Colors.white70),
             ),
           ),
           SizedBox(height: 16),

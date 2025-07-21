@@ -1,36 +1,29 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:denbigh_app/farmers/farmers/auth/authentification/auth.dart';
-import 'package:denbigh_app/farmers/farmers/auth/screen/farmer_login.dart';
+import 'package:denbigh_app/farmers/auth/authentification/auth.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
-import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
-import 'package:denbigh_app/widgets/autoCompleter.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class FarmerSignUp extends StatefulWidget {
-  const FarmerSignUp({super.key});
+class FarmerLogin extends StatefulWidget {
+  const FarmerLogin({super.key});
 
   @override
-  State<FarmerSignUp> createState() => _FarmerSignUpState();
+  State<FarmerLogin> createState() => _FarmerLoginState();
 }
 
 bool _obscurePassword = true;
-bool _obscureId = true;
 bool _rememberMe = false;
 bool isLoggin = false;
 
-class _FarmerSignUpState extends State<FarmerSignUp> {
-  String? location;
+class _FarmerLoginState extends State<FarmerLogin> {
   final _signinkey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController radaNumberController = TextEditingController();
-  final TextEditingController authpasswordController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController radaNumController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -41,50 +34,44 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
       if (_signinkey.currentState?.validate() ?? false) {
         final email = emailController.text.trim();
         final password = passwordController.text;
-        final radaNum = radaNumberController.text;
-        final authpassword = authpasswordController.text;
-        final name = nameController.text;
-        if (password == authpassword) {
-          try {
-            final result = await FarmerAuthService().signUpWithEmail(
-              email,
-              password,
+        final radaNum = radaNumController.text;
+        try {
+          final result = await FarmerAuthService().logInWithEmail(
+            email,
+            password,
+          );
+          final currentUser = FirebaseAuth.instance.currentUser;
+
+          if (result == true) {
+            final uid = await FirebaseAuth.instance.currentUser!.uid;
+            final radaResult = await FarmerAuthService().checkRadaId(
+              uid,
+              radaNum,
             );
-            if (result == true) {
-              final dataResult = await FarmerAuthService().setUpdateFarmerData(
-                auth!.uid,
-                name,
-                location ?? '',
-                radaNum,
-              );
-              if (dataResult == true) {
-                //TODO: add farmer mainLayout
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => FarmerLogin()),
-                );
-              } else {
-                displaySnackBar(context, "Something went wrong");
-              }
-            } else {
-              displaySnackBar(
+            if (radaResult == true) {
+              Navigator.pushReplacementNamed(
                 context,
-                "Invalid email or password",
-                backgroundColor: Colors.red,
+                AppRouter.farmermainlayout,
               );
+            } else {
+              displaySnackBar(context, "Incorrect RADA ID doesnt work");
             }
-          } on FirebaseAuth catch (e) {
+          } else {
             displaySnackBar(
               context,
-              "Error happened: $e",
+              "Invalid email or password",
               backgroundColor: Colors.red,
             );
-            setState(() {
-              isLoggin = false;
-            });
           }
-        } else {
-          displaySnackBar(context, "Passwords incorrect");
+        } on FirebaseAuthException catch (e) {
+          displaySnackBar(
+            context,
+            "Error happened: ${e.message}",
+            backgroundColor: Colors.red,
+          );
+          setState(() {
+            isLoggin = false;
+          });
         }
       }
       setState(() {
@@ -92,8 +79,8 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
       });
     }
 
-    void pushFarmerLogIn() {
-      Navigator.pushReplacementNamed(context, AppRouter.farmerlogin);
+    void pushSignUp() {
+      Navigator.pushReplacementNamed(context, AppRouter.farmersignup);
     }
 
     void pushForgetPassword() async {
@@ -106,7 +93,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
     }
 
     void pushUserLogin() {
-      Navigator.pushNamed(context, AppRouter.login);
+      Navigator.pushReplacementNamed(context, AppRouter.login);
     }
 
     return Scaffold(
@@ -120,15 +107,14 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
+                   Center(
                     child: Icon(
                       Icons.agriculture,
                       size: 64,
                       color: Colors.green,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Center(
+                  Center(
                     child: Text(
                       "AgriConnect - Farmer",
                       style: TextStyle(
@@ -138,34 +124,20 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
-                      "Create Farmer Account",
+                      "Sign in to your account",
                       style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Center(
                     child: Text(
-                      "Welcome to AgriConnect - Enjoy your stay",
+                      "Welcome back! Select method to log in",
                       style: TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // 📧 Name Field
-                  TextFormField(
-                    controller: nameController,
-                    style: const TextStyle(color: Colors.black),
-                    decoration: _inputDecoration(
-                      "Enter Your Name",
-                      Icons.person,
-                    ),
-                    validator: validateNotEmpty,
-                  ),
-
-                  const SizedBox(height: 16),
 
                   // 📧 Email Field
                   TextFormField(
@@ -177,46 +149,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                     ),
                     validator: emailValidator,
                   ),
-
                   const SizedBox(height: 16),
-
-                  Row(
-                    spacing: 10,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: radaNumberController,
-                          obscureText: _obscureId,
-                          style: const TextStyle(color: Colors.black),
-                          decoration: _inputDecoration(
-                            "RADA ID Number",
-                            Icons.lock,
-                            suffix: IconButton(
-                              icon: Icon(
-                                _obscureId
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: Colors.black,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureId = !_obscureId;
-                                });
-                              },
-                            ),
-                          ),
-                          validator: validateNotEmpty,
-                        ),
-                      ),
-                      Expanded(
-                        child: //Location
-                        LocationAutoComplete(
-                          onCategorySelected: (p0) {},
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
 
                   // 🔒 Password Field
                   TextFormField(
@@ -225,7 +158,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                     style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
                       "Enter Your Password",
-                      Icons.password,
+                      Icons.lock,
                       suffix: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -240,22 +173,36 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                         },
                       ),
                     ),
-                    validator: passwordValidator,
+                    validator: validateNotEmpty,
                   ),
                   const SizedBox(height: 8),
-                  // 🔒 Password Field
+
                   TextFormField(
-                    controller: authpasswordController,
-                    obscureText: true,
+                    controller: radaNumController,
+                    obscureText: _obscurePassword,
                     style: const TextStyle(color: Colors.black),
                     decoration: _inputDecoration(
-                      "Confirm Password",
+                      "Enter Your RADA ID",
                       Icons.lock,
-                      suffix: Icon(Icons.visibility_off, color: Colors.black),
+                      suffix: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                     ),
-                    validator: passwordValidator,
+                    validator: validateNotEmpty,
                   ),
+
                   const SizedBox(height: 8),
+
                   // 🔘 Remember me & Forgot Password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -292,7 +239,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 🟢 Log In Button
+                  //  Log In Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -307,7 +254,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                       child: isLoggin
                           ? CircularProgressIndicator()
                           : Text(
-                              "Sign Up",
+                              "Log In",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -356,7 +303,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                         GestureDetector(
                           onTap: () {
                             // Navigate to Sign Up
-                            pushFarmerLogIn();
+                            pushSignUp();
                           },
                           child: const Text(
                             "Sign up",

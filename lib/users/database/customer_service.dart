@@ -1,5 +1,6 @@
 // lib/services/customer_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class CustomerService {
   final CollectionReference _col = FirebaseFirestore.instance.collection(
@@ -33,5 +34,17 @@ class CustomerService {
   /// Fetches the customer’s data
   Future<DocumentSnapshot> getCustomerData(String uid) {
     return _col.doc(uid).get();
+  }
+}
+
+// Create a single, unified AuthService
+class AuthService with ChangeNotifier {
+  // Handle both user types with role-based logic
+}
+
+// Create a centralized error handler
+class ErrorHandler {
+  static void handleError(dynamic error, {String? context}) {
+    // Log error and show user-friendly message
   }
 }

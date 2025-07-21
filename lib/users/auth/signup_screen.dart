@@ -16,7 +16,6 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _signupkey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController farmerId = TextEditingController();
@@ -26,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? selectedRole;
+  String? selectedLocation; // Store selected location from autocomplete
   bool isLoggingIn = false;
 
   @override
@@ -36,25 +36,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
       if (_signupkey.currentState!.validate()) {
         final name = nameController.text;
-        final location = locationController.text;
+        final location =
+            selectedLocation ?? ''; // Use selected location from autocomplete
         final email = emailController.text;
         final password = passwordController.text;
+        final radaId = farmerId.text; // Get RADA ID from the controller
+
         if (password == confirmPasswordController.text) {
           if (selectedRole != null) {
-            try {
-              await AuthService().signUpWithEmail(
-                email: email,
-                password: password,
-                role: selectedRole!,
-                location: location,
-                name: name,
-              );
-              Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
-            } on FirebaseAuthException catch (e) {
+            if (selectedLocation != null && selectedLocation!.isNotEmpty) {
+              try {
+                await AuthService().signUpWithEmail(
+                  email: email,
+                  password: password,
+                  role: selectedRole!,
+                  location: location,
+                  name: name,
+                  farmerId: selectedRole == 'farmer'
+                      ? radaId
+                      : null, // Only pass RADA ID for farmers
+                );
+
+                // Navigate based on role
+                if (selectedRole == 'farmer') {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRouter.farmermainlayout,
+                  );
+                } else {
+                  // For users and other roles, go to main layout
+                  Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+                }
+              } on FirebaseAuthException catch (e) {
+                setState(() {
+                  isLoggingIn = false;
+                });
+                displaySnackBar(context, "Error signing up: $e");
+              }
+            } else {
               setState(() {
                 isLoggingIn = false;
               });
-              displaySnackBar(context, "Error signing up: $e");
+              displaySnackBar(context, "Please select a location");
             }
           } else {
             setState(() {
@@ -127,76 +150,67 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 16),
 
                   // 📍 Location
-                  LocationAutoComplete(onCategorySelected: (p0) {}),
+                  LocationAutoComplete(
+                    onCategorySelected: (location) {
+                      selectedLocation = location; // Capture selected location
+                    },
+                  ),
                   const SizedBox(height: 16),
 
-                  // Who r u?
-                  Row(
-                    spacing: 8,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white12),
-                            color: Colors.white12,
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            validator: validateNotEmpty,
-                            value: selectedRole, // set current selected value
-                            hint: Center(
-                              child: Text(
-                                selectedRole ?? "Who are you?",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                            items: [
-                              DropdownMenuItem(
-                                value: 'admin',
-                                child: Text("Admin"),
-                              ),
-                              DropdownMenuItem(
-                                value: 'farmer',
-                                child: Text("Farmer"),
-                              ),
-                              DropdownMenuItem(
-                                value: 'user',
-                                child: Text("User"),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                selectedRole = value; // update selected role
-                              });
-                            },
-                            isExpanded:
-                                true, // optional: makes dropdown take full width
-                          ),
+                  // Who are you? (Role Selection)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white12),
+                      color: Colors.white12,
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      validator: validateNotEmpty,
+                      value: selectedRole, // set current selected value
+                      hint: Center(
+                        child: Text(
+                          selectedRole ?? "Who are you?",
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
-
-                      //farmer ID
-                      Expanded(
-                        child: TextFormField(
-                          controller: locationController,
-                          style: const TextStyle(color: Colors.black),
-                          decoration: _inputDecoration(
-                            "Farmer ID",
-                            Icons.verified_user_outlined,
-                          ),
-                          validator: (value) {
-                            if (selectedRole == 'admin' ||
-                                selectedRole == 'farmer') {
-                              if (value == null || value.isEmpty) {
-                                return 'This field is required.';
-                              }
-                            }
-                            return null; // validation passes
-                          },
+                      items: [
+                        DropdownMenuItem(value: 'admin', child: Text("Admin")),
+                        DropdownMenuItem(
+                          value: 'farmer',
+                          child: Text("Farmer"),
                         ),
-                      ),
-                    ],
+                        DropdownMenuItem(value: 'user', child: Text("User")),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedRole = value; // update selected role
+                        });
+                      },
+                      isExpanded:
+                          true, // optional: makes dropdown take full width
+                    ),
                   ),
+
+                  // RADA ID - only show when farmer is selected
+                  if (selectedRole == 'farmer') ...[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: farmerId,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: _inputDecoration(
+                        "RADA ID",
+                        Icons.verified_user_outlined,
+                      ),
+                      validator: (value) {
+                        if (selectedRole == 'farmer') {
+                          if (value == null || value.isEmpty) {
+                            return 'RADA ID is required for farmers.';
+                          }
+                        }
+                        return null; // validation passes
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // 📧 Email
@@ -224,7 +238,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           _obscurePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white54,
+                          color: Colors.black,
                         ),
                         onPressed: () {
                           setState(() {
@@ -250,7 +264,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           _obscureConfirmPassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white54,
+                          color: Colors.black54,
                         ),
                         onPressed: () {
                           setState(() {

@@ -41,6 +41,7 @@ class AuthService {
     required String role, // 'customer', 'farmer', or 'admin'
     required String name,
     required String location,
+    String? farmerId, // Optional RADA ID for farmers
   }) async {
     try {
       // 1️⃣ Create the Auth user
@@ -51,14 +52,23 @@ class AuthService {
 
       final uid = cred.user!.uid;
 
-      // 2️⃣ Write their profile, including role
-      await _db.collection('users').doc(uid).set({
+      // 2️⃣ Prepare user data
+      Map<String, dynamic> userData = {
         'email': email,
         'role': role,
         'createdAt': FieldValue.serverTimestamp(),
         'name': name,
         'location': location,
-      });
+      };
+
+      // Add farmerId/RADA ID if provided (for farmers)
+      if (farmerId != null && farmerId.isNotEmpty) {
+        userData['farmerId'] = farmerId;
+        userData['radaId'] = farmerId; // Also store as radaId for clarity
+      }
+
+      // 3️⃣ Write their profile, including role
+      await _db.collection('users').doc(uid).set(userData);
 
       return cred.user;
     } catch (e) {
@@ -128,4 +138,19 @@ class AuthService {
 
   // Get current user
   User? get currentUser => _auth.currentUser;
+
+  // Get user role from Firestore
+  Future<String?> getUserRole(String uid) async {
+    try {
+      DocumentSnapshot userDoc = await _db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        return userData['role'] as String?;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user role: $e');
+      return null;
+    }
+  }
 }

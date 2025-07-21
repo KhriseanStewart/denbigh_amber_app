@@ -96,9 +96,17 @@ final String customerLocation;
       farmerId: map['farmerId'] ?? '',
       name: map['name'] ?? '',
       description: map['description'] ?? '',
-      category: List<String>.from(map['category'] ?? []),
+      category: map['category'] is List
+          ? List<String>.from(map['category'])
+          : (map['category'] is String && map['category'].isNotEmpty)
+              ? [map['category']]
+              : [],
       price: (map['price'] ?? 0).toDouble(),
-      unit: List<String>.from(map['unit'] ?? []),
+      unit: map['unit'] is List
+          ? List<String>.from(map['unit'])
+          : (map['unit'] is String && map['unit'].isNotEmpty)
+              ? [map['unit']]
+              : [],
       stock: map['stock'] ?? 0,
       minSaleAmount: map['minSaleAmount'] ?? '',
       imageUrl: map['imageUrl'] ?? '',

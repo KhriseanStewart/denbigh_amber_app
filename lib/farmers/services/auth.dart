@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/farmers/farmers/model/farmers.dart';
-import 'package:denbigh_app/farmers/farmers/services/farmer_service.dart';
-import 'package:denbigh_app/farmers/farmers/services/user_service.dart';
+
+import 'package:denbigh_app/farmers/model/farmers.dart';
+import 'package:denbigh_app/farmers/services/farmer_service.dart';
+import 'package:denbigh_app/farmers/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

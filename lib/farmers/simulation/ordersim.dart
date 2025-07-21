@@ -1,8 +1,8 @@
+import 'package:denbigh_app/farmers/model/orders.dart';
+import 'package:denbigh_app/farmers/model/products.dart';
+import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/farmers/farmers/model/products.dart';
-import 'package:denbigh_app/farmers/farmers/model/orders.dart';
-import 'package:denbigh_app/farmers/farmers/services/sales_order.services.dart';
 
 class AllFarmersProductOrderButton extends StatelessWidget {
   final String customerId;
@@ -22,19 +22,25 @@ class AllFarmersProductOrderButton extends StatelessWidget {
   void _showProductSelection(BuildContext context) async {
     final products = await _getAllProducts();
     if (products.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('No products available.')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('No products available.')));
+      }
       return;
     }
 
     // Show the selection dialog/screen
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
-            ProductSelectionScreen(products: products, customerId: customerId),
-      ),
-    );
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ProductSelectionScreen(
+            products: products,
+            customerId: customerId,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -114,10 +120,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
             if (qty > 0) {
               selectedItems.add(
                 OrderItem(
-                  orderId: '', // Will be set when creating the order by firestore
+                  orderId:
+                      '', // Will be set when creating the order by firestore
                   customerLocation: prod.customerLocation,
                   productId: prod.productId,
-                  unit: prod.unit.first,
+                  unit: prod.unit.isNotEmpty ? prod.unit.first : 'unit',
                   name: prod.name,
                   quantity: qty,
                   price: prod.price,
@@ -129,9 +136,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           });
 
           if (selectedItems.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No products selected.')),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No products selected.')),
+              );
+            }
             return;
           }
 
@@ -156,10 +165,12 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
             orderCount++;
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Created $orderCount orders!')),
-          );
-          Navigator.of(context).pop();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Created $orderCount orders!')),
+            );
+            Navigator.of(context).pop();
+          }
         },
         label: Text('Place Order'),
         icon: Icon(Icons.check),

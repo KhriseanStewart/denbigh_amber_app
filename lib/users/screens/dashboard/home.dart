@@ -1,9 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
-import 'package:denbigh_app/users/database/customer_service.dart';
+import 'package:denbigh_app/users/database/customer_service.dart'
+    hide AuthService;
 import 'package:denbigh_app/users/database/product_services.dart';
-import 'package:denbigh_app/users/screens/product_screen/home_product_card.dart';
+import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:feather_icons/feather_icons.dart';
@@ -149,17 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRouter.notificationscreen,
-                        );
-                      },
-                      icon: Icon(FeatherIcons.bell, color: Colors.black),
-                    ),
-                  ],
+                  
                 );
               },
             ),
@@ -337,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   arguments: data,
                 );
               },
-              child: ProductCard(data: data),
+              child: UserProductCard(data: data),
             );
           },
         );

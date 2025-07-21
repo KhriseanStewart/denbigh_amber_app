@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/cart.dart';
+import 'package:denbigh_app/users/database/multi_farmer_product_service.dart';
 import 'package:denbigh_app/users/screens/dashboard/home.dart';
+import 'package:denbigh_app/users/screens/products/farmers_selling_product_screen.dart';
 import 'package:denbigh_app/widgets/ExpandedText.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:feather_icons/feather_icons.dart';
@@ -331,6 +333,220 @@ class _ProductScreenState extends State<ProductScreen> {
                         padding: EdgeInsets.all(8.0),
                         decoration: BoxDecoration(color: Colors.grey.shade300),
                         child: ExpandableText(text: args['description']),
+                      ),
+
+                      SizedBox(height: 24),
+
+                      // Other farmers selling this product section
+                      StreamBuilder<List<QueryDocumentSnapshot>>(
+                        stream: MultiFarmerProductService()
+                            .getFarmersSellingProduct(args['name']),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data!.length <= 1) {
+                            return SizedBox.shrink(); // Don't show if only one farmer
+                          }
+
+                          final otherFarmers = snapshot.data!
+                              .where((doc) => doc.id != args.id)
+                              .toList();
+
+                          if (otherFarmers.isEmpty) {
+                            return SizedBox.shrink();
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Other farmers selling this",
+                                    style: TextStyle(
+                                      fontFamily: 'Switzer',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              FarmersSellingProductScreen(
+                                                productName: args['name'],
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      "View All",
+                                      style: TextStyle(
+                                        color: Colors.green.shade600,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                height: 120,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: otherFarmers.length > 3
+                                      ? 3
+                                      : otherFarmers.length,
+                                  itemBuilder: (context, index) {
+                                    final farmerProduct = otherFarmers[index];
+                                    return Container(
+                                      width: 200,
+                                      margin: EdgeInsets.only(right: 12),
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Farmer name
+                                          FutureBuilder<DocumentSnapshot>(
+                                            future: FirebaseFirestore.instance
+                                                .collection('farmers')
+                                                .doc(farmerProduct['farmerId'])
+                                                .get(),
+                                            builder: (context, farmerSnapshot) {
+                                              String farmerName =
+                                                  'Unknown Farmer';
+                                              if (farmerSnapshot.hasData &&
+                                                  farmerSnapshot.data!.exists) {
+                                                final farmerData =
+                                                    farmerSnapshot.data!.data()
+                                                        as Map<
+                                                          String,
+                                                          dynamic
+                                                        >?;
+                                                farmerName =
+                                                    farmerData?['name'] ??
+                                                    farmerData?['firstName'] ??
+                                                    'Unknown Farmer';
+                                              }
+
+                                              return Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  farmerName,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        Colors.green.shade700,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              );
+                                            },
+                                          ),
+
+                                          SizedBox(height: 8),
+
+                                          // Price comparison
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '\$${NumberFormat('#,###').format(farmerProduct['price'])}',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      farmerProduct['price'] <
+                                                          args['price']
+                                                      ? Colors.green.shade600
+                                                      : farmerProduct['price'] >
+                                                            args['price']
+                                                      ? Colors.red.shade600
+                                                      : Colors.grey.shade600,
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              if (farmerProduct['price'] <
+                                                  args['price'])
+                                                Icon(
+                                                  Icons.trending_down,
+                                                  color: Colors.green,
+                                                  size: 16,
+                                                )
+                                              else if (farmerProduct['price'] >
+                                                  args['price'])
+                                                Icon(
+                                                  Icons.trending_up,
+                                                  color: Colors.red,
+                                                  size: 16,
+                                                ),
+                                            ],
+                                          ),
+
+                                          Spacer(),
+
+                                          // View button
+                                          SizedBox(
+                                            width: double.infinity,
+                                            height: 28,
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ProductScreen(),
+                                                    settings: RouteSettings(
+                                                      arguments: farmerProduct,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.green.shade100,
+                                                elevation: 0,
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Text(
+                                                'View',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.green.shade700,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

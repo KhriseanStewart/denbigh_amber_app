@@ -1,11 +1,12 @@
-import 'package:denbigh_app/farmers/farmers/model/orders.dart';
-import 'package:denbigh_app/farmers/farmers/model/sales.dart';
-import 'package:denbigh_app/farmers/farmers/services/auth.dart';
-import 'package:denbigh_app/farmers/farmers/services/sales_order.services.dart';
-import 'package:denbigh_app/farmers/farmers/widgets/add_receipt_image.dart';
-import 'package:denbigh_app/farmers/farmers/widgets/used_list/list.dart';
+import 'package:denbigh_app/farmers/model/orders.dart';
+import 'package:denbigh_app/farmers/model/sales.dart';
+import 'package:denbigh_app/farmers/services/auth.dart';
+import 'package:denbigh_app/farmers/services/sales_order.services.dart';
+import 'package:denbigh_app/farmers/widgets/add_receipt_image.dart';
+import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -243,7 +244,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  title: Text('Sale #${sale.salesId.substring(0, 6)}'),
+                                  title: Text('Sale #${sale.salesId}'),
                                   subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
