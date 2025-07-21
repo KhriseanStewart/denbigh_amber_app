@@ -35,16 +35,16 @@ class _ProductCardState extends State<ProductCard> {
       width: 200,
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 4,
-            offset: Offset(0, 0.5),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.grey.shade300,
+        //     blurRadius: 4,
+        //     offset: Offset(0, 0.5),
+        //   ),
+        // ],
         borderRadius: BorderRadius.circular(8),
       ),
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.all(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,6 +106,7 @@ class _ProductCardState extends State<ProductCard> {
           ),
           SizedBox(height: 8),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "\$$displayNumber", // Already safe from the check above

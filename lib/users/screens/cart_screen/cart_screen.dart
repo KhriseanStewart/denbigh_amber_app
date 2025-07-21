@@ -60,16 +60,6 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     // this logic is to be change to suit the cart items from the database
-    double itemCost = 0;
-    // item.fold(
-    //   0.0,
-    //   (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as num)),
-    // );
-    double subTax = itemCost * 0.08;
-    double deliveryFee =
-        10.0; // This can be dynamic based on location or other factors
-
-    double totalCost = itemCost + subTax + deliveryFee;
 
     return Scaffold(
       appBar: AppBar(
@@ -87,54 +77,79 @@ class _CartScreenState extends State<CartScreen> {
         backgroundColor: Colors.white,
       ),
       backgroundColor: hexToColor("F4F6F8"),
-      body: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Item Cost: \$${itemCost.toStringAsFixed(2)}",
-                  style: TextStyle(fontSize: 15),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  "Sub-Tax: \$${subTax.toStringAsFixed(2)}",
-                  style: TextStyle(fontSize: 15),
-                ),
-                SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}",
-                      style: TextStyle(fontSize: 15),
-                    ),
-                    Text(
-                      itemCost == 0
-                          ? ""
-                          : "Total: \$${totalCost.toStringAsFixed(2)}",
-                      style: TextStyle(fontSize: 15),
+      body: StreamBuilder(
+        stream: Cart_Service().readCart(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text("Your cart is empty"));
+          }
+
+          final cartItems = snapshot.data!.docs;
+
+          double itemCost = 0;
+          for (var item in cartItems) {
+            final quantity =
+                cartQuantities[item.id] ?? item['customerQuantity'];
+            itemCost += item['price'] * quantity;
+          }
+
+          double subTax = itemCost * 0.08;
+          double deliveryFee = 10.0;
+          double totalCost = itemCost + subTax + deliveryFee;
+          return Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
                     ),
                   ],
                 ),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Item Cost: \$${itemCost.toStringAsFixed(2)}",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      "Sub-Tax: \$${subTax.toStringAsFixed(2)}",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                        Text(
+                          itemCost == 0
+                              ? ""
+                              : "Total: \$${totalCost.toStringAsFixed(2)}",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ],
+                    ),
                 SizedBox(height: 12),
                 Center(
                   child: CustomButtonElevated(
@@ -175,11 +190,11 @@ class _CartScreenState extends State<CartScreen> {
                     final item = cartItem[index];
                     return buildProductCard(item);
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
