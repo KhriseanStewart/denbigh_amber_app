@@ -85,7 +85,7 @@ class AuthService {
     required String telephone,
   }) async {
     try {
-      await _db.collection('users').doc(uid).update({
+      await _db.collection('farmersData').doc(uid).update({
         'createdAt': FieldValue.serverTimestamp(),
         'name': name,
         'location': location,
