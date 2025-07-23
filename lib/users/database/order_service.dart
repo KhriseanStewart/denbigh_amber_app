@@ -199,35 +199,37 @@ class OrderService {
     // Add order to Firestore
     // Add order to Firestore
     final docRef = await _db.collection('orders').add(orderData);
-    List<OrderItem> orderItemList = orderItems.map((item) {
-      return OrderItem(
-        orderId: orderId,
-        productId:
-            item['productId'] ?? 'DEFAULT_PRODUCT_ID', // or other default
-        name: item['name'],
-        quantity: item['quantity'] ?? 1,
-        price: item['price'] ?? 0.0,
-        unit: item['unit'] ?? 'unit',
-        farmerId: farmerId,
-        customerLocation: "customerLocation", // or pass as parameter
-      );
-    }).toList();
 
-    await SalesAndOrdersService().createOrder(
-      Orderlist(
-        orderId: orderId,
-        name: orderItems.first['name'],
-        unit: orderItems.first['unit'],
-        quantity: orderItems.length.toString(),
-        customerId: customerId,
-        farmerId: farmerId,
-        items: orderItemList,
-        totalPrice: totalPrice,
-        status: 'processing',
-        createdAt: DateTime.now(),
-        customerLocation: '',
-      ),
-    );
+    try {
+      await SalesAndOrdersService().createOrder(
+        Orderlist(
+          orderId: orderId,
+          name: orderItems.first['name'],
+          unit: orderItems.first['unit'],
+          quantity: orderItems.length.toString(),
+          customerId: customerId,
+          farmerId: farmerId,
+          items: [
+            OrderItem(
+              orderId: orderId,
+              productId: 'productId',
+              name: 'name',
+              quantity: 1299,
+              price: 90,
+              unit: 'unit',
+              farmerId: farmerId,
+              customerLocation: 'customerLocation',
+            ),
+          ],
+          totalPrice: totalPrice,
+          status: 'processing',
+          createdAt: DateTime.now(),
+          customerLocation: '',
+        ),
+      );
+    } catch (e) {
+      print(e);
+    }
 
     // Update with the actual order ID
     await docRef.update({
