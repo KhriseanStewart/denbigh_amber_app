@@ -44,7 +44,7 @@ final String customerLocation;
       'price': price,
       'unit': unit,
       'stock': stock,
-      'minSaleAmount': minSaleAmount,
+      'minUnitNum': minSaleAmount,
       'imageUrl': imageUrl,
       'createdAt': createdAt,
       'totalSold': totalSold,

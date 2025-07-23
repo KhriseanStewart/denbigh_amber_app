@@ -200,7 +200,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             'unit': [_unit!],
             'location': _location,
             'stock': _stock,
-            'minSaleAmount': minUnitNum,
+            'minUnitNum': minUnitNum,
             'imageUrl': _imageUrl ?? '',
             'createdAt': Timestamp.now(),
           });

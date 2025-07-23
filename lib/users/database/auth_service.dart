@@ -63,8 +63,9 @@ class AuthService {
 
       // Add farmerId/RADA ID if provided (for farmers)
       if (farmerId != null && farmerId.isNotEmpty) {
-        userData['farmerId'] = farmerId;
-        userData['radaId'] = farmerId; // Also store as radaId for clarity
+        userData['farmerId'] = uid;
+        userData['radaRegistrationNumber'] =
+            farmerId; // Also store as radaId for clarity
       }
 
       // 3️⃣ Write their profile, including role
