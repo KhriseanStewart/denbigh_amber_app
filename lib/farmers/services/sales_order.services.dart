@@ -109,17 +109,21 @@ class SalesAndOrdersService {
 
   // ------------------- ORDERS METHODS -------------------
 
-  Stream<List<model_orders.Orderlist>> getOrdersForFarmer(String farmerId) {
-    return _db
-        .collection('orders')
-        .where('farmerId', isEqualTo: farmerId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => model_orders.Orderlist.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+Stream<List<model_orders.Orderlist>> getFilteredOrdersForFarmerManual(
+    String farmerId,
+  ) {
+    return _db.collection('orders').snapshots().map((snapshot) {
+      // Filter documents manually
+      final filteredDocs = snapshot.docs.where((doc) {
+        final data = doc.data();
+        return data['farmerId'] == farmerId; // Check each document's farmerId
+      }).toList();
+
+      // Convert documents to your model
+      return filteredDocs
+          .map((doc) => model_orders.Orderlist.fromMap(doc.data(), doc.id))
+          .toList();
+    });
   }
 
   Stream<List<model_orders.Orderlist>> getOrdersForCustomer(String customerId) {

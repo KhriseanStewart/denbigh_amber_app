@@ -69,6 +69,49 @@ class AuthService {
       }
 
       // 3️⃣ Write their profile, including role
+      await _db.collection('users').doc(uid).set(userData);
+
+      return cred.user;
+    } catch (e) {
+      print('Error signing up: $e');
+      return null;
+    }
+  }
+
+  Future<User?> signUpWithEmailFarmer({
+    required String email,
+    required String password,
+    required String role, // 'customer', 'farmer', or 'admin'
+    required String name,
+    required String location,
+    String? farmerId, // Optional RADA ID for farmers
+  }) async {
+    try {
+      // 1️⃣ Create the Auth user
+      UserCredential cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = cred.user!.uid;
+
+      // 2️⃣ Prepare user data
+      Map<String, dynamic> userData = {
+        'email': email,
+        'role': role,
+        'createdAt': FieldValue.serverTimestamp(),
+        'name': name,
+        'location': location,
+      };
+
+      // Add farmerId/RADA ID if provided (for farmers)
+      if (farmerId != null && farmerId.isNotEmpty) {
+        userData['farmerId'] = uid;
+        userData['radaRegistrationNumber'] =
+            farmerId; // Also store as radaId for clarity
+      }
+
+      // 3️⃣ Write their profile, including role
       await _db.collection('farmersData').doc(uid).set(userData);
 
       return cred.user;

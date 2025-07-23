@@ -37,7 +37,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final args =
         ModalRoute.of(context)!.settings.arguments as QueryDocumentSnapshot;
 
-    final int totalNum = args['price']; // Example fetched data
+    final double totalNum = args['price']; // Example fetched data
     final formatter = NumberFormat('#,###'); //single formatter for both
     final firebasePrice = formatter.format(totalNum);
 

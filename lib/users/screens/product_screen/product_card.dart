@@ -87,7 +87,7 @@ class _UserProductCardState extends State<UserProductCard> {
     // Safely get the data from Firestore, providing default values to prevent errors.
     final String name = data['name'] ?? 'No Name Available';
     final String imageUrl = data['imageUrl'] ?? ''; // Default to empty string
-    final int price = data['price'] ?? 0;
+    final double price = data['price'] ?? 0;
     final dynamic categoryData = data['category'] ?? 'Uncategorized';
 
     String category;

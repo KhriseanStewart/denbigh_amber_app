@@ -24,7 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String? selectedRole;
+  String selectedRole = 'user';
   String? selectedLocation; // Store selected location from autocomplete
   bool isLoggingIn = false;
 

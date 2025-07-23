@@ -46,16 +46,6 @@ class _CartScreenState extends State<CartScreen> {
       });
     }
   }
-  //commented no use for loading as yet, changed asset to network so it will load automatically
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   Future.delayed(const Duration(seconds: 2), () {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {

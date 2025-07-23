@@ -51,9 +51,8 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: StreamBuilder(
-                    stream: SalesAndOrdersService().getOrdersForFarmer(
-                      farmerId,
-                    ),
+                    stream: SalesAndOrdersService()
+                        .getFilteredOrdersForFarmerManual(farmerId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());

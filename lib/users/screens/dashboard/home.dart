@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        data!['name'] ?? 'user',
+                        data?['name'] ?? 'user',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/farmers/model/orders.dart';
+import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:denbigh_app/utils/services/notification_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -197,6 +199,35 @@ class OrderService {
     // Add order to Firestore
     // Add order to Firestore
     final docRef = await _db.collection('orders').add(orderData);
+    List<OrderItem> orderItemList = orderItems.map((item) {
+      return OrderItem(
+        orderId: orderId,
+        productId:
+            item['productId'] ?? 'DEFAULT_PRODUCT_ID', // or other default
+        name: item['name'],
+        quantity: item['quantity'] ?? 1,
+        price: item['price'] ?? 0.0,
+        unit: item['unit'] ?? 'unit',
+        farmerId: farmerId,
+        customerLocation: "customerLocation", // or pass as parameter
+      );
+    }).toList();
+
+    await SalesAndOrdersService().createOrder(
+      Orderlist(
+        orderId: orderId,
+        name: orderItems.first['name'],
+        unit: orderItems.first['unit'],
+        quantity: orderItems.length.toString(),
+        customerId: customerId,
+        farmerId: farmerId,
+        items: orderItemList,
+        totalPrice: totalPrice,
+        status: 'processing',
+        createdAt: DateTime.now(),
+        customerLocation: '',
+      ),
+    );
 
     // Update with the actual order ID
     await docRef.update({
