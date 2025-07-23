@@ -367,7 +367,7 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
         'name': item['name'] ?? '',
         'quantity': item['quantity'] ?? 1,
         'totalPrice':
-            (item['price'] as num? ?? 0) * (item['quantity'] as num? ?? 1),
+            (item['price'] as int? ?? 0) * (item['quantity'] as num? ?? 1),
         'date': Timestamp.now(),
         'customerId': orderData['customerId'] ?? '',
         'farmerId': orderData['farmerId'] ?? '',

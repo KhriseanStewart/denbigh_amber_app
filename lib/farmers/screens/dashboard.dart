@@ -271,30 +271,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             customerId: "SOME_CUSTOMER_ID",
                           ),
                           SizedBox(height: 16),
-                          // Dummy button to view user orders screen
-                          // Container(
-                          //   width: double.infinity,
-                          //   child: ElevatedButton.icon(
-                          //     style: ElevatedButton.styleFrom(
-                          //       backgroundColor: Colors.blue,
-                          //       padding: EdgeInsets.symmetric(vertical: 12),
-                          //       shape: RoundedRectangleBorder(
-                          //         borderRadius: BorderRadius.circular(8),
-                          //       ),
-                          //     ),
-                          //     icon: Icon(Icons.preview, color: Colors.white),
-                          //     label: Text(
-                          //       'View User Orders Screen (Demo)',
-                          //       style: TextStyle(
-                          //         color: Colors.white,
-                          //         fontSize: 16,
-                          //       ),
-                          //     ),
-                          //     onPressed: () {
-                          //       Navigator.of(context).pushNamed('/userorders');
-                          //     },
-                          //   ),
-                          // ),
                         ],
                       ),
                     );

@@ -37,13 +37,43 @@ class _ProductScreenState extends State<ProductScreen> {
     final args =
         ModalRoute.of(context)!.settings.arguments as QueryDocumentSnapshot;
 
-    final totalNum = args['price']; // Example fetched data
+    final int totalNum = args['price']; // Example fetched data
     final formatter = NumberFormat('#,###'); //single formatter for both
     final firebasePrice = formatter.format(totalNum);
 
-    int quantityPriceDemo = args['price'] * quantity;
+    int quantityPriceDemo = (args['price'] * quantity).toInt();
     final quantityPriceNum = quantityPriceDemo;
     final quantityPrice = formatter.format(quantityPriceNum);
+
+    final dynamic categoryData = args['category'] ?? 'Uncategorized';
+
+    String category;
+
+    if (categoryData is List && categoryData.isNotEmpty) {
+      // If it's a list, take the first element
+      category = categoryData.first.toString();
+    } else if (categoryData is String) {
+      // If it's a string, use it directly
+      category = categoryData;
+    } else {
+      // Fallback in case it's something else
+      category = 'Uncategorized';
+    }
+
+    final dynamic unitTypeData = args['unit'] ?? 'unit';
+
+    String unitType;
+
+    if (unitTypeData is List && unitTypeData.isNotEmpty) {
+      // If it's a list, take the first element
+      unitType = unitTypeData.first.toString();
+    } else if (unitTypeData is String) {
+      // If it's a string, use it directly
+      unitType = unitTypeData;
+    } else {
+      // Fallback in case it's something else
+      unitType = 'Uncategorized';
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -58,6 +88,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     children: [
                       SizedBox(
                         height: double.infinity,
+                        width: double.infinity,
                         child: Image.network(
                           args['imageUrl'],
                           fit: BoxFit.cover,
@@ -130,11 +161,11 @@ class _ProductScreenState extends State<ProductScreen> {
                             vertical: 4.0,
                           ),
                           child: Text(
-                            args['category'],
+                            category,
                             style: TextStyle(
                               fontFamily: 'OleoScript',
                               fontWeight: FontWeight.w700,
-                              fontSize: 18,
+                              fontSize: 14,
                               color: Colors.black,
                             ),
                           ),
@@ -163,7 +194,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 34,
+                                    fontSize: 20,
                                     fontFamily: 'Switzer',
                                     fontWeight: FontWeight.w300,
                                   ),
@@ -177,7 +208,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       child: Text(
                                         "\$$firebasePrice",
                                         style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           fontFamily: 'Switzer',
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -189,9 +220,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                     // Wrap unit text in Flexible
                                     Flexible(
                                       child: Text(
-                                        " /${args['unitType']}",
+                                        " /$unitType",
                                         style: TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 14,
                                           fontFamily: 'Switzer',
                                           fontWeight: FontWeight.w300,
                                         ),
@@ -208,10 +239,6 @@ class _ProductScreenState extends State<ProductScreen> {
                           Column(
                             children: [
                               Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -227,7 +254,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                       },
                                       icon: Icon(Icons.remove),
                                     ),
-                                    Text("$quantity"),
+                                    args["stock"] < 0
+                                        ? Text("Out of Stock")
+                                        : Text("$quantity"),
                                     IconButton(
                                       onPressed: () {
                                         print(quantity);
@@ -240,11 +269,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 4),
                               Text(
                                 "\$$quantityPrice",
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 16,
                                   fontFamily: 'Switzer',
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -273,7 +301,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 Text(
                                   "Meet-up Preferences",
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     fontFamily: 'Switzer',
                                     fontWeight: FontWeight.w500,
                                     color: Colors.white,
@@ -291,7 +319,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       args['location'],
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                       ),
                                     ),
                                   ],
@@ -309,7 +337,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       "Delivery Available",
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                       ),
                                     ),
                                   ],
@@ -324,7 +352,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         "Description",
                         style: TextStyle(
                           fontFamily: 'Switzer',
-                          fontSize: 24,
+                          fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

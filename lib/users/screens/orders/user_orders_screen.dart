@@ -18,11 +18,12 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  Text(
+        title: Text(
           'My Orders',
           style: TextStyle(
+            fontFamily: 'Switzer',
             color: Colors.black,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
             fontSize: 20,
           ),
         ),
@@ -35,7 +36,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
         stream: _orderService.getOrdersForCustomer(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return  Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -45,7 +46,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
           final orders = snapshot.data ?? [];
 
           if (orders.isEmpty) {
-            return  Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -74,7 +75,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
           }
 
           return ListView.builder(
-            padding:  EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
@@ -120,10 +121,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   'Order #${orderId.substring(0, 8)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 _buildStatusChip(status),
               ],
@@ -152,18 +150,12 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   'Total: \$${totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 if (status == 'pending')
                   TextButton(
                     onPressed: () => _cancelOrder(orderId),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    child: Text('Cancel', style: TextStyle(color: Colors.red)),
                   ),
               ],
             ),
@@ -198,11 +190,11 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                       imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return  Icon(Icons.image_not_supported);
+                        return Icon(Icons.image_not_supported);
                       },
                     ),
                   )
-                :  Icon(Icons.image_not_supported),
+                : Icon(Icons.image_not_supported),
           ),
           SizedBox(width: 12),
 
@@ -213,10 +205,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                 ),
                 Text(
                   'Qty: $quantity × \$${price.toStringAsFixed(2)}',
@@ -279,7 +268,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       children: [
         Row(
           children: [
-           Icon(Icons.receipt_long, size: 16, color: Colors.green),
+            Icon(Icons.receipt_long, size: 16, color: Colors.green),
             SizedBox(width: 8),
             Text(
               'Receipt',
@@ -304,10 +293,10 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
-                  return  Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 },
                 errorBuilder: (context, error, stackTrace) {
-                  return  Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -324,8 +313,8 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             ),
           ),
         ),
-         SizedBox(height: 4),
-         Text(
+        SizedBox(height: 4),
+        Text(
           'Tap to view full size',
           style: TextStyle(
             fontSize: 12,
@@ -355,7 +344,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                   fit: BoxFit.contain,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
-                    return  Center(
+                    return Center(
                       child: CircularProgressIndicator(color: Colors.white),
                     );
                   },
@@ -389,12 +378,12 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title:  Text('Cancel Order'),
-        content:  Text('Are you sure you want to cancel this order?'),
+        title: Text('Cancel Order'),
+        content: Text('Are you sure you want to cancel this order?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child:  Text('No'),
+            child: Text('No'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),

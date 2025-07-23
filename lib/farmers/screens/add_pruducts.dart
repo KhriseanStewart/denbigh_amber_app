@@ -186,6 +186,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     ).farmer!.id;
 
     try {
+      int minUnitNum = int.parse(_minSaleAmount);
       await FirebaseFirestore.instance
           .collection('products')
           .doc(widget.productId)
@@ -199,7 +200,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             'unit': [_unit!],
             'location': _location,
             'stock': _stock,
-            'minSaleAmount': _minSaleAmount,
+            'minSaleAmount': minUnitNum,
             'imageUrl': _imageUrl ?? '',
             'createdAt': Timestamp.now(),
           });

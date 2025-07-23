@@ -124,8 +124,9 @@ class SalesAndOrdersService {
 
   Stream<List<model_orders.Orderlist>> getOrdersForCustomer(String customerId) {
     return _db
+        .collection('customers')
+        .doc(customerId)
         .collection('orders')
-        .where('customerId', isEqualTo: customerId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(

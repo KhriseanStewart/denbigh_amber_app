@@ -212,6 +212,34 @@ class _CartScreenState extends State<CartScreen> {
     final id = item.id;
     final currentQuantity = cartQuantities[id] ?? item['customerQuantity'];
     //final totalPriceTwo = item['price'] * currentQuantity;
+    final dynamic categoryData = item['category'] ?? 'Uncategorized';
+
+    String category;
+
+    if (categoryData is List && categoryData.isNotEmpty) {
+      // If it's a list, take the first element
+      category = categoryData.first.toString();
+    } else if (categoryData is String) {
+      // If it's a string, use it directly
+      category = categoryData;
+    } else {
+      // Fallback in case it's something else
+      category = 'Uncategorized';
+    }
+    final dynamic unitTypeData = item['unitType'] ?? 'unit';
+
+    String unitType;
+
+    if (unitTypeData is List && unitTypeData.isNotEmpty) {
+      // If it's a list, take the first element
+      unitType = unitTypeData.first.toString();
+    } else if (unitTypeData is String) {
+      // If it's a string, use it directly
+      unitType = unitTypeData;
+    } else {
+      // Fallback in case it's something else
+      unitType = 'Uncategorized';
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
@@ -290,7 +318,7 @@ class _CartScreenState extends State<CartScreen> {
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Text(
-                      item['category'],
+                      category,
                       style: TextStyle(fontSize: 11, color: Color(0xff828282)),
                     ),
                   ),
@@ -306,7 +334,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        "/${item['unitType']}",
+                        "/$unitType",
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -332,6 +360,7 @@ class _CartScreenState extends State<CartScreen> {
                               farmerName =
                                   farmerData?['name'] ??
                                   farmerData?['firstName'] ??
+                                  farmerData?['farmerName'] ??
                                   'Unknown Farmer';
                             }
 
@@ -374,7 +403,7 @@ class _CartScreenState extends State<CartScreen> {
               SizedBox(height: 30),
               Container(
                 decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5),
+                  color: item['quantity'] < 0 ? Colors.red : Color(0xffF5F5F5),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Row(

@@ -94,7 +94,7 @@ class ProductCard extends StatelessWidget {
                         SizedBox(width: 14),
                       ],
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: 2),
                     Row(
                       children: [
                         // Display stock with red color if low stock

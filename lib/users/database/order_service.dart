@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/utils/services/notification_service.dart';
+import 'package:uuid/uuid.dart';
 
 class OrderService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final NotificationService _notificationService = NotificationService();
 
+  final uuid = Uuid().v4();
+
   /// Create orders from user's cart items
   /// Groups items by farmerId and creates separate orders for each farmer
   Future<bool> createOrderFromCart(String userId) async {
     try {
-      // Get current user's cart items
+      // Fetch all cart items for the user
       final cartSnapshot = await _db
           .collection('users')
           .doc(userId)
@@ -20,9 +23,8 @@ class OrderService {
         throw Exception('Cart is empty');
       }
 
-      // Group cart items by farmerId
+      // Group items by farmerId
       Map<String, List<QueryDocumentSnapshot>> itemsByFarmer = {};
-
       for (var cartItem in cartSnapshot.docs) {
         final data = cartItem.data() as Map<String, dynamic>?;
         if (data == null) continue;
@@ -35,21 +37,108 @@ class OrderService {
         itemsByFarmer[farmerId]!.add(cartItem);
       }
 
-      // Create separate orders for each farmer
+      // Prepare a map to hold productId and total ordered quantity for stock update
+      Map<String, int> productQuantities = {};
+
+      // For each farmer, create an order
       for (var entry in itemsByFarmer.entries) {
         final farmerId = entry.key;
         final farmerItems = entry.value;
 
+        double totalPrice = 0;
+        List<Map<String, dynamic>> orderItems = [];
+
+        for (var cartItem in farmerItems) {
+          final data = cartItem.data() as Map<String, dynamic>;
+          final productId = data['productId'];
+          final int quantity = data['customerQuantity'] ?? 1;
+          final price = (data['price'] as num).toDouble();
+
+          totalPrice += price * quantity;
+
+          orderItems.add({
+            'productId': productId,
+            'name': data['name'],
+            'quantity': quantity,
+            'price': price,
+            'category': data['category'],
+            'unitType': data['unitType'],
+            'imageUrl': data['imageUrl'],
+            'farmerId': farmerId,
+          });
+          // await createReceipt(orderId)
+
+          final hasStock = await calculateStock(productId, quantity);
+          if (hasStock == false) {
+            Exception("Insufficent");
+            return false;
+          }
+        }
+
+        // Create order for this farmer
         await _createOrderForFarmer(userId, farmerId, farmerItems);
+
+        // Optionally, create receipt here if needed
       }
 
-      // Clear the cart after successful order creation
+      // Clear the cart after stock update
       await _clearCart(userId);
 
       return true;
     } catch (e) {
       print('Error creating order from cart: $e');
       return false;
+    }
+  }
+
+  Future<bool> calculateStock(String productId, int prevStock) async {
+    final productdb = await _db.collection('products').doc(productId).get();
+    print("product ID: $productId");
+    final data = await productdb.data();
+    final stock = data!['stock'];
+    print(stock);
+    if (stock <= 0) {
+      print("object");
+      Exception("Error ");
+      return false;
+    } else {
+      int newStock = stock - prevStock;
+      await _db.collection('products').doc(productId).update({
+        'stock': newStock,
+      });
+      print(newStock);
+      return true;
+    }
+  }
+
+  /// Create a receipt for the user after order placement
+  Future<void> createReceipt(String orderId) async {
+    try {
+      final orderRef = _db.collection('orders').doc(orderId);
+      final orderSnapshot = await orderRef.get();
+
+      if (!orderSnapshot.exists) {
+        throw Exception('Order not found');
+      }
+
+      final orderData = orderSnapshot.data()!;
+      final customerId = orderData['customerId'];
+
+      final receiptData = {
+        'orderId': orderId,
+        'customerId': customerId,
+        'items': orderData['items'],
+        'totalPrice': orderData['totalPrice'],
+        'date': FieldValue.serverTimestamp(),
+        'status': 'completed',
+      };
+
+      // Save receipt to Firestore under 'receipts' collection
+      await _db.collection('receipts').add(receiptData);
+
+      print('Receipt created successfully for order: $orderId');
+    } catch (e) {
+      print('Failed to create receipt: $e');
     }
   }
 
@@ -61,6 +150,7 @@ class OrderService {
   ) async {
     double totalPrice = 0;
     List<Map<String, dynamic>> orderItems = [];
+    final orderId = uuid;
 
     // Convert cart items to order items
     for (var cartItem in cartItems) {
@@ -81,14 +171,14 @@ class OrderService {
         'unit': data['unitType'] ?? 'piece',
         'imageUrl': data['imageUrl'] ?? '',
         'customerLocation': data['location'] ?? '',
-        'farmerId': farmerId, // Add farmerId to each item
-        'orderId': '', // Will be set after creation
+        'farmerId': farmerId,
+        'orderId': '',
       });
     }
 
     // Create the order document
     final orderData = {
-      'orderId': '', // Will be updated after creation
+      'orderId': '',
       'customerId': customerId,
       'farmerId': farmerId,
       'items': orderItems,
@@ -96,7 +186,6 @@ class OrderService {
       'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-      // Add fields expected by farmer model
       'name': orderItems.isNotEmpty ? orderItems.first['name'] : '',
       'unit': orderItems.isNotEmpty ? orderItems.first['unit'] : '',
       'quantity': orderItems.length.toString(),
@@ -105,6 +194,7 @@ class OrderService {
           : '',
     };
 
+    // Add order to Firestore
     // Add order to Firestore
     final docRef = await _db.collection('orders').add(orderData);
 
@@ -143,6 +233,8 @@ class OrderService {
       await doc.reference.delete();
     }
   }
+
+  /// Get orders for a specific customer
 
   /// Get orders for a specific customer
   Stream<List<Map<String, dynamic>>> getOrdersForCustomer(String customerId) {

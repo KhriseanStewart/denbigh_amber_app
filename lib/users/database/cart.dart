@@ -35,11 +35,11 @@ class Cart_Service {
         'price': productData['price'],
         'imageUrl': productData['imageUrl'],
         'customerQuantity': quantity,
-        'currency': productData['currency'],
+        'currency': 'J',
         'category': productData['category'],
         'minUnitNum': productData['minUnitNum'],
-        'unitType': productData['unitType'],
-        'quantity': productData['quantity'],
+        'unitType': productData['unit'],
+        'quantity': productData['stock'],
         'location': productData['location'],
         'farmerId': productData['farmerId'], // Add farmerId for order grouping
       });

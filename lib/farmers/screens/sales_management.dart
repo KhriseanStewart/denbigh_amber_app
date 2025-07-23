@@ -1,4 +1,5 @@
 import 'package:denbigh_app/farmers/model/orders.dart';
+import 'package:denbigh_app/farmers/model/orders.dart' as model_orders;
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/services/auth.dart';
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
@@ -32,7 +33,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   Widget build(BuildContext context) {
     final farmerId =
         Provider.of<AuthService>(context, listen: false).farmer?.id ?? '';
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Sales and Orders Management'),
@@ -50,7 +50,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 ontap: () => setState(() => _ordersExpanded = !_ordersExpanded),
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: StreamBuilder<List<Orderlist>>(
+                  child: StreamBuilder(
                     stream: SalesAndOrdersService().getOrdersForFarmer(
                       farmerId,
                     ),
@@ -72,7 +72,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                           print(
                             'Order debug: items=${order.items.map((e) => '${e.name},${e.unit},${e.quantity},${e.customerLocation}').toList()}',
                           );
-
                           return Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),

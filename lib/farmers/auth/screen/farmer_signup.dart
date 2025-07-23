@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:denbigh_app/farmers/auth/screen/farmer_login.dart';
+import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
 import 'package:denbigh_app/widgets/autoCompleter.dart';
@@ -241,7 +242,7 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
 
                             Navigator.pushReplacementNamed(
                               context,
-                              '/farmermainlayout',
+                              AppRouter.farmerlogin,
                             );
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(

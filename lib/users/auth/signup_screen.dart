@@ -157,62 +157,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Who are you? (Role Selection)
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white12),
-                      color: Colors.white12,
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      validator: validateNotEmpty,
-                      value: selectedRole, // set current selected value
-                      hint: Center(
-                        child: Text(
-                          selectedRole ?? "Who are you?",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                      items: [
-                        DropdownMenuItem(value: 'admin', child: Text("Admin")),
-                        DropdownMenuItem(
-                          value: 'farmer',
-                          child: Text("Farmer"),
-                        ),
-                        DropdownMenuItem(value: 'user', child: Text("User")),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedRole = value; // update selected role
-                        });
-                      },
-                      isExpanded:
-                          true, // optional: makes dropdown take full width
-                    ),
-                  ),
-
-                  // RADA ID - only show when farmer is selected
-                  if (selectedRole == 'farmer') ...[
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: farmerId,
-                      style: const TextStyle(color: Colors.black),
-                      decoration: _inputDecoration(
-                        "RADA ID",
-                        Icons.verified_user_outlined,
-                      ),
-                      validator: (value) {
-                        if (selectedRole == 'farmer') {
-                          if (value == null || value.isEmpty) {
-                            return 'RADA ID is required for farmers.';
-                          }
-                        }
-                        return null; // validation passes
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-
                   // 📧 Email
                   TextFormField(
                     controller: emailController,

@@ -58,15 +58,15 @@ class ProfileScreen extends StatelessWidget {
             _profileContainer('Account Information', () {
               Navigator.pushNamed(context, AppRouter.accountInformation);
             }),
-            _profileContainer('My Orders', () {
-              Navigator.pushNamed(context, AppRouter.userorders);
-            }),
             _profileContainer('Card Information', () {
               Navigator.pushNamed(context, AppRouter.card);
             }),
 
             _profileContainer('Preferences', () {
               // logic to Navigate to preferences page
+            }),
+            _profileContainer('My Orders', () {
+              Navigator.pushNamed(context, AppRouter.userorders);
             }),
             _profileContainer('About Us', () {
               // logic to Navigate to about us page

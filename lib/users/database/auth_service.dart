@@ -68,7 +68,7 @@ class AuthService {
       }
 
       // 3️⃣ Write their profile, including role
-      await _db.collection('users').doc(uid).set(userData);
+      await _db.collection('farmersData').doc(uid).set(userData);
 
       return cred.user;
     } catch (e) {

@@ -30,7 +30,7 @@ class _UserProductCardState extends State<UserProductCard> {
     if (farmerId != null) {
       try {
         final farmerDoc = await FirebaseFirestore.instance
-            .collection('farmers')
+            .collection('farmersData')
             .doc(farmerId)
             .get();
 
@@ -40,6 +40,7 @@ class _UserProductCardState extends State<UserProductCard> {
             farmerName =
                 farmerData?['name'] ??
                 farmerData?['firstName'] ??
+                farmerData?['farmerName'] ??
                 'Unknown Farmer';
           });
         } else {
@@ -86,9 +87,35 @@ class _UserProductCardState extends State<UserProductCard> {
     // Safely get the data from Firestore, providing default values to prevent errors.
     final String name = data['name'] ?? 'No Name Available';
     final String imageUrl = data['imageUrl'] ?? ''; // Default to empty string
-    final num price = data['price'] ?? 0;
-    final String category = data['category'] ?? 'Uncategorized';
-    final String unitType = data['unitType'] ?? 'unit';
+    final int price = data['price'] ?? 0;
+    final dynamic categoryData = data['category'] ?? 'Uncategorized';
+
+    String category;
+
+    if (categoryData is List && categoryData.isNotEmpty) {
+      // If it's a list, take the first element
+      category = categoryData.first.toString();
+    } else if (categoryData is String) {
+      // If it's a string, use it directly
+      category = categoryData;
+    } else {
+      // Fallback in case it's something else
+      category = 'Uncategorized';
+    }
+    final dynamic unitTypeData = data['unit'] ?? 'unit';
+
+    String unitType;
+
+    if (unitTypeData is List && unitTypeData.isNotEmpty) {
+      // If it's a list, take the first element
+      unitType = unitTypeData.first.toString();
+    } else if (unitTypeData is String) {
+      // If it's a string, use it directly
+      unitType = unitTypeData;
+    } else {
+      // Fallback in case it's something else
+      unitType = 'Uncategorized';
+    }
 
     // Format the price safely
     final formatter = NumberFormat('#,###');
@@ -140,163 +167,176 @@ class _UserProductCardState extends State<UserProductCard> {
             ),
 
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image
-                  Expanded(
-                    flex: 3,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: imageUrl.isNotEmpty
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[200],
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Image
+                Expanded(
+                  flex: 3,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Icon(Icons.image_not_supported_outlined),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child;
+                              } else {
+                                return Shimmer.fromColors(
+                                  baseColor: Colors.grey.shade200,
+                                  highlightColor: Colors.grey.shade300,
+                                  child: Container(
+                                    color: Colors.grey,
+                                    width: double.infinity,
+                                  ),
+                                );
+                              }
+                            },
+                          )
+                        : Container(
+                            color: Colors.grey[200],
+                            width: double.infinity,
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 4.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Product Name
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      SizedBox(height: 4),
+
+                      // Farmer Name
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          farmerName,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+
+                      SizedBox(height: 4),
+
+                      // Category
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(fontSize: 10),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+
+                      SizedBox(height: 8),
+
+                      // Price and Compare Button
+                      Row(
+                        children: [
+                          data['stock'] > 0
+                              ? Text(
+                                  "\$$displayNumber",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green.shade600,
+                                  ),
+                                )
+                              : Text(
+                                  "Out of Stock",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade600,
+                                  ),
+                                ),
+                          Text(
+                            "/$unitType",
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+
+                          // Compare/View All Button
+                          if (farmerCount > 1)
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        FarmersSellingProductScreen(
+                                          productName: name,
+                                        ),
                                   ),
                                 );
                               },
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    } else {
-                                      return Shimmer.fromColors(
-                                        baseColor: Colors.grey.shade200,
-                                        highlightColor: Colors.grey.shade300,
-                                        child: Container(
-                                          color: Colors.grey,
-                                          width: double.infinity,
-                                        ),
-                                      );
-                                    }
-                                  },
-                            )
-                          : Container(
-                              color: Colors.grey[200],
-                              width: double.infinity,
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: Colors.grey[400],
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Icon(
+                                  Icons.compare_arrows,
+                                  size: 16,
+                                  color: Colors.blue.shade700,
+                                ),
                               ),
                             ),
-                    ),
-                  ),
-
-                  SizedBox(height: 8),
-
-                  // Product Name
-                  Text(
-                    name,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  SizedBox(height: 4),
-
-                  // Farmer Name
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      farmerName,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w500,
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  SizedBox(height: 4),
-
-                  // Category
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      category,
-                      style: TextStyle(fontSize: 10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  SizedBox(height: 8),
-
-                  // Price and Compare Button
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "\$$displayNumber",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green.shade600,
-                              ),
-                            ),
-                            Text(
-                              "/$unitType",
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Compare/View All Button
-                      if (farmerCount > 1)
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    FarmersSellingProductScreen(
-                                      productName: name,
-                                    ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(
-                              Icons.compare_arrows,
-                              size: 16,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],

@@ -129,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(shape: BoxShape.circle),
                     child: PicCard(),
                   ),
+                  actions: [Container()],
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -150,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  
                 );
               },
             ),
