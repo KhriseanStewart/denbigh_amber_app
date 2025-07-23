@@ -12,7 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class SalesManagementPage extends StatefulWidget {
-  const SalesManagementPage({Key? key}) : super(key: key);
+  const SalesManagementPage({super.key});
 
   @override
   State<SalesManagementPage> createState() => _SalesManagementPageState();
@@ -292,8 +292,8 @@ class _ExpandableSection extends StatelessWidget {
     required this.expanded,
     required this.ontap,
     required this.child,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

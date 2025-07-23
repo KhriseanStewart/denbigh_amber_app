@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AccountInformationScreen extends StatefulWidget {
-  const AccountInformationScreen({Key? key}) : super(key: key);
+  const AccountInformationScreen({super.key});
 
   @override
   _AccountInformationScreenState createState() =>

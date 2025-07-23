@@ -13,11 +13,6 @@ class OrderBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
-    // If no farmer is logged in, don't show anything
-    if (uid == null) {
-      return const SizedBox.shrink();
-    }
-
     // Listen to LIVE orders from Firestore for this farmer
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance

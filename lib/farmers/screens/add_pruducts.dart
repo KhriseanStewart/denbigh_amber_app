@@ -104,7 +104,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     // Ask to choose the photo source
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => SizedBox(
         height: 200,
         child: Column(
           children: [

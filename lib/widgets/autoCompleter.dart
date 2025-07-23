@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 class LocationAutoComplete extends StatefulWidget {
   final Function(String?) onCategorySelected;
   final bool? underlineBorder;
-  const LocationAutoComplete({Key? key, required this.onCategorySelected, this.underlineBorder})
-    : super(key: key);
+  const LocationAutoComplete({super.key, required this.onCategorySelected, this.underlineBorder});
 
   @override
   _LocationAutoCompleteState createState() => _LocationAutoCompleteState();

@@ -108,7 +108,7 @@ class FarmerProductCard extends StatelessWidget {
               // Product Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Container(
+                child: SizedBox(
                   width: 80,
                   height: 80,
                   child: data['imageUrl'] != null

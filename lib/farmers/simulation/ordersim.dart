@@ -115,7 +115,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         onPressed: () async {
           // Collect selected items
           final selectedItems = <OrderItem>[];
-          widget.products.forEach((prod) {
+          for (var prod in widget.products) {
             final qty = _selectedQuantities[prod.productId] ?? 0;
             if (qty > 0) {
               selectedItems.add(
@@ -133,7 +133,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 ),
               );
             }
-          });
+          }
 
           if (selectedItems.isEmpty) {
             if (mounted) {

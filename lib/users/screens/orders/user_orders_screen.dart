@@ -136,7 +136,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             SizedBox(height: 12),
 
             // Order items
-            ...items.map((item) => _buildOrderItem(item)).toList(),
+            ...items.map((item) => _buildOrderItem(item)),
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[

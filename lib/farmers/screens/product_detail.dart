@@ -178,7 +178,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 children: [
                   ..._product.category
                       .map((cat) => Chip(label: Text(cat)))
-                      .toList(),
+                      ,
                   _DetailChip(
                     label:
                         'Price: ${_product.price} / ${_product.unit.isNotEmpty ? _product.unit.first : ''}',

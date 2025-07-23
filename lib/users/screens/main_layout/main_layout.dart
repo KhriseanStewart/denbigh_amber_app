@@ -13,7 +13,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  List<Widget> _screen = [HomeScreen(), CartScreen(), ProfileScreen()];
+  final List<Widget> _screen = [HomeScreen(), CartScreen(), ProfileScreen()];
   int _currentIndex = 0;
   void onTap(index) {
     setState(() {
