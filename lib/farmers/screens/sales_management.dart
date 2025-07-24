@@ -1,4 +1,3 @@
-import 'package:denbigh_app/farmers/model/orders.dart';
 import 'package:denbigh_app/farmers/model/orders.dart' as model_orders;
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/services/auth.dart';
@@ -141,14 +140,45 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         Text(
                                           'Customer ID: ${order.customerId}',
                                         ),
-                                        Text(
-                                          'Name: ${(order.items.isNotEmpty && order.items.first.name.isNotEmpty) ? order.items.first.name : 'NO NAME'}',
-                                        ),
+                                        // Display all items in the order with numbering
+                                        ...order.items.asMap().entries.map((
+                                          entry,
+                                        ) {
+                                          final index = entry.key + 1;
+                                          final item = entry.value;
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 2.0,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  '${index}.',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.black87,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    '${item.name} - Qty: ${item.quantity} ${item.unit}',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black87,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                        SizedBox(height: 4),
                                         Text(
                                           'Customer Location: ${(order.items.isNotEmpty && order.items.first.customerLocation.isNotEmpty) ? order.items.first.customerLocation : 'NO LOCATION'}',
-                                        ),
-                                        Text(
-                                          'Quantity: ${(order.items.isNotEmpty && order.items.first.quantity != 0) ? order.items.first.quantity : 'NO QTY'} ${(order.items.isNotEmpty && order.items.first.unit.isNotEmpty) ? order.items.first.unit : 'NO UNIT'}',
                                         ),
                                         Text(
                                           'Total: \$${order.totalPrice.toString()}',
@@ -162,7 +192,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                                 order.status,
                                               )
                                               ? order.status
-                                              : 'processing',
+                                              : 'Processing',
                                           items: statuses.keys
                                               .map(
                                                 (
@@ -198,7 +228,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                           },
                                         ),
                                         SizedBox(height: 8),
-                                        if (order.status == "shipped")
+                                        if (order.status == "Shipped")
                                           Center(
                                             child: TextButton.icon(
                                               icon: Icon(
@@ -263,8 +293,8 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                         );
                       }
                       final farmerId = userSnap.data!.uid;
-                      return StreamBuilder<List<Sale>>(
-                        stream: SalesAndOrdersService().getSalesForFarmer(
+                      return StreamBuilder<List<SalesGroup>>(
+                        stream: SalesAndOrdersService().getMultiSalesForFarmer(
                           farmerId,
                         ),
                         builder: (context, saleSnap) {
@@ -286,7 +316,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                             physics: NeverScrollableScrollPhysics(),
                             itemCount: sales.length,
                             itemBuilder: (context, index) {
-                              final sale = sales[index];
+                              final saleGroup = sales[index];
                               return Card(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
@@ -298,21 +328,62 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  title: Text('Sale #${sale.salesId}'),
+                                  title: Text('Sale #${saleGroup.sessionId}'),
                                   subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('Name: ${sale.name}'),
-                                      Text('Customer: ${sale.customerName}'),
-                                      Text('Customer ID: ${sale.customerId}'),
                                       Text(
-                                        'Quantity: ${sale.quantity} ${sale.unit}',
+                                        'Customer: ${saleGroup.customerName}',
                                       ),
                                       Text(
-                                        'Total: \$${sale.totalPrice.toString()}',
+                                        'Customer ID: ${saleGroup.customerId}',
                                       ),
-                                      Text('Created: ${sale.date.toDate()}'),
+                                      Text(
+                                        'Customer Location: ${saleGroup.customerLocation.isNotEmpty ? saleGroup.customerLocation : 'NO LOCATION'}',
+                                      ),
+                                      // Display all items in the sale group with numbering
+                                      ...saleGroup.items.asMap().entries.map((
+                                        entry,
+                                      ) {
+                                        final index = entry.key + 1;
+                                        final item = entry.value;
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 2.0,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                '${index}.',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  '${item.name} - Qty: ${item.quantity} ${item.unit}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.black87,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Total: \$${saleGroup.totalPrice.toString()}',
+                                      ),
+                                      Text(
+                                        'Created: ${saleGroup.date.toDate()}',
+                                      ),
                                     ],
                                   ),
                                   isThreeLine: true,
@@ -347,7 +418,6 @@ class _ExpandableSection extends StatelessWidget {
     required this.expanded,
     required this.ontap,
     required this.child,
-    super.key,
   });
 
   @override

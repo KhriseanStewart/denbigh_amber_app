@@ -196,11 +196,8 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
       await saleDocRef.update({'salesId': saleDocRef.id});
     }
 
-    // Update the order status to completed instead of deleting it
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-      'status': 'completed',
-      'completedAt': Timestamp.now(),
-    });
+    // Delete the order from the orders collection since it's now converted to sales
+    await FirebaseFirestore.instance.collection('orders').doc(orderId).delete();
 
     setState(() {
       _donePressed = true;

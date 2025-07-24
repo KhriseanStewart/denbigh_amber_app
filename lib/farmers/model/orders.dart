@@ -15,6 +15,7 @@ class Orderlist {
   final DateTime createdAt;
   final String? imageUrl;
   final String customerLocation;
+  final String orderSessionId;
 
   Orderlist({
     required this.orderId,
@@ -30,6 +31,7 @@ class Orderlist {
     required this.createdAt,
     this.imageUrl,
     required this.customerLocation,
+    this.orderSessionId = '',
   });
 
   // Factory constructor to create an Order from a Firestore map
@@ -59,6 +61,7 @@ class Orderlist {
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
       customerLocation: map['customerLocation']?.toString() ?? '',
+      orderSessionId: map['orderSessionId']?.toString() ?? '',
     );
   }
 
@@ -77,6 +80,7 @@ class Orderlist {
       'imageUrl': imageUrl,
       'unit': unit,
       'customerLocation': customerLocation,
+      'orderSessionId': orderSessionId,
     };
   }
 }

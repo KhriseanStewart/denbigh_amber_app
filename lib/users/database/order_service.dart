@@ -21,6 +21,39 @@ class OrderService {
         return false;
       }
 
+      // Generate a unique order session ID for grouping related orders
+      final orderSessionId =
+          DateTime.now().millisecondsSinceEpoch.toString() + '_' + userId;
+
+      // First, validate stock for all items before creating any orders
+      for (var cartItem in cartSnapshot.docs) {
+        final data = cartItem.data() as Map<String, dynamic>?;
+        if (data == null) continue;
+
+        final productId = data['productId'];
+        final quantity = data['customerQuantity'] ?? 1;
+
+        if (productId != null) {
+          // Check if stock is available (without deducting yet)
+          final productDoc = await _db
+              .collection('products')
+              .doc(productId)
+              .get();
+          if (!productDoc.exists) {
+            throw Exception('Product not found: ${data['name']}');
+          }
+
+          final productData = productDoc.data();
+          final availableStock = (productData?['stock'] as num?)?.toInt() ?? 0;
+
+          if (availableStock < quantity) {
+            throw Exception(
+              'Insufficient stock for ${data['name']}. Available: $availableStock, Requested: $quantity',
+            );
+          }
+        }
+      }
+
       // Group items by farmerId
       Map<String, List<QueryDocumentSnapshot>> itemsByFarmer = {};
       for (var cartItem in cartSnapshot.docs) {
@@ -36,11 +69,16 @@ class OrderService {
         itemsByFarmer[farmerId]!.add(cartItem);
       }
 
-      // Create order for each farmer
+      // Create order for each farmer with the same session ID
       for (var entry in itemsByFarmer.entries) {
         final farmerId = entry.key;
         final farmerItems = entry.value;
-        await _createOrderForFarmer(userId, farmerId, farmerItems);
+        await _createOrderForFarmer(
+          userId,
+          farmerId,
+          farmerItems,
+          orderSessionId,
+        );
       }
 
       // Clear cart
@@ -53,23 +91,48 @@ class OrderService {
     }
   }
 
-  Future<bool> calculateStock(String productId, int prevStock) async {
-    final productdb = await _db.collection('products').doc(productId).get();
-    print("product ID: $productId");
-    final data = productdb.data();
-    final stock = data!['stock'];
-    print(stock);
-    if (stock <= 0) {
-      print("object");
-      Exception("Error ");
-      return false;
-    } else {
-      int newStock = stock - prevStock;
+  Future<bool> calculateStock(String productId, int quantityToDeduct) async {
+    try {
+      final productDoc = await _db.collection('products').doc(productId).get();
+
+      if (!productDoc.exists) {
+        print("Product not found: $productId");
+        return false;
+      }
+
+      final data = productDoc.data();
+      if (data == null) {
+        print("Product data is null for: $productId");
+        return false;
+      }
+
+      final currentStock = (data['stock'] as num?)?.toInt() ?? 0;
+      print(
+        "Product ID: $productId, Current stock: $currentStock, Requested quantity: $quantityToDeduct",
+      );
+
+      if (currentStock < quantityToDeduct) {
+        print(
+          "Insufficient stock. Available: $currentStock, Requested: $quantityToDeduct",
+        );
+        return false;
+      }
+
+      final newStock = currentStock - quantityToDeduct;
+
+      // Update the stock in the database
       await _db.collection('products').doc(productId).update({
         'stock': newStock,
+        'lastStockUpdate': FieldValue.serverTimestamp(),
       });
-      print(newStock);
+
+      print(
+        "Stock updated successfully. Product: $productId, New stock: $newStock",
+      );
       return true;
+    } catch (e) {
+      print("Error calculating/updating stock for product $productId: $e");
+      return false;
     }
   }
 
@@ -108,26 +171,45 @@ class OrderService {
     String customerId,
     String farmerId,
     List<QueryDocumentSnapshot> cartItems,
+    String orderSessionId,
   ) async {
     int totalPrice = 0;
     List<Map<String, dynamic>> orderItems = [];
 
-    // Convert cart items to order items
+    // Convert cart items to order items and handle stock deduction
     for (var cartItem in cartItems) {
       final data = cartItem.data() as Map<String, dynamic>?;
       if (data == null) continue;
 
       final quantity = data['customerQuantity'] ?? 1;
       final price = (data['price'] as num).toInt();
-      totalPrice += (price * quantity).toInt();
+      final productId = data['productId'];
+
+      // Calculate individual item total price
+      final itemTotalPrice = (price * quantity).toInt();
+      totalPrice += itemTotalPrice;
+
+      // Handle stock deduction for this specific product
+      if (productId != null) {
+        try {
+          final stockUpdated = await calculateStock(productId, quantity);
+          if (!stockUpdated) {
+            throw Exception('Insufficient stock for product: ${data['name']}');
+          }
+        } catch (e) {
+          print('Failed to update stock for product $productId: $e');
+          throw Exception('Failed to process order due to stock issues');
+        }
+      }
 
       orderItems.add({
-        'productId': data['productId'],
+        'productId': productId,
         'name': data['name'],
-        'price': price,
+        'price': price, // Individual item price
         'quantity': quantity,
         'unit': data['unitType'] ?? 'piece',
         'imageUrl': data['imageUrl'] ?? '',
+        'itemTotal': itemTotalPrice, // Total for this specific item
       });
     }
 
@@ -139,6 +221,7 @@ class OrderService {
       'totalPrice': totalPrice,
       'status': 'Processing',
       'createdAt': FieldValue.serverTimestamp(),
+      'orderSessionId': orderSessionId, // Add session ID for grouping
     };
 
     // Add to main orders collection
@@ -190,11 +273,16 @@ class OrderService {
       (QuerySnapshot ordersSnapshot, QuerySnapshot salesSnapshot) {
         List<Map<String, dynamic>> combinedData = [];
 
-        // Add current orders
+        // Group current orders by orderSessionId
+        Map<String, List<Map<String, dynamic>>> ordersBySession = {};
         for (var doc in ordersSnapshot.docs) {
           final data = doc.data() as Map<String, dynamic>?;
           if (data != null) {
-            combinedData.add({
+            final sessionId = data['orderSessionId']?.toString() ?? doc.id;
+            if (!ordersBySession.containsKey(sessionId)) {
+              ordersBySession[sessionId] = [];
+            }
+            ordersBySession[sessionId]!.add({
               'id': doc.id,
               'type': 'order',
               'orderId': doc.id,
@@ -206,6 +294,52 @@ class OrderService {
               'farmerId': data['farmerId'],
               'customerName': data['customerName'],
               'customerLocation': data['customerLocation'],
+              'orderSessionId': sessionId,
+            });
+          }
+        }
+
+        // Convert grouped orders to combined orders
+        for (var entry in ordersBySession.entries) {
+          final sessionId = entry.key;
+          final ordersInSession = entry.value;
+
+          if (ordersInSession.length == 1) {
+            // Single order in session, add as is
+            combinedData.add(ordersInSession.first);
+          } else {
+            // Multiple orders in session, combine them
+            final firstOrder = ordersInSession.first;
+            final combinedItems = <Map<String, dynamic>>[];
+            int combinedTotalPrice = 0;
+            String combinedStatus = firstOrder['status'];
+
+            for (var order in ordersInSession) {
+              final items = order['items'] as List<dynamic>? ?? [];
+              combinedItems.addAll(items.cast<Map<String, dynamic>>());
+              combinedTotalPrice += (order['totalPrice'] as num?)?.toInt() ?? 0;
+
+              // Use the most advanced status
+              final currentStatus = order['status'];
+              if (_getStatusPriority(currentStatus) >
+                  _getStatusPriority(combinedStatus)) {
+                combinedStatus = currentStatus;
+              }
+            }
+
+            combinedData.add({
+              'id': sessionId,
+              'type': 'order',
+              'orderId': sessionId,
+              'status': combinedStatus,
+              'createdAt': firstOrder['createdAt'],
+              'totalPrice': combinedTotalPrice,
+              'items': combinedItems,
+              'imageUrl': firstOrder['imageUrl'],
+              'farmerId': 'multiple', // Indicate multiple farmers
+              'customerName': firstOrder['customerName'],
+              'customerLocation': firstOrder['customerLocation'],
+              'orderSessionId': sessionId,
             });
           }
         }
@@ -340,6 +474,24 @@ class OrderService {
     } catch (e) {
       print('Error cancelling order: $e');
       return false;
+    }
+  }
+
+  /// Helper method to determine status priority for combining orders
+  int _getStatusPriority(String status) {
+    switch (status.toLowerCase()) {
+      case 'processing':
+        return 1;
+      case 'confirmed':
+        return 2;
+      case 'shipped':
+        return 3;
+      case 'completed':
+        return 4;
+      case 'cancelled':
+        return 0; // Lowest priority
+      default:
+        return 1;
     }
   }
 }
