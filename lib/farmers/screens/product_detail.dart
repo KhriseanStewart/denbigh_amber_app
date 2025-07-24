@@ -82,13 +82,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   Future<void> _editProduct() async {
     final updatedProduct = await Navigator.of(context).push<Product>(
       MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider<farmer_auth.AuthService>.value(
-          value: Provider.of<farmer_auth.AuthService>(context, listen: false),
-          child: AddProductScreen(
-            productId: _product.productId,
-            product: _product,
-          ),
-        ),
+        builder: (_) =>
+            AddProductScreen(productId: _product.productId, product: _product),
       ),
     );
     if (updatedProduct != null) {

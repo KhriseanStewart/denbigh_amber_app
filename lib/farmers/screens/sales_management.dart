@@ -21,7 +21,12 @@ class SalesManagementPage extends StatefulWidget {
 class _SalesManagementPageState extends State<SalesManagementPage> {
   bool _ordersExpanded = false;
   bool _salesExpanded = false;
-  final String farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    // We'll get the farmer ID in build method from Provider for consistency
+  }
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
     await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
@@ -31,8 +36,25 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    final farmerId =
-        Provider.of<AuthService>(context, listen: false).farmer?.id ?? '';
+    // Safely get farmer ID with try-catch to handle logout scenarios
+    String farmerId = '';
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      farmerId = authService.farmer?.id ?? '';
+    } catch (e) {
+      print('DEBUG: Error accessing AuthService provider: $e');
+
+      farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    }
+
+    print('DEBUG: Sales Management - farmerId from Provider: $farmerId');
+    print(
+      'DEBUG: Sales Management - farmerId from FirebaseAuth: ${FirebaseAuth.instance.currentUser?.uid}',
+    );
+    print(
+      'DEBUG: Sales Management - Current farmer ID being used for StreamBuilder: $farmerId',
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Sales and Orders Management'),
@@ -50,138 +72,173 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 ontap: () => setState(() => _ordersExpanded = !_ordersExpanded),
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: StreamBuilder(
-                    stream: SalesAndOrdersService()
-                        .getFilteredOrdersForFarmerManual(farmerId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      final orders = snapshot.data ?? [];
-                      if (orders.isEmpty) {
-                        return Text('No orders yet.');
-                      }
+                  child: farmerId.isEmpty
+                      ? Center(child: Text('Please log in to view orders'))
+                      : StreamBuilder(
+                          stream: SalesAndOrdersService()
+                              .getFilteredOrdersForFarmerManual(farmerId),
+                          builder: (context, snapshot) {
+                            print(
+                              'DEBUG: StreamBuilder state - connectionState: ${snapshot.connectionState}',
+                            );
+                            print(
+                              'DEBUG: StreamBuilder state - hasData: ${snapshot.hasData}',
+                            );
+                            print(
+                              'DEBUG: StreamBuilder state - hasError: ${snapshot.hasError}',
+                            );
+                            if (snapshot.hasError) {
+                              print(
+                                'DEBUG: StreamBuilder error: ${snapshot.error}',
+                              );
+                            }
+                            if (snapshot.hasData) {
+                              print(
+                                'DEBUG: StreamBuilder data length: ${snapshot.data?.length}',
+                              );
+                            }
 
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: orders.length,
-                        itemBuilder: (context, index) {
-                          final order = orders[index];
-                          print(
-                            'Order debug: items=${order.items.map((e) => '${e.name},${e.unit},${e.quantity},${e.customerLocation}').toList()}',
-                          );
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            color: Colors.teal[50],
-                            elevation: 2,
-                            margin: EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              title: Text(
-                                'Order #:${order.orderId.substring(0, 6)}',
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Customer: ${order.customerName}'),
-                                  Text('Customer ID: ${order.customerId}'),
-                                  Text(
-                                    'Name: ${(order.items.isNotEmpty && order.items.first.name.isNotEmpty) ? order.items.first.name : 'NO NAME'}',
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            final orders = snapshot.data ?? [];
+                            print(
+                              'DEBUG: Final orders list length: ${orders.length}',
+                            );
+                            if (orders.isEmpty) {
+                              return Text('No orders yet.');
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: orders.length,
+                              itemBuilder: (context, index) {
+                                final order = orders[index];
+                                print(
+                                  'Order debug: items=${order.items.map((e) => '${e.name},${e.unit},${e.quantity},${e.customerLocation}').toList()}',
+                                );
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  Text(
-                                    'Customer Location: ${(order.items.isNotEmpty && order.items.first.customerLocation.isNotEmpty) ? order.items.first.customerLocation : 'NO LOCATION'}',
-                                  ),
-                                  Text(
-                                    'Quantity: ${(order.items.isNotEmpty && order.items.first.quantity != 0) ? order.items.first.quantity : 'NO QTY'} ${(order.items.isNotEmpty && order.items.first.unit.isNotEmpty) ? order.items.first.unit : 'NO UNIT'}',
-                                  ),
-                                  Text(
-                                    'Total: \$${order.totalPrice.toStringAsFixed(2)}',
-                                  ),
-                                  Text(
-                                    'Created: ${order.createdAt.toString().split('.')[0]}',
-                                  ),
-                                  DropdownButton<String>(
-                                    value: statuses.keys.contains(order.status)
-                                        ? order.status
-                                        : 'processing',
-                                    items: statuses.keys
-                                        .map(
-                                          (status) => DropdownMenuItem<String>(
-                                            value: status,
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.circle,
-                                                  color: statuses[status],
-                                                  size: 12,
+                                  color: Colors.teal[50],
+                                  elevation: 2,
+                                  margin: EdgeInsets.symmetric(vertical: 8),
+                                  child: ListTile(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    title: Text(
+                                      'Order #:${order.orderId.substring(0, 6)}',
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Customer: ${order.customerName}'),
+                                        Text(
+                                          'Customer ID: ${order.customerId}',
+                                        ),
+                                        Text(
+                                          'Name: ${(order.items.isNotEmpty && order.items.first.name.isNotEmpty) ? order.items.first.name : 'NO NAME'}',
+                                        ),
+                                        Text(
+                                          'Customer Location: ${(order.items.isNotEmpty && order.items.first.customerLocation.isNotEmpty) ? order.items.first.customerLocation : 'NO LOCATION'}',
+                                        ),
+                                        Text(
+                                          'Quantity: ${(order.items.isNotEmpty && order.items.first.quantity != 0) ? order.items.first.quantity : 'NO QTY'} ${(order.items.isNotEmpty && order.items.first.unit.isNotEmpty) ? order.items.first.unit : 'NO UNIT'}',
+                                        ),
+                                        Text(
+                                          'Total: \$${order.totalPrice.toString()}',
+                                        ),
+                                        Text(
+                                          'Created: ${order.createdAt.toString().split('.')[0]}',
+                                        ),
+                                        DropdownButton<String>(
+                                          value:
+                                              statuses.keys.contains(
+                                                order.status,
+                                              )
+                                              ? order.status
+                                              : 'processing',
+                                          items: statuses.keys
+                                              .map(
+                                                (
+                                                  status,
+                                                ) => DropdownMenuItem<String>(
+                                                  value: status,
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.circle,
+                                                        color: statuses[status],
+                                                        size: 12,
+                                                      ),
+                                                      SizedBox(width: 8),
+                                                      Text(
+                                                        status[0]
+                                                                .toUpperCase() +
+                                                            status.substring(1),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  status[0].toUpperCase() +
-                                                      status.substring(1),
-                                                ),
-                                              ],
+                                              )
+                                              .toList(),
+                                          onChanged: (value) {
+                                            if (value != null &&
+                                                value != order.status) {
+                                              _updateOrderStatus(
+                                                order.orderId,
+                                                value,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        if (order.status == "shipped")
+                                          Center(
+                                            child: TextButton.icon(
+                                              icon: Icon(
+                                                Icons.receipt_long,
+                                                size: 32,
+                                                color: Colors.green.shade700,
+                                              ),
+                                              label: Text('Add Receipt'),
+                                              onPressed: () {
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  builder: (_) => Padding(
+                                                    padding: EdgeInsets.only(
+                                                      bottom: MediaQuery.of(
+                                                        context,
+                                                      ).viewInsets.bottom,
+                                                      top: 24,
+                                                      left: 12,
+                                                      right: 12,
+                                                    ),
+                                                    child: AddReceiptImage(
+                                                      orderId: order.orderId,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           ),
-                                        )
-                                        .toList(),
-                                    onChanged: (value) {
-                                      if (value != null &&
-                                          value != order.status) {
-                                        _updateOrderStatus(
-                                          order.orderId,
-                                          value,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(height: 8),
-                                  if (order.status == "shipped")
-                                    Center(
-                                      child: TextButton.icon(
-                                        icon: Icon(
-                                          Icons.receipt_long,
-                                          size: 32,
-                                          color: Colors.green.shade700,
-                                        ),
-                                        label: Text('Add Receipt'),
-                                        onPressed: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            builder: (_) => Padding(
-                                              padding: EdgeInsets.only(
-                                                bottom: MediaQuery.of(
-                                                  context,
-                                                ).viewInsets.bottom,
-                                                top: 24,
-                                                left: 12,
-                                                right: 12,
-                                              ),
-                                              child: AddReceiptImage(
-                                                orderId: order.orderId,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                      ],
                                     ),
-                                ],
-                              ),
-                              isThreeLine: true,
-                              trailing: Icon(Icons.chevron_right),
-                              onTap: () {},
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                                    isThreeLine: true,
+                                    trailing: Icon(Icons.chevron_right),
+                                    onTap: () {},
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                 ),
               ),
               SizedBox(height: 24),
@@ -253,7 +310,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         'Quantity: ${sale.quantity} ${sale.unit}',
                                       ),
                                       Text(
-                                        'Total: \$${sale.totalPrice.toStringAsFixed(2)}',
+                                        'Total: \$${sale.totalPrice.toString()}',
                                       ),
                                       Text('Created: ${sale.date.toDate()}'),
                                     ],

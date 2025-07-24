@@ -33,8 +33,8 @@ class Product {
     this.totalSold = 0,
     this.totalEarnings = 0.0,
     this.customerLocation = 'change in model',
-    this.isComplete = true, // Default to complete
-    this.isActive = true, // Default to active
+    this.isComplete = true, 
+    this.isActive = true, 
   });
 
   Map<String, dynamic> toMap() {
@@ -121,9 +121,9 @@ class Product {
       customerLocation: map['customerLocation'] ?? 'change in model',
       isComplete:
           map['isComplete'] ??
-          true, // Default to complete for existing products
+          true, 
       isActive:
-          map['isActive'] ?? true, // Default to active for existing products
+          map['isActive'] ?? true,
     );
   }
 }

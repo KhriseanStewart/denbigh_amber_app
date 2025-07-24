@@ -4,23 +4,28 @@ import 'package:denbigh_app/farmers/model/farmers.dart';
 import 'package:denbigh_app/farmers/services/farmer_service.dart';
 import 'package:denbigh_app/farmers/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
-class AuthService with ChangeNotifier {
+class AuthService {
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   Farmer? _farmer;
 
   bool get isAuthenticated => _farmer != null;
   Farmer? get farmer => _farmer;
 
-  AuthService() {
+  // Get current user
+  User? get currentUser => _auth.currentUser;
+
+  void initialize() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
   Future<void> _onAuthStateChanged(User? user) async {
     if (user == null) {
       _farmer = null;
-      notifyListeners();
       return;
     }
 
@@ -59,7 +64,6 @@ class AuthService with ChangeNotifier {
         location: const GeoPoint(0, 0),
       );
     }
-    notifyListeners();
   }
 
   Future<void> signIn(String email, String password) async {

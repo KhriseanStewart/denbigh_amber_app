@@ -179,10 +179,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     setState(() => _loading = true);
 
-    final userId = Provider.of<farmer_auth.AuthService>(
-      context,
-      listen: false,
-    ).farmer!.id;
+    final userId = farmer_auth.AuthService().farmer!.id;
 
     try {
       int minUnitNum = int.parse(_minUnitNum);

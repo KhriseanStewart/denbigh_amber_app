@@ -8,7 +8,7 @@ class NotificationService {
     required String farmerId,
     required String orderId,
     required String customerName,
-    required double totalAmount,
+    required int totalAmount,
     required int itemCount,
   }) async {
     try {

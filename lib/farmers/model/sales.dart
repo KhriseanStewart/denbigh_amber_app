@@ -5,7 +5,7 @@ class Sale {
   final String productId;
   final String name;
   final int quantity;
-  final double totalPrice;
+  final int totalPrice;
   final Timestamp date;
   final String customerId;
   final String customerName;
@@ -39,15 +39,15 @@ class Sale {
   };
 
   factory Sale.fromMap(Map<String, dynamic> map, String salesId) => Sale(
-    salesId: map['salesId'] ?? salesId,
-    productId: map['productId'] ?? '',
-    name: map['name'] ?? '',
-    quantity: map['quantity'] ?? 0,
-    totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
-    date: map['date'] as Timestamp,
-    customerId: map['customerId'] ?? '',
-    customerName: map['customerName'] ?? 'Unknown Customer',
-    farmerId: map['farmerId'] ?? '',
-    unit: map['unit'] ?? '',
+    salesId: map['salesId']?.toString() ?? salesId,
+    productId: map['productId']?.toString() ?? '',
+    name: map['name']?.toString() ?? '',
+    quantity: (map['quantity'] as num?)?.toInt() ?? 0,
+    totalPrice: (map['totalPrice'] as num?)?.toInt() ?? 0,
+    date: map['date'] as Timestamp? ?? Timestamp.now(),
+    customerId: map['customerId']?.toString() ?? '',
+    customerName: map['customerName']?.toString() ?? 'Unknown Customer',
+    farmerId: map['farmerId']?.toString() ?? '',
+    unit: map['unit']?.toString() ?? '',
   );
 }

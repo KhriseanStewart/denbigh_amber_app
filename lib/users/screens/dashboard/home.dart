@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
@@ -32,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'Vegetable',
   ];
   String? _selectedValue;
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +49,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  final userData = CustomerService().getUserInformation(auth!.uid);
+  // Safely get user data with null check
+  Future<DocumentSnapshot?> getUserData() async {
+    if (auth?.uid != null) {
+      try {
+        return await CustomerService().getUserInformation(auth!.uid);
+      } catch (e) {
+        print('Error fetching user data: $e');
+        return null;
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData) {
-          return Center(child: Text("data"));
+          return Center(child: Text("Please sign in"));
         }
         return buildUserHome(context);
       },
@@ -95,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSize buildAppBar(BuildContext context) {
     return PreferredSize(
-      preferredSize: Size.fromHeight(150),
+      preferredSize: Size.fromHeight(200), // Increased from 150 to 200
       child: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -109,51 +122,135 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // Added this to prevent overflow
           children: [
-            FutureBuilder(
-              future: userData,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData) {
-                  return Text("No document");
-                }
-                final data = snapshot.data;
-                return AppBar(
-                  backgroundColor:
-                      Colors.transparent, // make AppBar transparent
-                  titleSpacing: 10,
-                  leading: Container(
-                    decoration: BoxDecoration(shape: BoxShape.circle),
-                    child: PicCard(),
-                  ),
-                  actions: [Container()],
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Welcome",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w300,
-                        ),
+            Flexible(
+              // Wrapped in Flexible to prevent overflow
+              child: FutureBuilder<DocumentSnapshot?>(
+                future: getUserData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return AppBar(
+                      backgroundColor: Colors.transparent,
+                      titleSpacing: 10,
+                      leading: Container(
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: PicCard(),
                       ),
-                      Text(
-                        data?['name'] ?? 'user',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      actions: [Container()],
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.displayName ??
+                                FirebaseAuth.instance.currentUser?.email
+                                    ?.split('@')
+                                    .first ??
+                                "User",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  }
+                  if (!snapshot.hasData ||
+                      snapshot.data == null ||
+                      !snapshot.data!.exists) {
+                    return AppBar(
+                      backgroundColor: Colors.transparent,
+                      titleSpacing: 10,
+                      leading: Container(
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: PicCard(),
+                      ),
+                      actions: [Container()],
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.displayName ??
+                                FirebaseAuth.instance.currentUser?.email
+                                    ?.split('@')
+                                    .first ??
+                                "User",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  final data = snapshot.data!.data() as Map<String, dynamic>?;
+                  return AppBar(
+                    backgroundColor:
+                        Colors.transparent, // make AppBar transparent
+                    titleSpacing: 10,
+                    leading: Container(
+                      decoration: BoxDecoration(shape: BoxShape.circle),
+                      child: PicCard(),
+                    ),
+                    actions: [Container()],
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        Text(
+                          data?['name'] ??
+                              data?['firstName'] ??
+                              FirebaseAuth.instance.currentUser?.displayName ??
+                              FirebaseAuth.instance.currentUser?.email
+                                  ?.split('@')
+                                  .first ??
+                              'User',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-            buildHeader(),
+            Flexible(
+              // Wrapped in Flexible to prevent overflow
+              child: buildHeader(),
+            ),
           ],
         ),
       ),

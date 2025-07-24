@@ -33,8 +33,6 @@ class _CartScreenState extends State<CartScreen> {
 
       if (success) {
         displaySnackBar(context, "Order placed successfully!");
-        // Optionally navigate to order confirmation screen
-        // Navigator.pushNamed(context, AppRouter.orderConfirmation);
       } else {
         displaySnackBar(context, "Failed to place order. Please try again.");
       }
@@ -79,16 +77,16 @@ class _CartScreenState extends State<CartScreen> {
 
           final cartItems = snapshot.data!.docs;
 
-          double itemCost = 0;
+          int itemCost = 0;
           for (var item in cartItems) {
             final quantity =
                 cartQuantities[item.id] ?? item['customerQuantity'];
-            itemCost += item['price'] * quantity;
+            itemCost += ((item['price'] as num? ?? 0) * quantity).toInt();
           }
 
-          double subTax = itemCost * 0.08;
-          double deliveryFee = 10.0;
-          double totalCost = itemCost + subTax + deliveryFee;
+          int subTax = (itemCost * 0.08).toInt();
+          int deliveryFee = 10;
+          int totalCost = itemCost + subTax + deliveryFee;
           return Column(
             children: [
               Container(
@@ -166,13 +164,21 @@ class _CartScreenState extends State<CartScreen> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
                     }
-                    if (!snapshot.hasData) {
+                    if (!snapshot.hasData || snapshot.data == null) {
                       return Center(child: Text("No data found"));
                     }
                     final cartItem = snapshot.data!.docs;
+
                     for (var doc in cartItem) {
                       if (!cartQuantities.containsKey(doc.id)) {
-                        cartQuantities[doc.id] = doc['customerQuantity'];
+                        try {
+                          final data = doc.data() as Map<String, dynamic>?;
+                          cartQuantities[doc.id] =
+                              data?['customerQuantity'] ?? 1;
+                        } catch (e) {
+                          print('Error accessing cart item data: $e');
+                          cartQuantities[doc.id] = 1; // default fallback
+                        }
                       }
                     }
                     return ListView.builder(
@@ -182,8 +188,18 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       itemCount: cartItem.length,
                       itemBuilder: (context, index) {
+                        if (index >= cartItem.length) {
+                          return SizedBox.shrink();
+                        }
                         final item = cartItem[index];
-                        return buildProductCard(item);
+                        try {
+                          return buildProductCard(item);
+                        } catch (e) {
+                          print(
+                            'Error building product card at index $index: $e',
+                          );
+                          return SizedBox.shrink();
+                        }
                       },
                     );
                   },
@@ -197,75 +213,96 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget buildProductCard(QueryDocumentSnapshot<Object?> item) {
-    final totalPrice = item['price'] * item['customerQuantity'];
-    //int finalQuantity = item['customerQuantity'];
-    final id = item.id;
-    final currentQuantity = cartQuantities[id] ?? item['customerQuantity'];
-    //final totalPriceTwo = item['price'] * currentQuantity;
-    final dynamic categoryData = item['category'] ?? 'Uncategorized';
+    try {
+      // Safely access item data with null checks
+      final data = item.data() as Map<String, dynamic>?;
+      if (data == null) {
+        print('Item data is null for item ID: ${item.id}');
+        return SizedBox.shrink();
+      }
 
-    String category;
+      final price = (data['price'] as num? ?? 0).toInt();
+      final customerQuantity = data['customerQuantity'] ?? 1;
+      final totalPrice = price * customerQuantity;
 
-    if (categoryData is List && categoryData.isNotEmpty) {
-      // If it's a list, take the first element
-      category = categoryData.first.toString();
-    } else if (categoryData is String) {
-      // If it's a string, use it directly
-      category = categoryData;
-    } else {
-      // Fallback in case it's something else
-      category = 'Uncategorized';
-    }
-    final dynamic unitTypeData = item['unitType'] ?? 'unit';
+      final id = item.id;
+      final currentQuantity = cartQuantities[id] ?? customerQuantity;
+      final dynamic categoryData = data['category'] ?? 'Uncategorized';
 
-    String unitType;
+      String category;
 
-    if (unitTypeData is List && unitTypeData.isNotEmpty) {
-      // If it's a list, take the first element
-      unitType = unitTypeData.first.toString();
-    } else if (unitTypeData is String) {
-      // If it's a string, use it directly
-      unitType = unitTypeData;
-    } else {
-      // Fallback in case it's something else
-      unitType = 'Uncategorized';
-    }
+      if (categoryData is List && categoryData.isNotEmpty) {
+        // If it's a list, take the first element
+        category = categoryData.first.toString();
+      } else if (categoryData is String) {
+        // If it's a string, use it directly
+        category = categoryData;
+      } else {
+        // Fallback in case it's something else
+        category = 'Uncategorized';
+      }
+      final dynamic unitTypeData = data['unitType'] ?? 'unit';
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-      ),
-      margin: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(17),
-                child: (item['imageUrl'] != null
-                    ? Image.network(
-                        item['imageUrl'],
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress != null) {
-                            return Shimmer.fromColors(
-                              baseColor: Colors.grey.shade300,
-                              highlightColor: Colors.grey.shade100,
-                              child: Container(
+      String unitType;
+
+      if (unitTypeData is List && unitTypeData.isNotEmpty) {
+        // If it's a list, take the first element
+        unitType = unitTypeData.first.toString();
+      } else if (unitTypeData is String) {
+        // If it's a string, use it directly
+        unitType = unitTypeData;
+      } else {
+        // Fallback in case it's something else
+        unitType = 'Uncategorized';
+      }
+
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(17),
+        ),
+        margin: EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(17),
+                  child: (data['imageUrl'] != null
+                      ? Image.network(
+                          data['imageUrl'],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress != null) {
+                              return Shimmer.fromColors(
+                                baseColor: Colors.grey.shade300,
+                                highlightColor: Colors.grey.shade100,
+                                child: Container(
+                                  width: 150,
+                                  height: 150,
+                                  color: Colors.grey.shade300,
+                                ),
+                              );
+                            } else {
+                              return child;
+                            }
+                          },
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: Colors.grey.shade200,
                                 width: 150,
                                 height: 150,
-                                color: Colors.grey.shade300,
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
                               ),
-                            );
-                          } else {
-                            return child;
-                          }
-                        },
-                        errorBuilder: (context, error, stackTrace) => Container(
+                        )
+                      : Container(
                           color: Colors.grey.shade200,
                           width: 150,
                           height: 150,
@@ -274,178 +311,200 @@ class _CartScreenState extends State<CartScreen> {
                             size: 50,
                             color: Colors.grey,
                           ),
-                        ),
-                      )
-                    : Container(
-                        color: Colors.grey.shade200,
-                        width: 150,
-                        height: 150,
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                      )),
+                        )),
+                ),
               ),
             ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item['name'],
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
-                  ),
-                  SizedBox(height: 8),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Color(0xffF5F5F5),
-                      borderRadius: BorderRadius.circular(7),
+            SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data['name'] ?? 'Unknown Product',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 17,
+                      ),
                     ),
-                    child: Text(
-                      category,
-                      style: TextStyle(fontSize: 11, color: Color(0xff828282)),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        "\$$totalPrice",
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Color(0xffF5F5F5),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Text(
+                        category,
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 11,
+                          color: Color(0xff828282),
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        "/$unitType",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                    SizedBox(height: 8),
+                    Row(
                       children: [
-                        FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .collection('farmers')
-                              .doc(item['farmerId'])
-                              .get(),
-                          builder: (context, farmerSnapshot) {
-                            String farmerName = 'Unknown Farmer';
-                            if (farmerSnapshot.hasData &&
-                                farmerSnapshot.data!.exists) {
-                              final farmerData =
-                                  farmerSnapshot.data!.data()
-                                      as Map<String, dynamic>?;
-                              farmerName =
-                                  farmerData?['name'] ??
-                                  farmerData?['firstName'] ??
-                                  farmerData?['farmerName'] ??
-                                  'Unknown Farmer';
-                            }
-
-                            return Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade100,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'Farmer: $farmerName',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green.shade700,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          },
+                        Text(
+                          "\$$totalPrice",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          "/$unitType",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.black54),
-                onPressed: () {
-                  //logic to remove the item from the cart to add here
-                  Cart_Service().removeFromCart(userId, item['productId']);
-                },
-              ),
-              SizedBox(height: 30),
-              Container(
-                decoration: BoxDecoration(
-                  color: item['quantity'] < 0 ? Colors.red : Color(0xffF5F5F5),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.remove,
-                        color: item['quantity'] == 0
-                            ? Colors.grey
-                            : Colors.black,
-                      ),
-                      onPressed: item['quantity'] == 0
-                          ? null
-                          : () {
-                              print(currentQuantity);
-                              setState(() {
-                                if (currentQuantity > item['minUnitNum']) {
-                                  cartQuantities[id] = currentQuantity - 1;
-                                } else {
-                                  displaySnackBar(
-                                    context,
-                                    "Cannot go below minimum unit number (${item["minUnitNum"]})",
-                                  );
-                                }
-                              });
+                    SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FutureBuilder<DocumentSnapshot>(
+                            future: FirebaseFirestore.instance
+                                .collection('farmers')
+                                .doc(data['farmerId'])
+                                .get(),
+                            builder: (context, farmerSnapshot) {
+                              print(
+                                'DEBUG: Cart item farmerId: ${data['farmerId']}',
+                              );
+                              print(
+                                'DEBUG: Farmer snapshot hasData: ${farmerSnapshot.hasData}',
+                              );
+                              print(
+                                'DEBUG: Farmer snapshot exists: ${farmerSnapshot.data?.exists}',
+                              );
+                              if (farmerSnapshot.hasData &&
+                                  farmerSnapshot.data!.exists) {
+                                final farmerData =
+                                    farmerSnapshot.data!.data()
+                                        as Map<String, dynamic>?;
+                                print('DEBUG: Farmer data: $farmerData');
+                              }
+
+                              String farmerName = 'Unknown Farmer';
+                              if (farmerSnapshot.hasData &&
+                                  farmerSnapshot.data!.exists) {
+                                final farmerData =
+                                    farmerSnapshot.data!.data()
+                                        as Map<String, dynamic>?;
+                                farmerName =
+                                    farmerData?['name'] ??
+                                    farmerData?['firstName'] ??
+                                    farmerData?['farmerName'] ??
+                                    'Unknown Farmer';
+                              }
+
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'Farmer: $farmerName',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.green.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
                             },
-                    ),
-                    // Show quantity only if quantity >= 1
-                    if (item['quantity'] >= 1)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          '$currentQuantity',
-                          style: TextStyle(fontSize: 18),
-                        ),
+                          ),
+                        ],
                       ),
-                    IconButton(
-                      icon: Icon(Icons.add),
-                      onPressed: () {
-                        print(currentQuantity);
-                        setState(() {
-                          cartQuantities[id] = currentQuantity + 1;
-                        });
-                      },
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
+            ),
+            Column(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.black54),
+                  onPressed: () {
+                    //logic to remove the item from the cart to add here
+                    Cart_Service().removeFromCart(userId, data['productId']);
+                  },
+                ),
+                SizedBox(height: 30),
+                Container(
+                  decoration: BoxDecoration(
+                    color: (data['quantity'] ?? 0) < 0
+                        ? Colors.red
+                        : Color(0xffF5F5F5),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.remove,
+                          color: (data['quantity'] ?? 0) == 0
+                              ? Colors.grey
+                              : Colors.black,
+                        ),
+                        onPressed: (data['quantity'] ?? 0) == 0
+                            ? null
+                            : () {
+                                print(currentQuantity);
+                                setState(() {
+                                  if (currentQuantity >
+                                      (data['minUnitNum'] ?? 1)) {
+                                    cartQuantities[id] = currentQuantity - 1;
+                                  } else {
+                                    displaySnackBar(
+                                      context,
+                                      "Cannot go below minimum unit number (${data["minUnitNum"] ?? 1})",
+                                    );
+                                  }
+                                });
+                              },
+                      ),
+                      // Show quantity only if quantity >= 1
+                      if ((data['quantity'] ?? 0) >= 1)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            '$currentQuantity',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () {
+                          print(currentQuantity);
+                          setState(() {
+                            cartQuantities[id] = currentQuantity + 1;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('Error in buildProductCard: $e');
+      return Container(
+        padding: EdgeInsets.all(16),
+        child: Text('Error loading item', style: TextStyle(color: Colors.red)),
+      );
+    }
   }
 }

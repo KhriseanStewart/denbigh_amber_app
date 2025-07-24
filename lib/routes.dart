@@ -60,11 +60,7 @@ class AppRouter {
       homepage: (context) => const HomeScreen(),
       cartpage: (context) => const CartScreen(),
       mainlayout: (context) => const MainLayout(),
-      farmermainlayout: (context) =>
-          ChangeNotifierProvider<farmer_auth.AuthService>(
-            create: (_) => farmer_auth.AuthService(),
-            child: const FarmerMainLayout(),
-          ),
+      farmermainlayout: (context) => const FarmerMainLayout(),
 
       accountInformation: (context) => const AccountInformationScreen(),
       profile: (context) => const ProfileScreen(),

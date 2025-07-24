@@ -10,7 +10,7 @@ class Orderlist {
   final String customerName;
   final String farmerId;
   final List<OrderItem> items;
-  final double totalPrice;
+  final int totalPrice;
   final String status;
   final DateTime createdAt;
   final String? imageUrl;
@@ -34,24 +34,31 @@ class Orderlist {
 
   // Factory constructor to create an Order from a Firestore map
   factory Orderlist.fromMap(Map<String, dynamic> map, String docId) {
+    // Safely handle items first
+    final itemsList = (map['items'] as List<dynamic>? ?? [])
+        .map((e) => OrderItem.fromMap(e as Map<String, dynamic>))
+        .toList();
+
+    // Get the first item for backwards compatibility, or use defaults
+    final firstItem = itemsList.isNotEmpty ? itemsList.first : null;
+
     return Orderlist(
-      unit: map['unit'] ?? '',
-      name: map['name'] ?? '',
+      unit: firstItem?.unit ?? map['unit']?.toString() ?? '',
+      name: firstItem?.name ?? map['name']?.toString() ?? '',
       orderId: docId,
-      imageUrl: map['imageUrl'] as String?,
-      quantity: map['quantity']?.toString() ?? '',
-      customerId: map['customerId'] ?? '',
-      customerName: map['customerName'] ?? 'Unknown Customer',
-      farmerId: map['farmerId'] ?? '',
-      items: (map['items'] as List<dynamic>? ?? [])
-          .map((e) => OrderItem.fromMap(e as Map<String, dynamic>))
-          .toList(),
-      totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
-      status: map['status'] ?? 'processing',
+      imageUrl: map['imageUrl']?.toString(),
+      quantity:
+          firstItem?.quantity.toString() ?? map['quantity']?.toString() ?? '0',
+      customerId: map['customerId']?.toString() ?? '',
+      customerName: map['customerName']?.toString() ?? 'Unknown Customer',
+      farmerId: map['farmerId']?.toString() ?? '',
+      items: itemsList,
+      totalPrice: (map['totalPrice'] as num?)?.toInt() ?? 0,
+      status: map['status']?.toString() ?? 'processing',
       createdAt: (map['createdAt'] != null)
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
-      customerLocation: map['customerLocation'] ?? '',
+      customerLocation: map['customerLocation']?.toString() ?? '',
     );
   }
 
@@ -80,7 +87,7 @@ class OrderItem {
   final String unit;
   final String name;
   final int quantity;
-  final double price;
+  final int price;
   final String? imageUrl;
   final String farmerId;
   final String customerLocation;
@@ -106,26 +113,32 @@ class OrderItem {
       parsedQuantity = q;
     } else if (q is String) {
       parsedQuantity = int.tryParse(q) ?? 0;
+    } else if (q is num) {
+      parsedQuantity = q.round();
     }
-    double parsedPrice = 0.0;
+
+    int parsedPrice = 0;
     var p = map['price'];
     if (p is double) {
-      parsedPrice = p;
+      parsedPrice = p.toInt();
     } else if (p is int) {
-      parsedPrice = p.toDouble();
+      parsedPrice = p;
     } else if (p is String) {
-      parsedPrice = double.tryParse(p) ?? 0.0;
+      parsedPrice = int.tryParse(p) ?? 0;
+    } else if (p is num) {
+      parsedPrice = p.toInt();
     }
+
     return OrderItem(
-      productId: map['productId'] ?? '',
-      unit: map['unit'] ?? '',
-      name: map['name'] ?? '',
-      farmerId: map['farmerId'] ?? '',
+      productId: map['productId']?.toString() ?? '',
+      unit: map['unit']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      farmerId: map['farmerId']?.toString() ?? '',
       quantity: parsedQuantity,
       price: parsedPrice,
-      imageUrl: map['imageUrl'] as String?,
-      customerLocation: map['customerLocation'] ?? '',
-      orderId: map['orderId'] ?? '',
+      imageUrl: map['imageUrl']?.toString(),
+      customerLocation: map['customerLocation']?.toString() ?? '',
+      orderId: map['orderId']?.toString() ?? '',
     );
   }
 

@@ -12,8 +12,6 @@ import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'package:provider/provider.dart';
-
 import '../services/product_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -38,15 +36,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider<farmer_auth.AuthService>.value(
-            value: Provider.of<farmer_auth.AuthService>(context, listen: false),
-            child: add_product_screen.AddProductScreen(productId: newDoc.id),
-          ),
+          builder: (_) =>
+              add_product_screen.AddProductScreen(productId: newDoc.id),
         ),
       );
     }
 
-    final auth = Provider.of<farmer_auth.AuthService>(context);
+    final auth = farmer_auth.AuthService();
     final productService = ProductService();
 
     return Scaffold(
@@ -89,7 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .snapshots(),
                   builder: (context, salesSnapshot) {
                     // Calculate totals from sales data
-                    double totalRevenueFromSales = 0.0;
+                    int totalRevenueFromSales = 0;
                     int totalQuantitySold = 0;
 
                     if (salesSnapshot.hasData &&
@@ -97,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       for (final doc in salesSnapshot.data!.docs) {
                         final saleData = doc.data() as Map<String, dynamic>;
                         totalRevenueFromSales +=
-                            (saleData['totalPrice'] as num?)?.toDouble() ?? 0.0;
+                            (saleData['totalPrice'] as num?)?.toInt() ?? 0;
                         totalQuantitySold +=
                             (saleData['quantity'] as num?)?.toInt() ?? 0;
                       }
@@ -196,20 +192,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (_) =>
-                                                ChangeNotifierProvider<
-                                                  farmer_auth.AuthService
-                                                >.value(
-                                                  value:
-                                                      Provider.of<
-                                                        farmer_auth.AuthService
-                                                      >(context, listen: false),
-                                                  child:
-                                                      add_product_screen.AddProductScreen(
-                                                        productId:
-                                                            (p as Product)
-                                                                .productId,
-                                                        product: p as Product,
-                                                      ),
+                                                add_product_screen.AddProductScreen(
+                                                  productId:
+                                                      (p as Product).productId,
+                                                  product: p as Product,
                                                 ),
                                           ),
                                         );
@@ -291,8 +277,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text('Loading farmer data...'),
           SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/farmerlogin');
+            onPressed: () async {
+              try {
+                await farmer_auth.AuthService().signOut();
+                Navigator.pushReplacementNamed(context, '/farmerlogin');
+              } catch (e) {
+                print('Logout error: $e');
+              }
             },
             child: Text('Go to Login'),
           ),
@@ -348,15 +339,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final auth = Provider.of<farmer_auth.AuthService>(
-                      context,
-                      listen: false,
-                    );
-                    await auth.signOut();
-                    Navigator.of(context).pop(); // Close dialog
-                    Navigator.of(
-                      context,
-                    ).pushReplacementNamed('/farmerlogin'); // Navigate to login
+                    try {
+                      Navigator.of(context).pop(); // Close dialog first
+                      await farmer_auth.AuthService().signOut();
+                      Navigator.pushReplacementNamed(context, '/farmerlogin');
+                    } catch (e) {
+                      print('Logout error: $e');
+                      // Show error message if needed
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Logout failed: $e')),
+                      );
+                    }
                   },
                   child: Text('Logout'),
                 ),

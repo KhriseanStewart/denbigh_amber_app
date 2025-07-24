@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:provider/provider.dart';
+
 
 class FarmerMainLayout extends StatefulWidget {
   const FarmerMainLayout({super.key});
@@ -43,7 +43,7 @@ class _MainLayoutContentState extends State<_MainLayoutContent> {
   void _listenToOrders() {
     // Get the auth service to get farmer ID
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = Provider.of<farmer_auth.AuthService>(context, listen: false);
+      final auth = farmer_auth.AuthService();
       if (auth.farmer != null) {
         // Listen to orders stream
         FirebaseFirestore.instance

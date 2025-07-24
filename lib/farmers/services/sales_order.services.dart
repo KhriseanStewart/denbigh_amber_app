@@ -28,9 +28,16 @@ class SalesAndOrdersService {
         .orderBy('date', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => Sale.fromMap(doc.data(), doc.id))
-              .toList(),
+          (snapshot) => snapshot.docs.map((doc) {
+            try {
+              return Sale.fromMap(doc.data(), doc.id);
+            } catch (e) {
+              print('Error parsing sale document ${doc.id}: $e');
+              print('Document data: ${doc.data()}');
+              // Return a default sale or null, filter out nulls later
+              rethrow;
+            }
+          }).toList(),
         );
   }
 
@@ -55,7 +62,7 @@ class SalesAndOrdersService {
         final currentStock = data['stock'] ?? 0;
         final currentTotalSold = data['totalSold'] ?? 0;
         final currentTotalEarnings =
-            (data['totalEarnings'] as num?)?.toDouble() ?? 0.0;
+            (data['totalEarnings'] as num?)?.toInt() ?? 0;
 
         await _db.collection('products').doc(sale.productId).update({
           'stock': currentStock - sale.quantity,
@@ -113,12 +120,23 @@ class SalesAndOrdersService {
   Stream<List<model_orders.Orderlist>> getFilteredOrdersForFarmerManual(
     String farmerId,
   ) {
+    print('DEBUG: Farmer querying for orders with farmerId: $farmerId');
     return _db.collection('orders').snapshots().map((snapshot) {
+      print('DEBUG: Total orders in database: ${snapshot.docs.length}');
+
       // Filter documents manually
       final filteredDocs = snapshot.docs.where((doc) {
         final data = doc.data();
+        final orderFarmerId = data['farmerId'];
+        print(
+          'DEBUG: Order ${doc.id} has farmerId: $orderFarmerId (comparing to: $farmerId)',
+        );
         return data['farmerId'] == farmerId; // Check each document's farmerId
       }).toList();
+
+      print(
+        'DEBUG: Found ${filteredDocs.length} matching orders for farmer: $farmerId',
+      );
 
       // Convert documents to your model
       return filteredDocs
@@ -129,9 +147,8 @@ class SalesAndOrdersService {
 
   Stream<List<model_orders.Orderlist>> getOrdersForCustomer(String customerId) {
     return _db
-        .collection('customers')
-        .doc(customerId)
         .collection('orders')
+        .where('customerId', isEqualTo: customerId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(

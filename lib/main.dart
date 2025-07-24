@@ -3,6 +3,7 @@ import 'package:denbigh_app/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,8 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    // Initialize farmer auth service
+    farmer_auth.AuthService().initialize();
     runApp(const MyApp());
   } catch (e) {
     runApp(
@@ -35,4 +38,4 @@ class MyApp extends StatelessWidget {
       routes: AppRouter.routes,
     );
   }
-}//lrt try
+} //lrt try

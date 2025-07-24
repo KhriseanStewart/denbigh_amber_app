@@ -35,11 +35,11 @@ final Map<String, Color> categoryColors = {
 };
 
 final Map<String, Color> statuses = {
-  'processing': Colors.yellow,
-  'shipped': Colors.blue,
-  'delivered': Colors.green,
-  'completed': Colors.grey,
-  'cancelled': Colors.red,
+  'Processing': Colors.yellow,
+  'Confirmed': Colors.green,
+  'Shipped': Colors.blue,
+  'Completed': Colors.grey,
+  'Cancelled': Colors.red,
 };
 
 final List<String> farmProductNames = [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 
 class UserOrdersScreen extends StatefulWidget {
   const UserOrdersScreen({super.key});
@@ -33,7 +34,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       ),
       backgroundColor: hexToColor("F4F6F8"),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _orderService.getOrdersForCustomer(userId),
+        stream: _orderService.showOrdersForCustomer(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -136,6 +137,13 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             // Order items
             ...items.map((item) => _buildOrderItem(item)),
 
+            // Progress indicator for shipped/completed orders
+            if (status.toLowerCase() == 'shipped' ||
+                status.toLowerCase() == 'completed') ...[
+              SizedBox(height: 12),
+              _buildProgressIndicator(status),
+            ],
+
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
               SizedBox(height: 12),
@@ -152,7 +160,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                   'Total: \$${totalPrice.toStringAsFixed(2)}',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                if (status == 'pending')
+                if (status == 'Processing')
                   TextButton(
                     onPressed: () => _cancelOrder(orderId),
                     child: Text('Cancel', style: TextStyle(color: Colors.red)),
@@ -176,25 +184,32 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       child: Row(
         children: [
           // Item image
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[200],
+          GestureDetector(
+            onTap: () {
+              if (imageUrl.isNotEmpty) {
+                _showImagePreview(imageUrl, name);
+              }
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[200],
+              ),
+              child: imageUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.image_not_supported);
+                        },
+                      ),
+                    )
+                  : Icon(Icons.image_not_supported),
             ),
-            child: imageUrl.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.image_not_supported);
-                      },
-                    ),
-                  )
-                : Icon(Icons.image_not_supported),
           ),
           SizedBox(width: 12),
 
@@ -219,22 +234,129 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     );
   }
 
+  Widget _buildProgressIndicator(String status) {
+    // Use the farmer's status list excluding 'Cancelled' for progress tracking
+    List<String> steps = statuses.keys
+        .where((key) => key != 'Cancelled')
+        .toList();
+    int currentStep = 0;
+
+    switch (status) {
+      case 'Processing':
+        currentStep = 0;
+        break;
+      case 'Confirmed':
+        currentStep = 1;
+        break;
+      case 'Shipped':
+        currentStep = 2;
+        break;
+      case 'Completed':
+        currentStep = 3;
+        break;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order Progress',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: steps.asMap().entries.map((entry) {
+              int index = entry.key;
+              bool isCompleted = index <= currentStep;
+              bool isCurrent = index == currentStep;
+
+              return Expanded(
+                child: Row(
+                  children: [
+                    // Step circle
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted ? Colors.green : Colors.grey[300],
+                        border: Border.all(
+                          color: isCurrent ? Colors.green : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.check : Icons.circle,
+                        size: 12,
+                        color: isCompleted ? Colors.white : Colors.grey[600],
+                      ),
+                    ),
+                    // Connecting line (except for last step)
+                    if (index < steps.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 2,
+                          margin: EdgeInsets.symmetric(horizontal: 4),
+                          color: isCompleted ? Colors.green : Colors.grey[300],
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 4),
+          Row(
+            children: steps.asMap().entries.map((entry) {
+              int index = entry.key;
+              String step = entry.value;
+              bool isCurrent = index == currentStep;
+
+              return Expanded(
+                child: Text(
+                  step,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                    color: isCurrent ? Colors.green[800] : Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatusChip(String status) {
     Color backgroundColor;
     Color textColor;
 
     switch (status.toLowerCase()) {
-      case 'pending':
-        backgroundColor = Colors.orange[100]!;
-        textColor = Colors.orange[800]!;
-        break;
       case 'processing':
         backgroundColor = Colors.blue[100]!;
         textColor = Colors.blue[800]!;
         break;
       case 'confirmed':
-        backgroundColor = Colors.blue[100]!;
-        textColor = Colors.blue[800]!;
+        backgroundColor = Colors.orange[100]!;
+        textColor = Colors.orange[800]!;
+        break;
+      case 'shipped':
+        backgroundColor = Colors.purple[100]!;
+        textColor = Colors.purple[800]!;
         break;
       case 'completed':
         backgroundColor = Colors.green[100]!;
@@ -267,66 +389,95 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
   }
 
   Widget _buildReceiptSection(String receiptImageUrl) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.receipt_long, size: 16, color: Colors.green),
-            SizedBox(width: 8),
-            Text(
-              'Receipt',
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => _showReceiptDialog(receiptImageUrl),
-          child: Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                receiptImageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(child: CircularProgressIndicator());
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.grey),
-                        Text(
-                          'Failed to load receipt',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.green[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.receipt_long, size: 20, color: Colors.green[600]),
+              SizedBox(width: 8),
+              Text(
+                'Receipt Available',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: Colors.green[700],
+                ),
+              ),
+              Spacer(),
+              Icon(Icons.verified, size: 16, color: Colors.green[600]),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Your order has been processed and a receipt is available.',
+            style: TextStyle(fontSize: 12, color: Colors.green[600]),
+          ),
+          SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => _showReceiptDialog(receiptImageUrl),
+            child: Container(
+              height: 100,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green[300]!, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.network(
+                  receiptImageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.grey),
+                          Text(
+                            'Failed to load receipt',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          'Tap to view full size',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-            fontStyle: FontStyle.italic,
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.touch_app, size: 14, color: Colors.green[600]),
+              SizedBox(width: 4),
+              Text(
+                'Tap to view full size receipt',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.green[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -360,6 +511,76 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                       ),
                     );
                   },
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showImagePreview(String imageUrl, String itemName) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: const EdgeInsets.all(20),
+                minScale: 0.5,
+                maxScale: 4,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Item name at the top
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        itemName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    // Image
+                    Flexible(
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              'Failed to load image',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

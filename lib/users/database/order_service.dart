@@ -1,21 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/farmers/model/orders.dart';
-import 'package:denbigh_app/farmers/services/sales_order.services.dart';
-import 'package:denbigh_app/users/database/user_services.dart';
 import 'package:denbigh_app/utils/services/notification_service.dart';
-import 'package:uuid/uuid.dart';
+import 'package:rxdart/rxdart.dart';
 
 class OrderService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final NotificationService _notificationService = NotificationService();
 
-  final uuid = Uuid().v4();
-
-  /// Create orders from user's cart items
-  /// Groups items by farmerId and creates separate orders for each farmer
+  /// Create orders from user's cart items - SIMPLIFIED
   Future<bool> createOrderFromCart(String userId) async {
     try {
-      // Fetch all cart items for the user
+      // Get cart items
       final cartSnapshot = await _db
           .collection('users')
           .doc(userId)
@@ -23,7 +17,8 @@ class OrderService {
           .get();
 
       if (cartSnapshot.docs.isEmpty) {
-        throw Exception('Cart is empty');
+        print('Cart is empty');
+        return false;
       }
 
       // Group items by farmerId
@@ -33,63 +28,27 @@ class OrderService {
         if (data == null) continue;
 
         final farmerId = data['farmerId'] ?? 'unknown';
-
+        print('DEBUG: Cart item farmerId: $farmerId');
+        print('DEBUG: Cart item data: $data');
         if (!itemsByFarmer.containsKey(farmerId)) {
           itemsByFarmer[farmerId] = [];
         }
         itemsByFarmer[farmerId]!.add(cartItem);
       }
 
-      // Prepare a map to hold productId and total ordered quantity for stock update
-      Map<String, int> productQuantities = {};
-
-      // For each farmer, create an order
+      // Create order for each farmer
       for (var entry in itemsByFarmer.entries) {
         final farmerId = entry.key;
         final farmerItems = entry.value;
-
-        double totalPrice = 0;
-        List<Map<String, dynamic>> orderItems = [];
-
-        for (var cartItem in farmerItems) {
-          final data = cartItem.data() as Map<String, dynamic>;
-          final productId = data['productId'];
-          final int quantity = data['customerQuantity'] ?? 1;
-          final price = (data['price'] as num).toDouble();
-
-          totalPrice += price * quantity;
-
-          orderItems.add({
-            'productId': productId,
-            'name': data['name'],
-            'quantity': quantity,
-            'price': price,
-            'category': data['category'],
-            'unitType': data['unitType'],
-            'imageUrl': data['imageUrl'],
-            'farmerId': farmerId,
-          });
-          // await createReceipt(orderId)
-
-          final hasStock = await calculateStock(productId, quantity);
-          if (hasStock == false) {
-            Exception("Insufficent");
-            return false;
-          }
-        }
-
-        // Create order for this farmer
         await _createOrderForFarmer(userId, farmerId, farmerItems);
-
-        // Optionally, create receipt here if needed
       }
 
-      // Clear the cart after stock update
+      // Clear cart
       await _clearCart(userId);
-
+      print('Orders created successfully');
       return true;
     } catch (e) {
-      print('Error creating order from cart: $e');
+      print('Error creating order: $e');
       return false;
     }
   }
@@ -145,27 +104,13 @@ class OrderService {
     }
   }
 
-  /// Create a single order for one farmer
   Future<void> _createOrderForFarmer(
     String customerId,
     String farmerId,
     List<QueryDocumentSnapshot> cartItems,
   ) async {
-    double totalPrice = 0;
+    int totalPrice = 0;
     List<Map<String, dynamic>> orderItems = [];
-    final orderId = uuid;
-
-    // Get customer name
-    String customerName = 'Unknown Customer';
-    try {
-      final userDoc = await UserService().getUserProfile(customerId);
-      if (userDoc.exists) {
-        final userData = userDoc.data() as Map<String, dynamic>?;
-        customerName = userData?['displayName'] ?? 'Unknown Customer';
-      }
-    } catch (e) {
-      print('Error fetching customer name: $e');
-    }
 
     // Convert cart items to order items
     for (var cartItem in cartItems) {
@@ -173,105 +118,31 @@ class OrderService {
       if (data == null) continue;
 
       final quantity = data['customerQuantity'] ?? 1;
-      final price = (data['price'] as num).toDouble();
-      final itemTotal = price * quantity;
-      totalPrice += itemTotal;
+      final price = (data['price'] as num).toInt();
+      totalPrice += (price * quantity).toInt();
 
       orderItems.add({
         'productId': data['productId'],
         'name': data['name'],
-        'description': data['description'] ?? '',
         'price': price,
         'quantity': quantity,
         'unit': data['unitType'] ?? 'piece',
         'imageUrl': data['imageUrl'] ?? '',
-        'customerLocation': data['location'] ?? '',
-        'farmerId': farmerId,
-        'orderId': '',
       });
     }
 
-    // Create the order document
+    // Simple order data
     final orderData = {
-      'orderId': '',
       'customerId': customerId,
-      'customerName': customerName,
       'farmerId': farmerId,
       'items': orderItems,
       'totalPrice': totalPrice,
-      'status': 'processing',
+      'status': 'Processing',
       'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'name': orderItems.isNotEmpty ? orderItems.first['name'] : '',
-      'unit': orderItems.isNotEmpty ? orderItems.first['unit'] : '',
-      'quantity': orderItems.length.toString(),
-      'customerLocation': orderItems.isNotEmpty
-          ? orderItems.first['customerLocation']
-          : '',
     };
 
-    // Add order to Firestore
-    // Add order to Firestore
-    final docRef = await _db.collection('orders').add(orderData);
-
-    try {
-      // Convert orderItems to OrderItem objects for the farmer's order system
-      List<OrderItem> farmerOrderItems = orderItems.map((item) {
-        return OrderItem(
-          orderId: orderId,
-          productId: item['productId'],
-          name: item['name'],
-          quantity: item['quantity'],
-          price: item['price'],
-          unit: item['unit'],
-          farmerId: farmerId,
-          customerLocation: item['customerLocation'],
-        );
-      }).toList();
-
-      await SalesAndOrdersService().createOrder(
-        Orderlist(
-          orderId: orderId,
-          name: orderItems.first['name'],
-          unit: orderItems.first['unit'],
-          quantity: orderItems.length.toString(),
-          customerId: customerId,
-          customerName: customerName,
-          farmerId: farmerId,
-          items: farmerOrderItems,
-          totalPrice: totalPrice,
-          status:
-              'processing', // Changed to 'processing' to match the main order
-          createdAt: DateTime.now(),
-          customerLocation: orderItems.first['customerLocation'],
-        ),
-      );
-    } catch (e) {
-      print('Error creating farmer order: $e');
-    }
-
-    // Update with the actual order ID
-    await docRef.update({
-      'orderId': docRef.id,
-      'items': orderItems.map((item) {
-        item['orderId'] = docRef.id;
-        return item;
-      }).toList(),
-    });
-
-    // Send notification to farmer about new order
-    try {
-      await _notificationService.notifyFarmerNewOrder(
-        farmerId: farmerId,
-        orderId: docRef.id,
-        customerName: 'Customer', // You might want to get actual customer name
-        totalAmount: totalPrice,
-        itemCount: orderItems.length,
-      );
-    } catch (e) {
-      print('Failed to send notification: $e');
-      // Don't fail the order creation if notification fails
-    }
+    // Add to main orders collection
+    await _db.collection('orders').add(orderData);
   }
 
   /// Clear user's cart after successful order creation
@@ -300,6 +171,119 @@ class OrderService {
               .map((doc) => {'id': doc.id, ...doc.data()})
               .toList(),
         );
+  }
+
+  /// Get combined orders and sales data for a customer (shows complete order history)
+  Stream<List<Map<String, dynamic>>> showOrdersForCustomer(String customerId) {
+    // Combine orders and sales streams
+    return Rx.combineLatest2(
+      // Get current orders
+      _db
+          .collection('orders')
+          .where('customerId', isEqualTo: customerId)
+          .snapshots(),
+      // Get sales (completed orders)
+      _db
+          .collection('sales')
+          .where('customerId', isEqualTo: customerId)
+          .snapshots(),
+      (QuerySnapshot ordersSnapshot, QuerySnapshot salesSnapshot) {
+        List<Map<String, dynamic>> combinedData = [];
+
+        // Add current orders
+        for (var doc in ordersSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null) {
+            combinedData.add({
+              'id': doc.id,
+              'type': 'order',
+              'orderId': doc.id,
+              'status': data['status']?.toString() ?? 'processing',
+              'createdAt': data['createdAt'],
+              'totalPrice': data['totalPrice'],
+              'items': data['items'],
+              'imageUrl': data['imageUrl'],
+              'farmerId': data['farmerId'],
+              'customerName': data['customerName'],
+              'customerLocation': data['customerLocation'],
+            });
+          }
+        }
+
+        // Add sales (completed orders) - group by orderId
+        Map<String, List<Map<String, dynamic>>> salesByOrderId = {};
+        for (var doc in salesSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null) {
+            final orderId = data['orderId']?.toString();
+            if (orderId != null && orderId.isNotEmpty) {
+              if (!salesByOrderId.containsKey(orderId)) {
+                salesByOrderId[orderId] = [];
+              }
+              salesByOrderId[orderId]!.add({
+                'salesId': doc.id,
+                'productId': data['productId'],
+                'name': data['name'],
+                'quantity': data['quantity'],
+                'price':
+                    data['totalPrice'], // totalPrice in sales is for the item
+                'unit': data['unit'],
+                'imageUrl': data['imageUrl'],
+                'date': data['date'],
+              });
+            }
+          }
+        }
+
+        // Convert grouped sales back to order format
+        for (var entry in salesByOrderId.entries) {
+          final orderId = entry.key;
+          final salesItems = entry.value;
+
+          if (salesItems.isNotEmpty) {
+            final firstSale = salesItems.first;
+            final totalPrice = salesItems.fold<int>(
+              0,
+              (sum, item) => sum + ((item['price'] as num?)?.toInt() ?? 0),
+            );
+
+            combinedData.add({
+              'id': orderId,
+              'type': 'sale',
+              'orderId': orderId,
+              'status': 'completed',
+              'createdAt': salesItems.first['date'] ?? Timestamp.now(),
+              'totalPrice': totalPrice,
+              'items': salesItems
+                  .map(
+                    (sale) => {
+                      'name': sale['name'],
+                      'quantity': sale['quantity'],
+                      'price': sale['price'],
+                      'unit': sale['unit'],
+                      'productId': sale['productId'],
+                    },
+                  )
+                  .toList(),
+              'imageUrl': firstSale['imageUrl'],
+              'farmerId': '', // Not stored in sales
+              'customerName': '', // Not needed for user view
+              'customerLocation': '', // Not needed for user view
+            });
+          }
+        }
+
+        // Sort by creation date (most recent first)
+        combinedData.sort((a, b) {
+          final aTime = a['createdAt'] as Timestamp?;
+          final bTime = b['createdAt'] as Timestamp?;
+          if (aTime == null || bTime == null) return 0;
+          return bTime.compareTo(aTime);
+        });
+
+        return combinedData;
+      },
+    );
   }
 
   /// Update order status
@@ -331,7 +315,7 @@ class OrderService {
     }
   }
 
-  /// Cancel an order (only if status is 'pending')
+  /// Cancel an order (only if status is 'Processing')
   Future<bool> cancelOrder(String orderId) async {
     try {
       final orderDoc = await _db.collection('orders').doc(orderId).get();
@@ -347,7 +331,7 @@ class OrderService {
 
       final status = orderData['status'];
 
-      if (status != 'pending') {
+      if (status != 'Processing') {
         throw Exception('Cannot cancel order with status: $status');
       }
 
