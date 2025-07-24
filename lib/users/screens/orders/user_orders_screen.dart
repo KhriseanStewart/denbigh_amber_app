@@ -134,7 +134,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             SizedBox(height: 12),
 
             // Order items
-            ...items.map((item) => _buildOrderItem(item)).toList(),
+            ...items.map((item) => _buildOrderItem(item)),
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
@@ -227,6 +227,10 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       case 'pending':
         backgroundColor = Colors.orange[100]!;
         textColor = Colors.orange[800]!;
+        break;
+      case 'processing':
+        backgroundColor = Colors.blue[100]!;
+        textColor = Colors.blue[800]!;
         break;
       case 'confirmed':
         backgroundColor = Colors.blue[100]!;

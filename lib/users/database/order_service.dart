@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/farmers/model/orders.dart';
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
+import 'package:denbigh_app/users/database/user_services.dart';
 import 'package:denbigh_app/utils/services/notification_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -96,7 +97,7 @@ class OrderService {
   Future<bool> calculateStock(String productId, int prevStock) async {
     final productdb = await _db.collection('products').doc(productId).get();
     print("product ID: $productId");
-    final data = await productdb.data();
+    final data = productdb.data();
     final stock = data!['stock'];
     print(stock);
     if (stock <= 0) {
@@ -154,6 +155,18 @@ class OrderService {
     List<Map<String, dynamic>> orderItems = [];
     final orderId = uuid;
 
+    // Get customer name
+    String customerName = 'Unknown Customer';
+    try {
+      final userDoc = await UserService().getUserProfile(customerId);
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>?;
+        customerName = userData?['displayName'] ?? 'Unknown Customer';
+      }
+    } catch (e) {
+      print('Error fetching customer name: $e');
+    }
+
     // Convert cart items to order items
     for (var cartItem in cartItems) {
       final data = cartItem.data() as Map<String, dynamic>?;
@@ -182,10 +195,11 @@ class OrderService {
     final orderData = {
       'orderId': '',
       'customerId': customerId,
+      'customerName': customerName,
       'farmerId': farmerId,
       'items': orderItems,
       'totalPrice': totalPrice,
-      'status': 'pending',
+      'status': 'processing',
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
       'name': orderItems.isNotEmpty ? orderItems.first['name'] : '',
@@ -201,6 +215,20 @@ class OrderService {
     final docRef = await _db.collection('orders').add(orderData);
 
     try {
+      // Convert orderItems to OrderItem objects for the farmer's order system
+      List<OrderItem> farmerOrderItems = orderItems.map((item) {
+        return OrderItem(
+          orderId: orderId,
+          productId: item['productId'],
+          name: item['name'],
+          quantity: item['quantity'],
+          price: item['price'],
+          unit: item['unit'],
+          farmerId: farmerId,
+          customerLocation: item['customerLocation'],
+        );
+      }).toList();
+
       await SalesAndOrdersService().createOrder(
         Orderlist(
           orderId: orderId,
@@ -208,27 +236,18 @@ class OrderService {
           unit: orderItems.first['unit'],
           quantity: orderItems.length.toString(),
           customerId: customerId,
+          customerName: customerName,
           farmerId: farmerId,
-          items: [
-            OrderItem(
-              orderId: orderId,
-              productId: 'productId',
-              name: 'name',
-              quantity: 1299,
-              price: 90,
-              unit: 'unit',
-              farmerId: farmerId,
-              customerLocation: 'customerLocation',
-            ),
-          ],
+          items: farmerOrderItems,
           totalPrice: totalPrice,
-          status: 'processing',
+          status:
+              'processing', // Changed to 'processing' to match the main order
           createdAt: DateTime.now(),
-          customerLocation: '',
+          customerLocation: orderItems.first['customerLocation'],
         ),
       );
     } catch (e) {
-      print(e);
+      print('Error creating farmer order: $e');
     }
 
     // Update with the actual order ID

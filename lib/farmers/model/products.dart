@@ -9,12 +9,14 @@ class Product {
   final double price;
   final List<String> unit;
   final int stock;
-  final String minSaleAmount;
+  final String minUnitNum;
   final String imageUrl;
   final DateTime createdAt;
   final int totalSold;
-final double totalEarnings;
-final String customerLocation;
+  final double totalEarnings;
+  final String customerLocation;
+  final bool isComplete;
+  final bool isActive;
 
   Product({
     required this.productId,
@@ -25,12 +27,14 @@ final String customerLocation;
     required this.price,
     required this.unit,
     required this.stock,
-    required this.minSaleAmount,
+    required this.minUnitNum,
     required this.imageUrl,
     required this.createdAt,
     this.totalSold = 0,
     this.totalEarnings = 0.0,
     this.customerLocation = 'change in model',
+    this.isComplete = true, // Default to complete
+    this.isActive = true, // Default to active
   });
 
   Map<String, dynamic> toMap() {
@@ -44,31 +48,33 @@ final String customerLocation;
       'price': price,
       'unit': unit,
       'stock': stock,
-      'minUnitNum': minSaleAmount,
+      'minUnitNum': minUnitNum,
       'imageUrl': imageUrl,
       'createdAt': createdAt,
       'totalSold': totalSold,
       'totalEarnings': totalEarnings,
+      'isComplete': isComplete,
+      'isActive': isActive,
     };
   }
 
-  //THIS IS THE CORRECT VERSION 
+  //THIS IS THE CORRECT VERSION
   Product copyWith({
     String? farmerId,
-    String? name, 
+    String? name,
     String? description,
     List<String>? category,
     double? price,
     List<String>? unit,
-    String? minSaleAmount,
+    String? minUnitNum,
     DateTime? createdAt,
     String? customerLocation,
 
     String? productId,
     String? imageUrl,
-    int? stock, 
+    int? stock,
     int? totalSold,
-  double? totalEarnings,
+    double? totalEarnings,
   }) {
     return Product(
       productId: productId ?? this.productId,
@@ -80,12 +86,11 @@ final String customerLocation;
       price: price ?? this.price,
       unit: unit ?? this.unit,
       stock: stock ?? this.stock,
-      minSaleAmount: minSaleAmount ?? this.minSaleAmount,
+      minUnitNum: minUnitNum ?? this.minUnitNum,
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       totalSold: totalSold ?? this.totalSold,
       totalEarnings: totalEarnings ?? this.totalEarnings,
-      
     );
   }
   // --------------------------------------
@@ -99,23 +104,26 @@ final String customerLocation;
       category: map['category'] is List
           ? List<String>.from(map['category'])
           : (map['category'] is String && map['category'].isNotEmpty)
-              ? [map['category']]
-              : [],
+          ? [map['category']]
+          : [],
       price: (map['price'] ?? 0).toDouble(),
       unit: map['unit'] is List
           ? List<String>.from(map['unit'])
           : (map['unit'] is String && map['unit'].isNotEmpty)
-              ? [map['unit']]
-              : [],
+          ? [map['unit']]
+          : [],
       stock: map['stock'] ?? 0,
-      minSaleAmount: map['minSaleAmount'] ?? '',
+      minUnitNum: map['minUnitNum']?.toString() ?? '',
       imageUrl: map['imageUrl'] ?? '',
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       totalSold: map['totalSold'] ?? 0,
       totalEarnings: (map['totalEarnings'] ?? 0).toDouble(),
       customerLocation: map['customerLocation'] ?? 'change in model',
+      isComplete:
+          map['isComplete'] ??
+          true, // Default to complete for existing products
+      isActive:
+          map['isActive'] ?? true, // Default to active for existing products
     );
   }
 }
-
-

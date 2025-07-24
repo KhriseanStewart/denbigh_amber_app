@@ -19,8 +19,8 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if stock is low (at or below minimum sales amount)
-    final minSaleAmount = int.tryParse(product.minSaleAmount) ?? 0;
-    final isLowStock = product.stock <= minSaleAmount && minSaleAmount > 0;
+    final minUnitNum = int.tryParse(product.minUnitNum) ?? 0;
+    final isLowStock = product.stock <= minUnitNum && minUnitNum > 0;
 
     return Card(
       color: isLowStock ? Colors.red.shade50 : null,

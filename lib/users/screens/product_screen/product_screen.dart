@@ -420,7 +420,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 ],
                               ),
                               SizedBox(height: 8),
-                              Container(
+                              SizedBox(
                                 height: 120,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,

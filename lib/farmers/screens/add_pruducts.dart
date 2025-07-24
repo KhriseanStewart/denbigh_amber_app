@@ -1,6 +1,7 @@
 import 'package:denbigh_app/farmers/model/products.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/farmers/widgets/add_product_image.dart';
+import 'package:denbigh_app/farmers/widgets/autocompleter_products.dart';
 import 'package:denbigh_app/farmers/widgets/textField.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:denbigh_app/widgets/autoCompleter.dart';
@@ -23,11 +24,9 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _minSaleAmountController =
-      TextEditingController();
+  final TextEditingController _minUnitNumController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   String _name = '';
   String? _category;
@@ -35,7 +34,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String? _unit;
   String? _location; // Added location variable
   int _stock = 0;
-  String _minSaleAmount = '';
+  String _minUnitNum = '';
   double _price = 0;
   String? _imageUrl;
   bool _loading = false;
@@ -55,22 +54,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _location =
           p.customerLocation; // Initialize location from existing product
       _stock = p.stock;
-      _minSaleAmount = p.minSaleAmount;
+      _minUnitNum = p.minUnitNum;
       _price = p.price;
       _imageUrl = p.imageUrl;
 
-      _nameController.text = _name;
       _descriptionController.text = _description;
       _priceController.text = _price == 0 ? '' : _price.toString();
-      _minSaleAmountController.text = _minSaleAmount == '0'
-          ? ''
-          : _minSaleAmount;
+      _minUnitNumController.text = _minUnitNum == '0' ? '' : _minUnitNum;
       _stockController.text = _stock == 0 ? '' : _stock.toString();
     }
-    _nameController.addListener(_checkAllFieldsFilled);
     _descriptionController.addListener(_checkAllFieldsFilled);
     _priceController.addListener(_checkAllFieldsFilled);
-    _minSaleAmountController.addListener(_checkAllFieldsFilled);
+    _minUnitNumController.addListener(_checkAllFieldsFilled);
     _stockController.addListener(_checkAllFieldsFilled);
 
     // Check if all fields are filled after initialization
@@ -79,12 +74,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   void _checkAllFieldsFilled() {
     final bool filled =
-        _nameController.text.trim().isNotEmpty &&
+        _name.trim().isNotEmpty && // Changed from _nameController.text to _name
         _descriptionController.text.trim().isNotEmpty &&
         _priceController.text.trim().isNotEmpty &&
         double.tryParse(_priceController.text.trim()) != null &&
-        _minSaleAmountController.text.trim().isNotEmpty &&
-        int.tryParse(_minSaleAmountController.text.trim()) != null &&
+        _minUnitNumController.text.trim().isNotEmpty &&
+        int.tryParse(_minUnitNumController.text.trim()) != null &&
         _stockController.text.trim().isNotEmpty &&
         int.tryParse(_stockController.text.trim()) != null &&
         _category != null &&
@@ -92,7 +87,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _unit != null &&
         _unit!.isNotEmpty &&
         _location != null &&
-        _location!.isNotEmpty;
+        _location!.isNotEmpty &&
+        _imageUrl != null && // Image must be uploaded
+        _imageUrl!.isNotEmpty; // Image URL must not be empty
     if (filled != _allFieldsFilled) {
       setState(() {
         _allFieldsFilled = filled;
@@ -104,7 +101,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     // Ask to choose the photo source
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => SizedBox(
         height: 200,
         child: Column(
           children: [
@@ -151,6 +148,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _imageUrl = downloadUrl;
       });
 
+      _checkAllFieldsFilled(); // Update button state after image upload
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Item picture uploaded!')));
@@ -172,10 +171,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
     _formKey.currentState!.save();
 
-    _name = _nameController.text.trim();
+    // _name is already set by the AutocompleterProducts onNameSelected callback
     _description = _descriptionController.text.trim();
     _price = double.tryParse(_priceController.text) ?? 0;
-    _minSaleAmount = _minSaleAmountController.text.trim();
+    _minUnitNum = _minUnitNumController.text.trim();
     _stock = int.tryParse(_stockController.text) ?? 0;
 
     setState(() => _loading = true);
@@ -186,7 +185,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     ).farmer!.id;
 
     try {
-      int minUnitNum = int.parse(_minSaleAmount);
+      int minUnitNum = int.parse(_minUnitNum);
       await FirebaseFirestore.instance
           .collection('products')
           .doc(widget.productId)
@@ -203,6 +202,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
             'minUnitNum': minUnitNum,
             'imageUrl': _imageUrl ?? '',
             'createdAt': Timestamp.now(),
+            'isComplete':
+                true, // Mark as complete only when all fields are saved
+            'isActive': true, // Product is now active and visible to users
           });
       ScaffoldMessenger.of(
         context,
@@ -218,15 +220,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   void dispose() {
-    _nameController.removeListener(_checkAllFieldsFilled);
     _descriptionController.removeListener(_checkAllFieldsFilled);
     _priceController.removeListener(_checkAllFieldsFilled);
-    _minSaleAmountController.removeListener(_checkAllFieldsFilled);
+    _minUnitNumController.removeListener(_checkAllFieldsFilled);
     _stockController.removeListener(_checkAllFieldsFilled);
-    _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
-    _minSaleAmountController.dispose();
+    _minUnitNumController.dispose();
     _stockController.dispose();
     super.dispose();
   }
@@ -273,16 +273,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         shrinkWrap: true,
                         physics: ClampingScrollPhysics(),
                         children: [
-                          CustomTextFormField(
-                            controller: _nameController,
-                            inputType: TextInputType.text,
-                            label: 'Product Name *',
-                            hintText: 'e.g., Fresh Tomatoes',
-                            underlineborder: true,
-                            validator: (v) => v == null || v.trim().isEmpty
-                                ? 'Required'
-                                : null,
-                            onSaved: (v) {},
+                          AutocompleterProducts(
+                            underlineBorder: true,
+                            onNameSelected: (selectedName) {
+                              setState(() {
+                                _name = selectedName ?? '';
+                              });
+                              _checkAllFieldsFilled();
+                            },
                           ),
                           SizedBox(height: 16),
                           DropdownButtonFormField<String>(
@@ -406,7 +404,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           SizedBox(height: 16),
                           CustomTextFormField(
                             underlineborder: true,
-                            controller: _minSaleAmountController,
+                            controller: _minUnitNumController,
                             label: 'Minimum Sale Amount *',
                             hintText: 'e.g., 100 , ',
                             inputType: TextInputType.text,
@@ -417,38 +415,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             onSaved: (v) {},
                           ),
                           SizedBox(height: 24),
-                          // Only show Add/Change Image Button if all fields are filled
-                          if (_allFieldsFilled)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                onPressed: _uploadingImage
-                                    ? null
-                                    : _pickAndUploadImage,
-                                icon: _uploadingImage
-                                    ? SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Icon(Icons.upload),
-                                label: Text(
-                                  _imageUrl != null && _imageUrl!.isNotEmpty
-                                      ? 'Change Item Picture'
-                                      : 'Add Item Picture',
+                          // Add/Change Image Button - always visible
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
+                              onPressed: _uploadingImage
+                                  ? null
+                                  : _pickAndUploadImage,
+                              icon: _uploadingImage
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Icon(Icons.upload),
+                              label: Text(
+                                _imageUrl != null && _imageUrl!.isNotEmpty
+                                    ? 'Change Item Picture'
+                                    : 'Add Item Picture',
+                              ),
                             ),
+                          ),
                           Row(
                             children: [
                               Expanded(
@@ -468,7 +465,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           _unit == null ||
                                           units.isEmpty ||
                                           _location == null ||
-                                          _location!.isEmpty
+                                          _location!.isEmpty ||
+                                          _imageUrl ==
+                                              null || // Image must be uploaded
+                                          _imageUrl!
+                                              .isEmpty // Image URL must not be empty
                                       ? null
                                       : _submit,
                                   child: _loading
@@ -480,7 +481,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           ),
                                         )
                                       : Text(
-                                          _name.isEmpty
+                                          widget.product == null
                                               ? 'Save Product Info'
                                               : 'Save Changes',
                                         ),

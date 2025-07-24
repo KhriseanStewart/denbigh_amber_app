@@ -1,7 +1,6 @@
 import 'package:denbigh_app/farmers/model/orders.dart';
 import 'package:flutter/material.dart';
 
-
 class OrdersProvider extends ChangeNotifier {
   Orderlist? _currentOrder;
 
@@ -26,9 +25,10 @@ class OrdersProvider extends ChangeNotifier {
         customerLocation: item.customerLocation,
         unit: item.unit,
         name: item.name,
-        orderId: '', 
+        orderId: '',
         quantity: item.quantity.toString(),
         customerId: '',
+        customerName: 'Unknown Customer',
         farmerId: item.farmerId,
         items: [item],
         totalPrice: item.price * item.quantity,

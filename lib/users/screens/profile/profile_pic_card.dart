@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfilePictureUploader extends StatefulWidget {
-  ProfilePictureUploader({Key? key}) : super(key: key);
+  const ProfilePictureUploader({super.key});
 
   @override
   _ProfilePictureUploaderState createState() => _ProfilePictureUploaderState();

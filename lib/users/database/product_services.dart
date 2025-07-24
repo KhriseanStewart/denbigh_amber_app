@@ -12,7 +12,11 @@ class ProductService {
   final user = FirebaseAuth.instance.currentUser;
 
   Stream<QuerySnapshot> getProducts() {
-    return _db.collection("products").snapshots();
+    return _db
+        .collection("products")
+        .where('isComplete', isEqualTo: true) // Only show completed products
+        .where('isActive', isEqualTo: true) // Only show active products
+        .snapshots();
   }
 
   /// Create or overwrite a product.
@@ -42,6 +46,7 @@ class ProductService {
       'farmerId': farmerId,
       'imageUrls': imageUrl ?? [],
       'isActive': true,
+      'isComplete': true, // Mark as complete when created via service
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -71,6 +76,7 @@ class ProductService {
     String? location,
     List<String>? imageUrls,
     bool? isActive,
+    bool? isComplete, // Add isComplete parameter
   }) {
     final updates = <String, dynamic>{
       'updatedAt': FieldValue.serverTimestamp(),
@@ -85,6 +91,7 @@ class ProductService {
     if (location != null) updates['location'] = location;
     if (imageUrls != null) updates['imageUrls'] = imageUrls;
     if (isActive != null) updates['isActive'] = isActive;
+    if (isComplete != null) updates['isComplete'] = isComplete;
 
     return _col.doc(productId).update(updates);
   }
@@ -101,6 +108,7 @@ class ProductService {
   Stream<QuerySnapshot> streamProductsByFarmer(String farmerId) {
     return _col
         .where('farmerId', isEqualTo: farmerId)
+        .where('isComplete', isEqualTo: true) // Only complete products
         .where('isActive', isEqualTo: true)
         .orderBy('createdAt', descending: true)
         .snapshots();
@@ -110,6 +118,7 @@ class ProductService {
   Stream<QuerySnapshot> streamProductsByCategory(String category) {
     return _col
         .where('category', isEqualTo: category)
+        .where('isComplete', isEqualTo: true) // Only complete products
         .where('isActive', isEqualTo: true)
         .snapshots();
   }

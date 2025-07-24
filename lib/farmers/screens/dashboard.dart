@@ -7,7 +7,6 @@ import 'package:denbigh_app/farmers/screens/add_pruducts.dart'
 import 'package:denbigh_app/farmers/screens/components/summary_card.dart';
 import 'package:denbigh_app/farmers/screens/product_detail.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
-import 'package:denbigh_app/farmers/simulation/ordersim.dart';
 import 'package:denbigh_app/farmers/widgets/product_card.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +28,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     void submitProduct() async {
       final productsRef = FirebaseFirestore.instance.collection('products');
-      final newDoc = await productsRef.add({'createdAt': Timestamp.now()});
+      final newDoc = await productsRef.add({
+        'createdAt': Timestamp.now(),
+        'isComplete': false, // Mark as incomplete initially
+        'isActive': false, // Not visible to users yet
+      });
 
       await newDoc.update({'id': newDoc.id});
 
@@ -68,7 +71,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 }
 
                 if (productSnapshot.hasError) {
-                  return buildSnapShotError();
+                  print('Error loading products: ${productSnapshot.error}');
+                  return buildSnapShotError(productSnapshot.error);
                 }
 
                 if (!productSnapshot.hasData) {
@@ -267,10 +271,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           SizedBox(height: 24),
-                          AllFarmersProductOrderButton(
-                            customerId: "SOME_CUSTOMER_ID",
-                          ),
-                          SizedBox(height: 16),
                         ],
                       ),
                     );
@@ -301,7 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Center buildSnapShotError() {
+  Center buildSnapShotError([Object? error]) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -309,6 +309,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Icon(Icons.error, color: Colors.red, size: 48),
           SizedBox(height: 16),
           Text('Error loading products'),
+          if (error != null) ...[
+            SizedBox(height: 8),
+            Text(
+              'Details: ${error.toString()}',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ],
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
@@ -345,7 +353,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       listen: false,
                     );
                     await auth.signOut();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Close dialog
+                    Navigator.of(
+                      context,
+                    ).pushReplacementNamed('/farmerlogin'); // Navigate to login
                   },
                   child: Text('Logout'),
                 ),

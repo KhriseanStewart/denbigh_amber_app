@@ -199,8 +199,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 class AddReceiptImage extends StatefulWidget {
   final String orderId;
   final void Function(String? imageUrl)? onImageUploaded;
-  const AddReceiptImage({Key? key, required this.orderId, this.onImageUploaded})
-    : super(key: key);
+  const AddReceiptImage({super.key, required this.orderId, this.onImageUploaded});
 
   @override
   State<AddReceiptImage> createState() => _AddReceiptImageState();

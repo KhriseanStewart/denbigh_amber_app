@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SalesManagementPage extends StatefulWidget {
-  const SalesManagementPage({Key? key}) : super(key: key);
+  const SalesManagementPage({super.key});
 
   @override
   State<SalesManagementPage> createState() => _SalesManagementPageState();
@@ -88,7 +88,8 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Customer: ${order.customerId}'),
+                                  Text('Customer: ${order.customerName}'),
+                                  Text('Customer ID: ${order.customerId}'),
                                   Text(
                                     'Name: ${(order.items.isNotEmpty && order.items.first.name.isNotEmpty) ? order.items.first.name : 'NO NAME'}',
                                   ),
@@ -246,7 +247,8 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text('Name: ${sale.name}'),
-                                      Text('Customer: ${sale.customerId}'),
+                                      Text('Customer: ${sale.customerName}'),
+                                      Text('Customer ID: ${sale.customerId}'),
                                       Text(
                                         'Quantity: ${sale.quantity} ${sale.unit}',
                                       ),
@@ -288,8 +290,8 @@ class _ExpandableSection extends StatelessWidget {
     required this.expanded,
     required this.ontap,
     required this.child,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

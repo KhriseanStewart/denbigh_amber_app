@@ -7,6 +7,7 @@ class Orderlist {
   final String unit;
   final String quantity;
   final String customerId;
+  final String customerName;
   final String farmerId;
   final List<OrderItem> items;
   final double totalPrice;
@@ -21,6 +22,7 @@ class Orderlist {
     required this.unit,
     required this.quantity,
     required this.customerId,
+    required this.customerName,
     required this.farmerId,
     required this.items,
     required this.totalPrice,
@@ -39,6 +41,7 @@ class Orderlist {
       imageUrl: map['imageUrl'] as String?,
       quantity: map['quantity']?.toString() ?? '',
       customerId: map['customerId'] ?? '',
+      customerName: map['customerName'] ?? 'Unknown Customer',
       farmerId: map['farmerId'] ?? '',
       items: (map['items'] as List<dynamic>? ?? [])
           .map((e) => OrderItem.fromMap(e as Map<String, dynamic>))
@@ -57,6 +60,7 @@ class Orderlist {
       'orderId': orderId,
       'name': name,
       'customerId': customerId,
+      'customerName': customerName,
       'farmerId': farmerId,
       'items': items.map((e) => e.toMap()).toList(),
       'totalPrice': totalPrice,

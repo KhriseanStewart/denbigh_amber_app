@@ -176,16 +176,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  ..._product.category
-                      .map((cat) => Chip(label: Text(cat)))
-                      .toList(),
+                  ..._product.category.map((cat) => Chip(label: Text(cat))),
                   _DetailChip(
                     label:
                         'Price: ${_product.price} / ${_product.unit.isNotEmpty ? _product.unit.first : ''}',
                   ),
                   _DetailChip(
                     label:
-                        'Min. Sale: ${_product.minSaleAmount} ${_product.unit.isNotEmpty ? _product.unit.first : ''}',
+                        'Min. Sale: ${_product.minUnitNum} ${_product.unit.isNotEmpty ? _product.unit.first : ''}',
                   ),
                   // Current Stock and Total Sold/Earnings will be calculated from sales data below
                 ],

@@ -7,7 +7,6 @@ import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
-import 'package:feather_icons/feather_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

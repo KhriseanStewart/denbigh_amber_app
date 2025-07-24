@@ -14,11 +14,11 @@ class ProductImageDisplay extends StatelessWidget {
   final double borderRadius;
 
   const ProductImageDisplay({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.height = 300,
     this.borderRadius = 12,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

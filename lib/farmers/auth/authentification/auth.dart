@@ -6,7 +6,7 @@ class FarmerAuthService {
   final user = FirebaseAuth.instance.currentUser;
   final db = FirebaseFirestore.instance;
 
-  Future<bool?> signUpWithEmail(String email, String password) async {
+  Future<bool?> signUpWithEmail(String email, String password ) async {
     try {
       await auth.createUserWithEmailAndPassword(
         email: email,

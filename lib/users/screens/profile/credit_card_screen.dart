@@ -73,10 +73,18 @@ class _CardScreenState extends State<CardScreen> {
               cvvValidationMessage: 'Please input a valid CVV',
               dateValidationMessage: 'Please input a valid date',
               numberValidationMessage: 'Please input a valid number',
-              cardNumberValidator: (String? cardNumber) {},
-              expiryDateValidator: (String? expiryDate) {},
-              cvvValidator: (String? cvv) {},
-              cardHolderValidator: (String? cardHolderName) {},
+              cardNumberValidator: (String? cardNumber) {
+                return null;
+              },
+              expiryDateValidator: (String? expiryDate) {
+                return null;
+              },
+              cvvValidator: (String? cvv) {
+                return null;
+              },
+              cardHolderValidator: (String? cardHolderName) {
+                return null;
+              },
               isCardHolderNameUpperCase: true,
               onFormComplete: () {
                 // callback to execute at the end of filling card data

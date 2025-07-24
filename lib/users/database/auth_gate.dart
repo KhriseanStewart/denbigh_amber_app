@@ -6,6 +6,8 @@ import '../screens/dashboard/home.dart';
 import '../auth/signin_screen.dart';
 
 class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
   @override
   _AuthGateState createState() => _AuthGateState();
 }

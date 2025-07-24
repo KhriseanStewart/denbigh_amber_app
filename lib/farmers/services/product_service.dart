@@ -8,7 +8,31 @@ class ProductService {
   Stream<List<Product>> getProductsForFarmer(String farmerId) {
     return _db
         .collection('products')
+        .where(
+          'farmerId',
+          isEqualTo: farmerId,
+        ) // Farmers see ALL their products (complete and incomplete)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => Product.fromMap({
+                  ...doc.data(),
+                  'productId': doc.id,
+                }, doc.id),
+              )
+              .toList(),
+        );
+  }
+
+  // Method to get only complete products for farmers (for public displays)
+  Stream<List<Product>> getCompleteProductsForFarmer(String farmerId) {
+    return _db
+        .collection('products')
         .where('farmerId', isEqualTo: farmerId)
+        .where('isComplete', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(

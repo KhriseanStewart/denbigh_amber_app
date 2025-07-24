@@ -43,49 +43,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
         final radaId = farmerId.text; // Get RADA ID from the controller
 
         if (password == confirmPasswordController.text) {
-          if (selectedRole != null) {
-            if (selectedLocation != null && selectedLocation!.isNotEmpty) {
-              try {
-                await AuthService().signUpWithEmail(
-                  email: email,
-                  password: password,
-                  role: selectedRole!,
-                  location: location,
-                  name: name,
-                  farmerId: selectedRole == 'farmer'
-                      ? radaId
-                      : null, // Only pass RADA ID for farmers
-                );
+          if (selectedLocation != null && selectedLocation!.isNotEmpty) {
+            try {
+              await AuthService().signUpWithEmail(
+                email: email,
+                password: password,
+                role: selectedRole!,
+                location: location,
+                name: name,
+                farmerId: selectedRole == 'farmer'
+                    ? radaId
+                    : null, // Only pass RADA ID for farmers
+              );
 
-                // Navigate based on role
-                if (selectedRole == 'farmer') {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRouter.farmermainlayout,
-                  );
-                } else {
-                  // For users and other roles, go to main layout
-                  Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
-                }
-              } on FirebaseAuthException catch (e) {
-                setState(() {
-                  isLoggingIn = false;
-                });
-                displaySnackBar(context, "Error signing up: $e");
+              // Navigate based on role
+              if (selectedRole == 'farmer') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRouter.farmermainlayout,
+                );
+              } else {
+                // For users and other roles, go to main layout
+                Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
               }
-            } else {
+            } on FirebaseAuthException catch (e) {
               setState(() {
                 isLoggingIn = false;
               });
-              displaySnackBar(context, "Please select a location");
+              displaySnackBar(context, "Error signing up: $e");
             }
           } else {
             setState(() {
               isLoggingIn = false;
             });
-            displaySnackBar(context, "Please select a role");
+            displaySnackBar(context, "Please select a location");
           }
-        } else {
+                } else {
           setState(() {
             isLoggingIn = false;
           });

@@ -42,7 +42,7 @@ class _FarmerLoginState extends State<FarmerLogin> {
           );
 
           if (result == true) {
-            final uid = await FirebaseAuth.instance.currentUser!.uid;
+            final uid = FirebaseAuth.instance.currentUser!.uid;
             final radaResult = await FarmerAuthService().checkRadaId(
               uid,
               radaNum,

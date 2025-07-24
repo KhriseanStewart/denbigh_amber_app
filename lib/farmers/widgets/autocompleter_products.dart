@@ -1,17 +1,18 @@
+import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:denbigh_app/users/database/lists.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
 import 'package:flutter/material.dart';
 
-class LocationAutoComplete extends StatefulWidget {
-  final Function(String?) onCategorySelected;
+class AutocompleterProducts extends StatefulWidget {
+  final Function(String?) onNameSelected;
   final bool? underlineBorder;
-  const LocationAutoComplete({super.key, required this.onCategorySelected, this.underlineBorder});
+  const AutocompleterProducts({super.key, required this.onNameSelected, this.underlineBorder});
 
   @override
-  _LocationAutoCompleteState createState() => _LocationAutoCompleteState();
+  _AutocompleterProductsState createState() => _AutocompleterProductsState();
 }
 
-class _LocationAutoCompleteState extends State<LocationAutoComplete> {
+class _AutocompleterProductsState extends State<AutocompleterProducts> {
   @override
   Widget build(BuildContext context) {
     return Autocomplete<String>(
@@ -19,14 +20,14 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
         if (textEditingValue.text == '') {
           return const Iterable<String>.empty();
         }
-        return jamaicaParishesWithTowns.where((String category) {
-          return category.toLowerCase().contains(
+        return farmProductNames.where((String Name) {
+          return Name.toLowerCase().contains(
             textEditingValue.text.toLowerCase(),
           );
         });
       },
       onSelected: (String selection) {
-        widget.onCategorySelected(selection);
+        widget.onNameSelected(selection);
       },
       fieldViewBuilder:
           (
@@ -40,17 +41,15 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
               focusNode: focusNode,
               style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
-                hintText: "Enter Location",
+                label: Text('Product'),
+                labelStyle: TextStyle(color: Colors.black),
+                hintText:'e.g., Fresh Tomatoes',
                 hintStyle: TextStyle(color: Colors.black),
-                prefixIcon: Icon(Icons.location_on, color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+              
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey, width: .5),
                 ),
-                enabledBorder: widget.underlineBorder == true
-                    ? UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey),
-                      )
-                    : null, 
+             
               ),
               validator: validateNotEmpty,
             );

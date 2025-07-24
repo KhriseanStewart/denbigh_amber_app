@@ -113,7 +113,7 @@ class _ProductCardState extends State<ProductCard> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
               Text(
-                "/${unitType}", // Use the safe variable
+                "/$unitType", // Use the safe variable
                 style: TextStyle(color: Colors.black),
               ),
               Spacer(),

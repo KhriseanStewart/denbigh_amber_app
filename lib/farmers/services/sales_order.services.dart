@@ -87,6 +87,7 @@ class SalesAndOrdersService {
           productId: item.productId,
           farmerId: order.farmerId,
           customerId: order.customerId,
+          customerName: order.customerName,
           name: item.name,
           quantity: item.quantity,
           unit: item.unit,
@@ -109,7 +110,7 @@ class SalesAndOrdersService {
 
   // ------------------- ORDERS METHODS -------------------
 
-Stream<List<model_orders.Orderlist>> getFilteredOrdersForFarmerManual(
+  Stream<List<model_orders.Orderlist>> getFilteredOrdersForFarmerManual(
     String farmerId,
   ) {
     return _db.collection('orders').snapshots().map((snapshot) {

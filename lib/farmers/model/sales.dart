@@ -8,6 +8,7 @@ class Sale {
   final double totalPrice;
   final Timestamp date;
   final String customerId;
+  final String customerName;
   final String farmerId;
   final String unit;
 
@@ -19,6 +20,7 @@ class Sale {
     required this.totalPrice,
     required this.date,
     required this.customerId,
+    required this.customerName,
     required this.farmerId,
     required this.unit,
   });
@@ -31,6 +33,7 @@ class Sale {
     'totalPrice': totalPrice,
     'date': date,
     'customerId': customerId,
+    'customerName': customerName,
     'farmerId': farmerId,
     'unit': unit,
   };
@@ -43,6 +46,7 @@ class Sale {
     totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
     date: map['date'] as Timestamp,
     customerId: map['customerId'] ?? '',
+    customerName: map['customerName'] ?? 'Unknown Customer',
     farmerId: map['farmerId'] ?? '',
     unit: map['unit'] ?? '',
   );
