@@ -111,7 +111,7 @@ class AuthService {
             farmerId; // Also store as radaId for clarity
       }
 
-      // 3️⃣ Write their profile, including role
+      // 3️Write their profile, including role
       await _db.collection('farmersData').doc(uid).set(userData);
 
       return cred.user;
@@ -163,10 +163,10 @@ class AuthService {
         password: currentPassword,
       );
 
-      // 1️⃣ Re-authenticate
+      // 1️ Re-authenticate
       await user.reauthenticateWithCredential(cred);
 
-      // 2️⃣ Update to the new password
+      // 2️ Update to the new password
       await user.updatePassword(newPassword);
       return true;
     } catch (e) {

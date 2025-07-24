@@ -109,7 +109,7 @@ class OrderItem {
     required this.customerLocation,
   });
 
-  // Factory constructor to create an OrderItem from a map
+  // Factory constructor to create an OrderItem from a ma
   factory OrderItem.fromMap(Map<String, dynamic> map) {
     int parsedQuantity = 0;
     var q = map['quantity'];
