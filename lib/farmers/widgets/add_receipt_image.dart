@@ -187,6 +187,8 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
         'unit': item['unit'] ?? '',
         'imageUrl': orderData['imageUrl'] ?? '',
         'status': 'completed',
+        'orderSessionId': orderData['orderSessionId'] ?? '',
+        'customerLocation': item['customerLocation'] ?? '',
       };
 
       // Store individual sale in Firestore

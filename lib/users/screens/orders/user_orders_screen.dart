@@ -137,12 +137,9 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             // Order items
             ...items.map((item) => _buildOrderItem(item)),
 
-            // Progress indicator for shipped/completed orders
-            if (status.toLowerCase() == 'shipped' ||
-                status.toLowerCase() == 'completed') ...[
-              SizedBox(height: 12),
-              _buildProgressIndicator(status),
-            ],
+            // Progress indicator for all orders
+            SizedBox(height: 12),
+            _buildProgressIndicator(status),
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
@@ -241,18 +238,24 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
         .toList();
     int currentStep = 0;
 
-    switch (status) {
-      case 'Processing':
+    // Normalize status to handle case sensitivity
+    String normalizedStatus = status.toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'processing':
         currentStep = 0;
         break;
-      case 'Confirmed':
+      case 'confirmed':
         currentStep = 1;
         break;
-      case 'Shipped':
+      case 'shipped':
         currentStep = 2;
         break;
-      case 'Completed':
+      case 'completed':
         currentStep = 3;
+        break;
+      default:
+        currentStep = 0; // Default to processing if unknown status
         break;
     }
 
