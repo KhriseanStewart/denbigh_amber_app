@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
@@ -22,16 +23,10 @@ class HomeScreen extends StatefulWidget {
 final auth = AuthService().currentUser;
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? _categoryFilter = 'All'; // default category
+  double _maxPriceFilter = 200000; // max price filter
+  String? _deliveryZoneFilter = 'default'; // delivery zone filter
   double _currentSliderPrice = 100;
-  List<String> category = [
-    'All',
-    'Legumes',
-    'Herbs & Spicies',
-    'Roots & Tubers',
-    'Condiments',
-    'Fruits',
-    'Vegetable',
-  ];
   String? _selectedValue;
 
   @override
@@ -64,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 4. Get all products for a farmer in a category
+
     return StreamBuilder(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
@@ -281,30 +278,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               SizedBox(
-                height: 34,
+                height: 40, // Adjust height as needed
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: category.length,
+                  itemCount: categories.length,
                   itemBuilder: (context, index) {
-                    final catName = category[index];
-                    return Container(
-                      margin: EdgeInsets.only(right: 6),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Center(
-                        child: Text(
-                          catName,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w300,
+                    final catName = categories[index];
+                    final isSelected = _categoryFilter == catName;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _categoryFilter = catName;
+                        });
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.green : Colors.black,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected ? Colors.green : Colors.black,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            catName,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w300,
+                            ),
                           ),
                         ),
                       ),
@@ -330,14 +337,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Expanded(
                     child: Slider(
-                      value: _currentSliderPrice,
+                      value: _maxPriceFilter,
                       min: 100,
                       max: 200000,
                       divisions: 100,
-                      label: _currentSliderPrice.round().toString(),
+                      label: _maxPriceFilter.round().toString(),
                       onChanged: (double value) {
                         setState(() {
-                          _currentSliderPrice = value;
+                          _maxPriceFilter = value;
                         });
                       },
                     ),
@@ -351,12 +358,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
+              // Delivery zone dropdown
               DropdownButton<String>(
-                value: _selectedValue,
-                hint: Text(_selectedValue ?? 'Select Zone'),
-                onTap: () {
-                  print(_selectedValue);
-                },
+                value: _deliveryZoneFilter,
                 items: [
                   DropdownMenuItem(value: 'default', child: Text('Default')),
                   DropdownMenuItem(value: 'zone-one', child: Text('Zone 1')),
@@ -365,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
                 onChanged: (String? newValue) {
                   setState(() {
-                    _selectedValue = newValue;
+                    _deliveryZoneFilter = newValue;
                   });
                 },
               ),
@@ -375,8 +379,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () {},
-                    child: Text("Filter"),
+                    onPressed: () {
+                      setState(() {});
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Apply Filter"),
                   ),
                 ),
               ),
@@ -391,7 +398,30 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final itemWidth = (screenWidth - 4) / 2;
     final itemHeight = itemWidth * 1.55; // or a fixed ratio
-    final streamList = ProductService().getProducts();
+
+    Stream<QuerySnapshot> getFilteredProducts() {
+      CollectionReference productsRef = FirebaseFirestore.instance.collection(
+        'products',
+      );
+
+      // Apply category filter
+      Query query = productsRef;
+      if (_categoryFilter != null && _categoryFilter != 'All') {
+        query = query.where('category', isEqualTo: _categoryFilter);
+      }
+
+      // Apply price filter
+      query = query.where('price', isLessThanOrEqualTo: _maxPriceFilter);
+
+      // Apply delivery zone filter (assuming delivery zone info is stored in 'deliveryZone' field)
+      if (_deliveryZoneFilter != null && _deliveryZoneFilter != 'default') {
+        query = query.where('deliveryZone', isEqualTo: _deliveryZoneFilter);
+      }
+
+      return query.snapshots();
+    }
+
+    final streamList = getFilteredProducts();
 
     return StreamBuilder(
       stream: streamList,

@@ -1,9 +1,8 @@
-
-
 import 'package:flutter/material.dart';
 
 final List<String> categories = [
-  'Vegetables',
+  'All'
+      'Vegetables',
   'Fruits',
   'Dairy',
   'Grains',
@@ -128,5 +127,4 @@ final List<String> farmProductNames = [
   'Pumpkin Seeds',
   'Olive Oil',
   'Coconut',
-
 ];

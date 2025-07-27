@@ -19,6 +19,8 @@ class ProductService {
         .snapshots();
   }
 
+  
+
   /// Create or overwrite a product.
   /// If you pass `productId`, it’ll use that; otherwise Firestore will auto-ID.
   Future<void> createProduct({

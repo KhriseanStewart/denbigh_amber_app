@@ -303,34 +303,6 @@ class _UserProductCardState extends State<UserProductCard> {
                               fontSize: 12,
                             ),
                           ),
-
-                          // Compare/View All Button
-                          if (farmerCount > 1)
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        FarmersSellingProductScreen(
-                                          productName: name,
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Icon(
-                                  Icons.compare_arrows,
-                                  size: 16,
-                                  color: Colors.blue.shade700,
-                                ),
-                              ),
-                            ),
                         ],
                       ),
                     ],
