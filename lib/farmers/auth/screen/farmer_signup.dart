@@ -231,13 +231,14 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                           }
 
                           try {
-                            await authService.signUpWithEmail(
+                            await authService.signUpWithEmailFarmer(
                               email: emailController.text,
                               password: passwordController.text,
                               role: 'farmer',
                               name: nameController.text,
                               location: farmLocationController.text,
                               farmerId: radaIdController.text,
+                              phone: phoneController.text, // Add phone number
                             );
 
                             Navigator.pushReplacementNamed(

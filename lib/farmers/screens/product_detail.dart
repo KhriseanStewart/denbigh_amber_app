@@ -2,10 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:denbigh_app/farmers/model/products.dart';
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/screens/add_pruducts.dart';
-import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -201,21 +199,54 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   }
 
                   // Get sales data for total sold and earnings calculation
-                  return StreamBuilder<List<Sale>>(
-                    stream: salesService.getSalesForProduct(
-                      _product.productId,
-                      _product.farmerId,
-                    ),
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('sales')
+                        .where('farmerId', isEqualTo: _product.farmerId)
+                        .snapshots(),
                     builder: (context, salesSnapshot) {
-                      // Calculate totals from actual sales data
+                      // Calculate totals from actual sales data (handle both consolidated and individual sales)
                       int totalSoldFromSales = 0;
                       double totalEarningsFromSales = 0.0;
 
                       if (salesSnapshot.hasData &&
-                          salesSnapshot.data!.isNotEmpty) {
-                        for (final sale in salesSnapshot.data!) {
-                          totalSoldFromSales += sale.quantity;
-                          totalEarningsFromSales += sale.totalPrice;
+                          salesSnapshot.data!.docs.isNotEmpty) {
+                        for (final doc in salesSnapshot.data!.docs) {
+                          final saleData = doc.data() as Map<String, dynamic>;
+
+                          // Handle consolidated sales (with items array)
+                          if (saleData.containsKey('items') &&
+                              saleData['items'] is List) {
+                            final items = saleData['items'] as List<dynamic>;
+
+                            // Look for this specific product in the items
+                            for (var item in items) {
+                              final itemProductId = item['productId']
+                                  ?.toString();
+                              if (itemProductId == _product.productId) {
+                                totalSoldFromSales +=
+                                    (item['quantity'] as num?)?.toInt() ?? 0;
+                                final itemPrice =
+                                    (item['price'] as num?)?.toDouble() ?? 0.0;
+                                final itemQuantity =
+                                    (item['quantity'] as num?)?.toInt() ?? 0;
+                                totalEarningsFromSales +=
+                                    (itemPrice * itemQuantity);
+                              }
+                            }
+                          } else {
+                            // Handle individual sales (old format)
+                            final saleProductId = saleData['productId']
+                                ?.toString();
+                            if (saleProductId == _product.productId) {
+                              totalSoldFromSales +=
+                                  (saleData['quantity'] as num?)?.toInt() ?? 0;
+                              totalEarningsFromSales +=
+                                  (saleData['totalPrice'] as num?)
+                                      ?.toDouble() ??
+                                  0.0;
+                            }
+                          }
                         }
                       }
 

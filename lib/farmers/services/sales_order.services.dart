@@ -45,28 +45,66 @@ class SalesAndOrdersService {
     return _db
         .collection('sales')
         .where('farmerId', isEqualTo: farmerId)
-        .orderBy('date', descending: true)
+        // Remove orderBy to avoid index requirement - we'll sort in memory
         .snapshots()
         .map((snapshot) {
-          // Group sales by orderSessionId
+          // Group sales by orderId (like the customer method does)
           final Map<String, List<Sale>> groupedSales = {};
 
           for (final doc in snapshot.docs) {
             try {
               final data = doc.data();
-              final sessionId = data['orderSessionId']?.toString();
 
-              final sale = Sale.fromMap(data, doc.id);
+              // Check if this is a consolidated sale (has 'items' array) or individual sale
+              if (data.containsKey('items') && data['items'] is List) {
+                // This is a consolidated sale - use orderId for grouping (like customer method)
+                final items = data['items'] as List<dynamic>;
+                final orderId = data['orderId']?.toString() ?? doc.id;
 
-              // Use orderSessionId if available, otherwise use salesId for individual sales
-              final groupKey = sessionId?.isNotEmpty == true
-                  ? sessionId!
-                  : doc.id;
+                // Create individual Sale objects from the items array
+                for (var item in items) {
+                  final sale = Sale(
+                    salesId: doc.id,
+                    productId: item['productId']?.toString() ?? '',
+                    name: item['name']?.toString() ?? '',
+                    quantity: (item['quantity'] as num?)?.toInt() ?? 0,
+                    totalPrice:
+                        ((item['price'] as num? ?? 0) *
+                                (item['quantity'] as num? ?? 1))
+                            .toInt(),
+                    date:
+                        data['date'] as Timestamp? ??
+                        data['createdAt'] as Timestamp? ??
+                        Timestamp.now(),
+                    customerId: data['customerId']?.toString() ?? '',
+                    customerName:
+                        data['customerName']?.toString() ?? 'Unknown Customer',
+                    farmerId: data['farmerId']?.toString() ?? '',
+                    unit: item['unit']?.toString() ?? '',
+                    orderSessionId: orderId, // Use orderId for consistency
+                    customerLocation:
+                        data['customerLocation']?.toString() ?? '',
+                  );
 
-              if (!groupedSales.containsKey(groupKey)) {
-                groupedSales[groupKey] = [];
+                  if (!groupedSales.containsKey(orderId)) {
+                    groupedSales[orderId] = [];
+                  }
+                  groupedSales[orderId]!.add(sale);
+                }
+              } else {
+                // This is an old individual sale - handle normally
+                final sessionId = data['orderSessionId']?.toString();
+                final sale = Sale.fromMap(data, doc.id);
+
+                final groupKey = sessionId?.isNotEmpty == true
+                    ? sessionId!
+                    : doc.id;
+
+                if (!groupedSales.containsKey(groupKey)) {
+                  groupedSales[groupKey] = [];
+                }
+                groupedSales[groupKey]!.add(sale);
               }
-              groupedSales[groupKey]!.add(sale);
             } catch (e) {
               print('Error parsing sale document ${doc.id}: $e');
               continue;
@@ -91,6 +129,203 @@ class SalesAndOrdersService {
 
           return result;
         });
+  }
+
+  /// Alternative method for getting sales without complex queries
+  Stream<List<SalesGroup>> getSimpleSalesForFarmer(String farmerId) {
+    return _db.collection('sales').where('farmerId', isEqualTo: farmerId).snapshots().map((
+      snapshot,
+    ) {
+      print(
+        'DEBUG: Found ${snapshot.docs.length} sales documents for farmer $farmerId',
+      );
+
+      // Group sales by orderId or orderSessionId
+      final Map<String, List<Sale>> groupedSales = {};
+
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          print('DEBUG: Processing sale document ${doc.id}');
+
+          // Check if this is a consolidated sale (has 'items' array) or individual sale
+          if (data.containsKey('items') && data['items'] is List) {
+            print(
+              'DEBUG: Found consolidated sale with ${(data['items'] as List).length} items',
+            );
+            // This is a consolidated sale - use orderId for grouping
+            final items = data['items'] as List<dynamic>;
+            final orderId = data['orderId']?.toString() ?? doc.id;
+
+            // Create individual Sale objects from the items array
+            for (var item in items) {
+              final sale = Sale(
+                salesId: doc.id,
+                productId: item['productId']?.toString() ?? '',
+                name: item['name']?.toString() ?? '',
+                quantity: (item['quantity'] as num?)?.toInt() ?? 0,
+                totalPrice:
+                    ((item['price'] as num? ?? 0) *
+                            (item['quantity'] as num? ?? 1))
+                        .toInt(),
+                date:
+                    data['date'] as Timestamp? ??
+                    data['createdAt'] as Timestamp? ??
+                    Timestamp.now(),
+                customerId: data['customerId']?.toString() ?? '',
+                customerName:
+                    data['customerName']?.toString() ?? 'Unknown Customer',
+                farmerId: data['farmerId']?.toString() ?? '',
+                unit: item['unit']?.toString() ?? '',
+                orderSessionId: orderId,
+                customerLocation: data['customerLocation']?.toString() ?? '',
+              );
+
+              if (!groupedSales.containsKey(orderId)) {
+                groupedSales[orderId] = [];
+              }
+              groupedSales[orderId]!.add(sale);
+            }
+          } else {
+            print('DEBUG: Found individual sale');
+            // This is an old individual sale - handle normally
+            final sessionId = data['orderSessionId']?.toString();
+            final sale = Sale.fromMap(data, doc.id);
+
+            final groupKey = sessionId?.isNotEmpty == true
+                ? sessionId!
+                : doc.id;
+
+            if (!groupedSales.containsKey(groupKey)) {
+              groupedSales[groupKey] = [];
+            }
+            groupedSales[groupKey]!.add(sale);
+          }
+        } catch (e) {
+          print('Error parsing sale document ${doc.id}: $e');
+          continue;
+        }
+      }
+
+      print('DEBUG: Grouped sales into ${groupedSales.length} groups');
+
+      // Convert grouped sales to SalesGroup objects
+      final List<SalesGroup> result = [];
+      for (final salesGroup in groupedSales.values) {
+        if (salesGroup.isNotEmpty) {
+          try {
+            result.add(SalesGroup.fromSales(salesGroup));
+          } catch (e) {
+            print('Error creating SalesGroup: $e');
+            continue;
+          }
+        }
+      }
+
+      // Sort by date descending
+      result.sort((a, b) => b.date.compareTo(a.date));
+
+      print('DEBUG: Returning ${result.length} sales groups');
+      return result;
+    });
+  }
+
+  Future<void> cleanupInvalidSales(String farmerId) async {
+    try {
+      final salesSnapshot = await _db
+          .collection('sales')
+          .where('farmerId', isEqualTo: farmerId)
+          .get();
+
+      int deletedCount = 0;
+
+      for (var doc in salesSnapshot.docs) {
+        final data = doc.data();
+        bool shouldDelete = false;
+
+        // Check if this is a blank/invalid sale
+        if (data['totalPrice'] == null || data['totalPrice'] == 0) {
+          shouldDelete = true;
+        }
+
+        // Check if items array exists but is empty
+        if (data.containsKey('items')) {
+          final items = data['items'];
+          if (items is List && items.isEmpty) {
+            shouldDelete = true;
+          }
+        }
+
+        // Check if it's missing essential fields
+        if (data['customerId'] == null ||
+            data['customerId'].toString().isEmpty) {
+          shouldDelete = true;
+        }
+
+        if (shouldDelete) {
+          print('Deleting invalid sale: ${doc.id}');
+          await doc.reference.delete();
+          deletedCount++;
+        }
+      }
+
+      print('Cleaned up $deletedCount invalid sales for farmer: $farmerId');
+    } catch (e) {
+      print('Error cleaning up sales: $e');
+    }
+  }
+
+  /// Debug method to check sales data structure for consolidated sales
+  Future<void> debugConsolidatedSalesData(String farmerId) async {
+    try {
+      final salesSnapshot = await _db
+          .collection('sales')
+          .where('farmerId', isEqualTo: farmerId)
+          .get();
+
+      print('=== DEBUG: Consolidated Sales Data for Farmer: $farmerId ===');
+      print('Total sales documents: ${salesSnapshot.docs.length}');
+
+      int consolidatedCount = 0;
+      int individualCount = 0;
+
+      for (var doc in salesSnapshot.docs) {
+        final data = doc.data();
+        print('--- Sale Document ID: ${doc.id} ---');
+
+        if (data.containsKey('items') && data['items'] is List) {
+          consolidatedCount++;
+          final items = data['items'] as List;
+          print('TYPE: Consolidated Sale');
+          print('OrderId: ${data['orderId']}');
+          print('OrderSessionId: ${data['orderSessionId']}');
+          print('Items count: ${items.length}');
+          print('CustomerName: ${data['customerName']}');
+          print('TotalPrice: ${data['totalPrice']}');
+          print('Status: ${data['status']}');
+          print('ImageUrl: ${data['imageUrl']}');
+          if (items.isNotEmpty) {
+            print('First item: ${items.first}');
+          }
+        } else {
+          individualCount++;
+          print('TYPE: Individual Sale');
+          print('OrderSessionId: ${data['orderSessionId']}');
+          print('ProductId: ${data['productId']}');
+          print('Name: ${data['name']}');
+          print('CustomerName: ${data['customerName']}');
+        }
+        print('Date: ${data['date'] ?? data['createdAt']}');
+        print('---');
+      }
+
+      print(
+        'Summary: $consolidatedCount consolidated, $individualCount individual sales',
+      );
+      print('=== END DEBUG ===');
+    } catch (e) {
+      print('Error debugging consolidated sales data: $e');
+    }
   }
 
   Future<void> recordSale(Sale sale) async {

@@ -36,12 +36,23 @@ class _UserProductCardState extends State<UserProductCard> {
 
         if (farmerDoc.exists) {
           final farmerData = farmerDoc.data();
+
+          // Safely get farmer name with type checking
+          final nameField = farmerData?['name'];
+          final firstNameField = farmerData?['firstName'];
+          final farmerNameField = farmerData?['farmerName'];
+
+          String safeFarmerName = 'Unknown Farmer';
+          if (nameField != null && nameField is String) {
+            safeFarmerName = nameField;
+          } else if (firstNameField != null && firstNameField is String) {
+            safeFarmerName = firstNameField;
+          } else if (farmerNameField != null && farmerNameField is String) {
+            safeFarmerName = farmerNameField;
+          }
+
           setState(() {
-            farmerName =
-                farmerData?['name'] ??
-                farmerData?['firstName'] ??
-                farmerData?['farmerName'] ??
-                'Unknown Farmer';
+            farmerName = safeFarmerName;
           });
         } else {
           setState(() {
@@ -165,7 +176,6 @@ class _UserProductCardState extends State<UserProductCard> {
                 ],
               ),
             ),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

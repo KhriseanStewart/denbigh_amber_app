@@ -62,13 +62,14 @@ class MultiFarmerProductService {
             if (farmerId != null) {
               try {
                 final farmerDoc = await _db
-                    .collection('farmers')
+                    .collection('farmersData')
                     .doc(farmerId)
                     .get();
                 if (farmerDoc.exists) {
                   final farmerData = farmerDoc.data();
                   farmerName =
                       farmerData?['name'] ??
+                      farmerData?['farmerName'] ??
                       farmerData?['firstName'] ??
                       'Unknown Farmer';
                 }
@@ -123,13 +124,14 @@ class MultiFarmerProductService {
               if (farmerId != null) {
                 try {
                   final farmerDoc = await _db
-                      .collection('farmers')
+                      .collection('farmersData')
                       .doc(farmerId)
                       .get();
                   if (farmerDoc.exists) {
                     final farmerData = farmerDoc.data();
                     farmerName =
                         farmerData?['name'] ??
+                        farmerData?['farmerName'] ??
                         farmerData?['firstName'] ??
                         'Unknown Farmer';
                   }
@@ -195,13 +197,14 @@ class MultiFarmerProductService {
             if (farmerId != null) {
               try {
                 final farmerDoc = await _db
-                    .collection('farmers')
+                    .collection('farmersData')
                     .doc(farmerId)
                     .get();
                 if (farmerDoc.exists) {
                   final farmerData = farmerDoc.data();
                   farmerName =
                       farmerData?['name'] ??
+                      farmerData?['farmerName'] ??
                       farmerData?['firstName'] ??
                       'Unknown Farmer';
                 }

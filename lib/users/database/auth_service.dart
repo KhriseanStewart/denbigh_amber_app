@@ -85,6 +85,7 @@ class AuthService {
     required String name,
     required String location,
     String? farmerId, // Optional RADA ID for farmers
+    String? phone, // Optional phone number
   }) async {
     try {
       // 1️⃣ Create the Auth user
@@ -104,15 +105,23 @@ class AuthService {
         'location': location,
       };
 
+      // Add phone number if provided
+      if (phone != null && phone.isNotEmpty) {
+        userData['phone'] = phone;
+      }
+
       // Add farmerId/RADA ID if provided (for farmers)
       if (farmerId != null && farmerId.isNotEmpty) {
         userData['farmerId'] = uid;
         userData['radaRegistrationNumber'] =
             farmerId; // Also store as radaId for clarity
+        print("Storing farmer data with RADA ID: $farmerId");
       }
 
+      print("About to store farmer data: $userData");
       // 3️Write their profile, including role
       await _db.collection('farmersData').doc(uid).set(userData);
+      print("Farmer data stored successfully for UID: $uid");
 
       return cred.user;
     } catch (e) {

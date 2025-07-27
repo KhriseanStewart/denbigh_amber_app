@@ -91,7 +91,7 @@ class AuthService {
         role: 'farmer',
         displayName: farmerName,
       );
-      // Create farmerData doc in 'farmerData' collection
+      // Create farmer data doc in 'farmersData' collection
       await FarmerService().createFarmerData(
         farmerId: user.uid,
         farmerName: farmerName,

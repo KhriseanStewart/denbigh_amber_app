@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FarmerService {
-  // Consistently use 'farmerData' for all farmer-specific information
-  final CollectionReference _col = FirebaseFirestore.instance.collection('farmerData');
+  // Use 'farmersData' to match the collection used by customer service and farmer auth
+  final CollectionReference _col = FirebaseFirestore.instance.collection(
+    'farmersData',
+  );
 
   Future<void> createFarmerData({
     required String farmerId,

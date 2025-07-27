@@ -45,6 +45,25 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _updateCartItemQuantity(
+    String cartItemId,
+    int newQuantity,
+  ) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cartItems')
+          .doc(cartItemId)
+          .update({'customerQuantity': newQuantity});
+      print('Updated cart item $cartItemId quantity to $newQuantity');
+    } catch (e) {
+      print('Error updating cart item quantity: $e');
+      // Show error to user
+      displaySnackBar(context, "Failed to update quantity. Please try again.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // this logic is to be change to suit the cart items from the database
@@ -167,9 +186,10 @@ class _CartScreenState extends State<CartScreen> {
                     if (!snapshot.hasData || snapshot.data == null) {
                       return Center(child: Text("No data found"));
                     }
-                    final cartItem = snapshot.data!.docs;
+                    final cartItems = snapshot.data!.docs;
 
-                    for (var doc in cartItem) {
+                    // Initialize cart quantities
+                    for (var doc in cartItems) {
                       if (!cartQuantities.containsKey(doc.id)) {
                         try {
                           final data = doc.data() as Map<String, dynamic>?;
@@ -177,29 +197,34 @@ class _CartScreenState extends State<CartScreen> {
                               data?['customerQuantity'] ?? 1;
                         } catch (e) {
                           print('Error accessing cart item data: $e');
-                          cartQuantities[doc.id] = 1; // default fallback
+                          cartQuantities[doc.id] = 1;
                         }
                       }
                     }
+
+                    // Group items by farmerId
+                    Map<String, List<QueryDocumentSnapshot>> itemsByFarmer = {};
+                    for (var item in cartItems) {
+                      final data = item.data() as Map<String, dynamic>?;
+                      final farmerId = data?['farmerId'] ?? 'unknown';
+
+                      if (!itemsByFarmer.containsKey(farmerId)) {
+                        itemsByFarmer[farmerId] = [];
+                      }
+                      itemsByFarmer[farmerId]!.add(item);
+                    }
+
                     return ListView.builder(
                       padding: EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 4,
                       ),
-                      itemCount: cartItem.length,
+                      itemCount: itemsByFarmer.keys.length,
                       itemBuilder: (context, index) {
-                        if (index >= cartItem.length) {
-                          return SizedBox.shrink();
-                        }
-                        final item = cartItem[index];
-                        try {
-                          return buildProductCard(item);
-                        } catch (e) {
-                          print(
-                            'Error building product card at index $index: $e',
-                          );
-                          return SizedBox.shrink();
-                        }
+                        final farmerId = itemsByFarmer.keys.elementAt(index);
+                        final farmerItems = itemsByFarmer[farmerId]!;
+
+                        return buildFarmerSection(farmerId, farmerItems);
                       },
                     );
                   },
@@ -369,7 +394,7 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           FutureBuilder<DocumentSnapshot>(
                             future: FirebaseFirestore.instance
-                                .collection('farmers')
+                                .collection('farmersData')
                                 .doc(data['farmerId'])
                                 .get(),
                             builder: (context, farmerSnapshot) {
@@ -396,11 +421,22 @@ class _CartScreenState extends State<CartScreen> {
                                 final farmerData =
                                     farmerSnapshot.data!.data()
                                         as Map<String, dynamic>?;
-                                farmerName =
-                                    farmerData?['name'] ??
-                                    farmerData?['firstName'] ??
-                                    farmerData?['farmerName'] ??
-                                    'Unknown Farmer';
+
+                                // Safely get farmer name with type checking
+                                final nameField = farmerData?['name'];
+                                final firstNameField = farmerData?['firstName'];
+                                final farmerNameField =
+                                    farmerData?['farmerName'];
+
+                                if (nameField != null && nameField is String) {
+                                  farmerName = nameField;
+                                } else if (firstNameField != null &&
+                                    firstNameField is String) {
+                                  farmerName = firstNameField;
+                                } else if (farmerNameField != null &&
+                                    farmerNameField is String) {
+                                  farmerName = farmerNameField;
+                                }
                               }
 
                               return Container(
@@ -458,19 +494,25 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         onPressed: (data['quantity'] ?? 0) == 0
                             ? null
-                            : () {
+                            : () async {
                                 print(currentQuantity);
-                                setState(() {
-                                  if (currentQuantity >
-                                      (data['minUnitNum'] ?? 1)) {
-                                    cartQuantities[id] = currentQuantity - 1;
-                                  } else {
-                                    displaySnackBar(
-                                      context,
-                                      "Cannot go below minimum unit number (${data["minUnitNum"] ?? 1})",
-                                    );
-                                  }
-                                });
+                                if (currentQuantity >
+                                    (data['minUnitNum'] ?? 1)) {
+                                  final newQuantity = currentQuantity - 1;
+                                  setState(() {
+                                    cartQuantities[id] = newQuantity;
+                                  });
+                                  // Update Firestore
+                                  await _updateCartItemQuantity(
+                                    id,
+                                    newQuantity,
+                                  );
+                                } else {
+                                  displaySnackBar(
+                                    context,
+                                    "Cannot go below minimum unit number (${data["minUnitNum"] ?? 1})",
+                                  );
+                                }
                               },
                       ),
                       // Show quantity only if quantity >= 1
@@ -484,11 +526,14 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       IconButton(
                         icon: Icon(Icons.add),
-                        onPressed: () {
+                        onPressed: () async {
                           print(currentQuantity);
+                          final newQuantity = currentQuantity + 1;
                           setState(() {
-                            cartQuantities[id] = currentQuantity + 1;
+                            cartQuantities[id] = newQuantity;
                           });
+                          // Update Firestore
+                          await _updateCartItemQuantity(id, newQuantity);
                         },
                       ),
                     ],
@@ -505,6 +550,81 @@ class _CartScreenState extends State<CartScreen> {
         padding: EdgeInsets.all(16),
         child: Text('Error loading item', style: TextStyle(color: Colors.red)),
       );
+    }
+  }
+
+  // New method to build farmer section with header
+  Widget buildFarmerSection(
+    String farmerId,
+    List<QueryDocumentSnapshot> farmerItems,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Farmer header
+        FutureBuilder<String>(
+          future: _getFarmerName(farmerId),
+          builder: (context, snapshot) {
+            final farmerName = snapshot.data ?? 'Loading...';
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.store, color: Colors.green.shade700, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'From: $farmerName',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green.shade700,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Spacer(),
+                  Text(
+                    '${farmerItems.length} items',
+                    style: TextStyle(
+                      color: Colors.green.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        // Farmer's products
+        ...farmerItems.map((item) => buildProductCard(item)),
+        SizedBox(height: 16), // Space between farmers
+      ],
+    );
+  }
+
+  // Helper method to get farmer name
+  Future<String> _getFarmerName(String farmerId) async {
+    try {
+      final farmerDoc = await FirebaseFirestore.instance
+          .collection('farmersData')
+          .doc(farmerId)
+          .get();
+
+      if (farmerDoc.exists) {
+        final farmerData = farmerDoc.data();
+        return farmerData?['name'] ??
+            farmerData?['farmerName'] ??
+            farmerData?['firstName'] ??
+            'Unknown Farmer';
+      }
+      return 'Unknown Farmer';
+    } catch (e) {
+      print('Error fetching farmer name: $e');
+      return 'Unknown Farmer';
     }
   }
 }

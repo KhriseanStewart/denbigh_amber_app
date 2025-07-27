@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:denbigh_app/users/database/order_service.dart';
 
 class AddReceiptImage extends StatefulWidget {
   final String orderId;
@@ -28,15 +30,15 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
   Future<void> _pickAndUploadImage({
     ImageSource source = ImageSource.gallery,
   }) async {
-    final picked = await _picker.pickImage(source: source, imageQuality: 80);
-    if (picked == null) return;
-
-    setState(() {
-      _imageFile = File(picked.path);
-      _uploading = true;
-    });
-
     try {
+      final picked = await _picker.pickImage(source: source, imageQuality: 80);
+      if (picked == null) return;
+
+      setState(() {
+        _imageFile = File(picked.path);
+        _uploading = true;
+      });
+
       final orderId = widget.orderId;
       if (orderId.isEmpty) throw Exception('Order ID is missing.');
 
@@ -63,6 +65,23 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Receipt uploaded!')));
+    } on PlatformException catch (e) {
+      // Handle the MissingPluginException specifically
+      if (e.code == 'MissingPluginException') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Image picker not available. Please restart the app completely.',
+            ),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: ${e.message}')));
+      }
+      widget.onImageUploaded?.call(null);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -124,93 +143,57 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
   }
 
   Future<void> _convertOrderToSale(String orderId) async {
-    // Get order data
-    final doc = await FirebaseFirestore.instance
-        .collection('orders')
-        .doc(orderId)
-        .get();
-    if (!doc.exists) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Order not found.')));
-      return;
-    }
-    final orderData = doc.data()!;
+    try {
+      // Get the uploaded image URL from the order
+      final orderDoc = await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .get();
 
-    // Process each item in the order
-    final items = orderData['items'] as List<dynamic>? ?? [];
-
-    for (final item in items) {
-      final productId = item['productId'] as String? ?? '';
-      final quantitySold = (item['quantity'] as num? ?? 0).toInt();
-
-      if (productId.isNotEmpty && quantitySold > 0) {
-        // Get current product data
-        final productDoc = await FirebaseFirestore.instance
-            .collection('products')
-            .doc(productId)
-            .get();
-
-        if (productDoc.exists) {
-          final productData = productDoc.data()!;
-          final currentStock = (productData['stock'] as num? ?? 0).toInt();
-          final currentTotalSold = (productData['totalSold'] as num? ?? 0)
-              .toInt();
-          final currentTotalEarnings =
-              (productData['totalEarnings'] as num?)?.toInt() ?? 0;
-          final itemTotalPrice = (item['price'] as num? ?? 0) * quantitySold;
-
-          // Update product: reduce stock, increase total sold and earnings
-          await FirebaseFirestore.instance
-              .collection('products')
-              .doc(productId)
-              .update({
-                'stock': currentStock - quantitySold,
-                'totalSold': currentTotalSold + quantitySold,
-                'totalEarnings': currentTotalEarnings + itemTotalPrice.toInt(),
-              });
-        }
+      if (!orderDoc.exists) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Order not found.')));
+        return;
       }
 
-      // Create individual sale record for each item
-      final saleData = {
-        'salesId': '', // will update with doc ID below
-        'orderId': orderId, // links the sale to the original order
-        'productId': item['productId'] ?? '',
-        'name': item['name'] ?? '',
-        'quantity': item['quantity'] ?? 1,
-        'totalPrice':
-            (item['price'] as num? ?? 0) * (item['quantity'] as num? ?? 1),
-        'date': Timestamp.now(),
-        'customerId': orderData['customerId'] ?? '',
-        'farmerId': orderData['farmerId'] ?? '',
-        'unit': item['unit'] ?? '',
-        'imageUrl': orderData['imageUrl'] ?? '',
-        'status': 'completed',
-        'orderSessionId': orderData['orderSessionId'] ?? '',
-        'customerLocation': item['customerLocation'] ?? '',
-      };
+      final orderData = orderDoc.data()!;
+      final receiptImageUrl = orderData['imageUrl'] ?? '';
 
-      // Store individual sale in Firestore
-      final saleDocRef = await FirebaseFirestore.instance
-          .collection('sales')
-          .add(saleData);
-      await saleDocRef.update({'salesId': saleDocRef.id});
+      if (receiptImageUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please upload a receipt image first.')),
+        );
+        return;
+      }
+
+      // Use the OrderService to create consolidated sale
+      await OrderService().convertOrderToSale(orderId, receiptImageUrl);
+
+      // Delete the order from the orders collection since it's now converted to sales
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .delete();
+
+      setState(() {
+        _donePressed = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Order converted to Sale! All items consolidated under one sale record.',
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('Error converting order to sale: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to convert order to sale: $e')),
+      );
     }
-
-    // Delete the order from the orders collection since it's now converted to sales
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).delete();
-
-    setState(() {
-      _donePressed = true;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Order converted to Sale! Stock updated for all items.'),
-      ),
-    );
-    Navigator.of(context).pop();
   }
 
   @override

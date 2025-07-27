@@ -6,7 +6,7 @@ class FarmerAuthService {
   final user = FirebaseAuth.instance.currentUser;
   final db = FirebaseFirestore.instance;
 
-  Future<bool?> signUpWithEmail(String email, String password ) async {
+  Future<bool?> signUpWithEmail(String email, String password) async {
     try {
       await auth.createUserWithEmailAndPassword(
         email: email,
@@ -31,23 +31,31 @@ class FarmerAuthService {
 
   Future<bool?> checkRadaId(String uid, String radaId) async {
     try {
+      print("Checking RADA ID for UID: $uid with RADA ID: $radaId");
       final docSnapshot = await db.collection("farmersData").doc(uid).get();
 
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
+        print("Document data: $data");
         if (data != null && data.containsKey('radaRegistrationNumber')) {
-          if (data['radaRegistrationNumber'] == radaId) {
-            print(data['radaRegistrationNumber']);
+          final storedRadaId = data['radaRegistrationNumber'];
+          print("Stored RADA ID: $storedRadaId, Input RADA ID: $radaId");
+          if (storedRadaId == radaId) {
+            print("RADA ID match successful");
             return true;
           } else {
+            print(
+              "RADA ID mismatch: stored '$storedRadaId' vs input '$radaId'",
+            );
             return false;
           }
         } else {
-          print("Rada Registration Number not found");
+          print("Rada Registration Number field not found in document");
+          print("Available fields: ${data?.keys}");
           return false;
         }
       } else {
-        print("Document does not exist");
+        print("Document does not exist for UID: $uid");
         return false;
       }
     } catch (e) {

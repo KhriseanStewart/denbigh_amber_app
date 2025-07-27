@@ -70,7 +70,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
     try {
       final int totalNum = (args['price'] ?? 0).toInt();
-      final formatter = NumberFormat('#,###'); 
+      final formatter = NumberFormat('#,###');
       final firebasePrice = formatter.format(totalNum);
 
       int quantityPriceDemo = ((args['price'] ?? 0) * quantity).toInt();
@@ -490,7 +490,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                             // Farmer name
                                             FutureBuilder<DocumentSnapshot>(
                                               future: FirebaseFirestore.instance
-                                                  .collection('farmers')
+                                                  .collection('farmersData')
                                                   .doc(
                                                     farmerProduct['farmerId'],
                                                   )

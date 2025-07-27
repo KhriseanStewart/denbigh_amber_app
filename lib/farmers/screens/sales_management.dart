@@ -1,14 +1,13 @@
-import 'package:denbigh_app/farmers/model/orders.dart' as model_orders;
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/services/auth.dart';
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:denbigh_app/farmers/widgets/add_receipt_image.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
+import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SalesManagementPage extends StatefulWidget {
   const SalesManagementPage({super.key});
@@ -28,9 +27,17 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   }
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-      'status': newStatus,
-    });
+    try {
+      await OrderService().updateOrderStatus(orderId, newStatus);
+      print('Order status updated successfully');
+    } catch (e) {
+      print('Error updating order status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update order status. Please try again.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -153,7 +160,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                             child: Row(
                                               children: [
                                                 Text(
-                                                  '${index}.',
+                                                  '$index.',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.black87,
@@ -175,7 +182,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                               ],
                                             ),
                                           );
-                                        }).toList(),
+                                        }),
                                         SizedBox(height: 4),
                                         Text(
                                           'Customer Location: ${(order.items.isNotEmpty && order.items.first.customerLocation.isNotEmpty) ? order.items.first.customerLocation : 'NO LOCATION'}',
@@ -355,7 +362,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                           child: Row(
                                             children: [
                                               Text(
-                                                '${index}.',
+                                                '$index.',
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black87,
@@ -376,7 +383,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                             ],
                                           ),
                                         );
-                                      }).toList(),
+                                      }),
                                       SizedBox(height: 4),
                                       Text(
                                         'Total: \$${saleGroup.totalPrice.toString()}',

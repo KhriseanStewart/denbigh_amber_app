@@ -18,13 +18,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController farmerId = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String selectedRole = 'user';
   String? selectedLocation; // Store selected location from autocomplete
   bool isLoggingIn = false;
 
@@ -40,7 +38,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             selectedLocation ?? ''; // Use selected location from autocomplete
         final email = emailController.text;
         final password = passwordController.text;
-        final radaId = farmerId.text; // Get RADA ID from the controller
 
         if (password == confirmPasswordController.text) {
           if (selectedLocation != null && selectedLocation!.isNotEmpty) {
@@ -48,24 +45,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               await AuthService().signUpWithEmail(
                 email: email,
                 password: password,
-                role: selectedRole!,
+                role: 'user',
                 location: location,
                 name: name,
-                farmerId: selectedRole == 'farmer'
-                    ? radaId
-                    : null, // Only pass RADA ID for farmers
               );
 
-              // Navigate based on role
-              if (selectedRole == 'farmer') {
-                Navigator.pushReplacementNamed(
-                  context,
-                  AppRouter.farmermainlayout,
-                );
-              } else {
-                // For users and other roles, go to main layout
-                Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
-              }
+              // Navigate to main layout for users
+              Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
             } on FirebaseAuthException catch (e) {
               setState(() {
                 isLoggingIn = false;
@@ -78,7 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             });
             displaySnackBar(context, "Please select a location");
           }
-                } else {
+        } else {
           setState(() {
             isLoggingIn = false;
           });

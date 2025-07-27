@@ -1,4 +1,4 @@
-// lib/services/farmer_service.dart
+// l/// Service for managing the "farmerData" collection.b/services/farmer_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 

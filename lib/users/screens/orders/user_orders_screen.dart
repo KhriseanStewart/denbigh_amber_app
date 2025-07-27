@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
@@ -34,7 +35,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       ),
       backgroundColor: hexToColor("F4F6F8"),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _orderService.showOrdersForCustomer(userId),
+        stream: _orderService.getOrdersWithSalesForCustomer(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -80,7 +81,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
-              return _buildOrderCard(order);
+              return _buildFarmerOrderCard(order);
             },
           );
         },
@@ -88,14 +89,15 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> order) {
+  Widget _buildFarmerOrderCard(Map<String, dynamic> order) {
     final items = order['items'] as List<dynamic>? ?? [];
-    final status = order['status'] ?? 'unknown';
+    final status = order['status'] ?? 'Processing';
     final totalPrice = (order['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    final orderId = order['orderId'] ?? order['id'] ?? '';
+    final orderId = order['id'] ?? order['orderId'] ?? '';
+    final farmerId = order['farmerId'] ?? 'unknown';
     final createdAt = order['createdAt'];
-    final receiptImageUrl =
-        order['imageUrl'] as String?; // Get receipt image URL
+    final hasReceipt = order['hasReceipt'] as bool? ?? false;
+    final receiptImageUrl = order['receiptImageUrl'] as String?;
 
     // Format date
     String formattedDate = 'Unknown date';
@@ -116,13 +118,69 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Order header
+            // Order header with farmer info
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Order #${orderId.substring(0, 8)}',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Order #${orderId.length > 8 ? orderId.substring(0, 8) : orderId}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (hasReceipt) ...[
+                            SizedBox(width: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'COMPLETED',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      FutureBuilder<String>(
+                        future: _getFarmerName(farmerId),
+                        builder: (context, snapshot) {
+                          final farmerName = snapshot.data ?? 'Loading...';
+                          return Row(
+                            children: [
+                              Icon(Icons.store, color: Colors.green, size: 16),
+                              SizedBox(width: 4),
+                              Text(
+                                'From: $farmerName',
+                                style: TextStyle(
+                                  color: Colors.green[700],
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 _buildStatusChip(status),
               ],
@@ -134,12 +192,40 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             ),
             SizedBox(height: 12),
 
-            // Order items
+            // Order items (multiple products per farmer)
             ...items.map((item) => _buildOrderItem(item)),
 
-            // Progress indicator for all orders
+            // Progress indicator for this farmer's order
             SizedBox(height: 12),
             _buildProgressIndicator(status),
+
+            // Receipt status indicator
+            if (hasReceipt) ...[
+              SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.receipt, color: Colors.green[700], size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Receipt Available',
+                      style: TextStyle(
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
@@ -231,6 +317,12 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     );
   }
 
+
+
+
+
+
+
   Widget _buildProgressIndicator(String status) {
     // Use the farmer's status list excluding 'Cancelled' for progress tracking
     List<String> steps = statuses.keys
@@ -287,6 +379,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               return Expanded(
                 child: Row(
                   children: [
+                    //the container with the labeled steps in green
                     // Step circle
                     Container(
                       width: 24,
@@ -320,6 +413,8 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             }).toList(),
           ),
           SizedBox(height: 4),
+
+         
           Row(
             children: steps.asMap().entries.map((entry) {
               int index = entry.key;
@@ -628,6 +723,22 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       } else {
         displaySnackBar(context, 'Failed to cancel order');
       }
+    }
+  }
+
+  Future<String> _getFarmerName(String farmerId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('farmersData')
+          .doc(farmerId)
+          .get();
+      if (doc.exists) {
+        final data = doc.data();
+        return data?['name'] ?? 'Unknown Farmer';
+      }
+      return 'Unknown Farmer';
+    } catch (e) {
+      return 'Unknown Farmer';
     }
   }
 }
