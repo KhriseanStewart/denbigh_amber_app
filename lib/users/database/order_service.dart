@@ -795,7 +795,7 @@ class OrderService {
       );
     } catch (e) {
       print('Error converting order to sale: $e');
-      throw e;
+      rethrow;
     }
   }
 

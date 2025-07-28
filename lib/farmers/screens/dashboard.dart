@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_cast
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/farmers/model/products.dart';
@@ -135,12 +135,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   SummaryCard(
                                     'Total \nProducts',
                                     '${products.length}',
-                                    Icon(FontAwesomeIcons.chartBar),
+                                    Icon(FontAwesomeIcons.chartBar, color: Colors.orange.shade300),
                                   ),
                                   SummaryCard(
                                     'Total \nRevenue',
                                     '\$${totalRevenueFromSales.toStringAsFixed(2)}',
-                                    Icon(FeatherIcons.dollarSign),
+                                    Icon(FeatherIcons.dollarSign, color: Colors.orange.shade300),
                                   ),
                                 ],
                               ),
@@ -150,12 +150,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   SummaryCard(
                                     'Total \nStock',
                                     '$totalStock',
-                                    Icon(FontAwesomeIcons.box),
+                                    Icon(FontAwesomeIcons.box, color: Colors.orange.shade300),
                                   ),
                                   SummaryCard(
                                     'Total \nSales',
                                     '$totalQuantitySold',
-                                    Icon(FeatherIcons.shoppingCart),
+                                    Icon(FeatherIcons.shoppingCart, color: Colors.orange.shade300),
                                   ),
                                 ],
                               ),
@@ -205,15 +205,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       vertical: 8.0,
                                     ),
                                     child: ProductCard(
-                                      product: p as Product,
+                                      product: p,
                                       onEdit: () {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (_) =>
                                                 add_product_screen.AddProductScreen(
                                                   productId:
-                                                      (p as Product).productId,
-                                                  product: p as Product,
+                                                      (p).productId,
+                                                  product: p,
                                                 ),
                                           ),
                                         );
@@ -246,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         );
                                         if (confirm == true) {
                                           await ProductService().deleteProduct(
-                                            (p as Product).productId,
+                                            (p).productId,
                                           );
                                         }
                                       },
@@ -255,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           MaterialPageRoute(
                                             builder: (_) =>
                                                 ProductDetailsScreen(
-                                                  product: p as Product,
+                                                  product: p,
                                                 ),
                                           ),
                                         );
