@@ -78,26 +78,71 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
   void _showImageSourceActionSheet() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickAndUploadImage(source: ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.camera_alt),
-              title: Text('Camera'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickAndUploadImage(source: ImageSource.camera);
-              },
-            ),
-          ],
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: EdgeInsets.all(8),
+                height: 4,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Add Receipt Photo',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E7D32),
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF4CAF50).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.camera_alt, color: Color(0xFF4CAF50)),
+                ),
+                title: Text('Camera'),
+                subtitle: Text('Take a new photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadImage(source: ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF4CAF50).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.photo_library, color: Color(0xFF4CAF50)),
+                ),
+                title: Text('Gallery'),
+                subtitle: Text('Choose from gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadImage(source: ImageSource.gallery);
+                },
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -217,127 +262,382 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
   Widget build(BuildContext context) {
     final orderId = widget.orderId;
     if (orderId.isEmpty) {
-      return Center(
-        child: Text('Order ID is missing. Cannot upload or display image.'),
-      );
-    }
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('orders')
-          .doc(orderId)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.data() != null) {}
-
-        // Only show image if user just uploaded one (not from Firestore at start)
-        if (_imageFile != null) {
-        } else if (_uploadedUrl != null && _uploadedUrl!.isNotEmpty) {
-        } else {}
-        final bool hasImage =
-            _imageFile != null ||
-            (_uploadedUrl != null && _uploadedUrl!.isNotEmpty);
-
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_imageFile != null)
-                Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.green, width: 3),
-                    image: DecorationImage(
-                      image: FileImage(_imageFile!),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                )
-              else if (_uploadedUrl != null && _uploadedUrl!.isNotEmpty)
-                Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.green, width: 3),
-                  ),
-                  alignment: Alignment.center,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: CachedNetworkImage(
-                      imageUrl: _uploadedUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) =>
-                          Icon(Icons.error, color: Colors.red),
-                      width: 160,
-                      height: 160,
-                    ),
-                  ),
-                ),
-              if (hasImage) SizedBox(height: 24),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade400,
-                  iconColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  textStyle: TextStyle(
+      return Scaffold(
+        backgroundColor: Color(0xFFF8FBF8),
+        appBar: AppBar(
+          title: Text(
+            'Receipt Image',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF66BB6A),
+                  Color(0xFF4CAF50),
+                  Color(0xFF2E7D32),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: Center(
+          child: Container(
+            margin: EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.red[200]!),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, color: Colors.red[600], size: 48),
+                SizedBox(height: 12),
+                Text(
+                  'Order ID Missing',
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: Colors.red[700],
                   ),
                 ),
-                onPressed: _uploading ? null : _showImageSourceActionSheet,
-                icon: _uploading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(Icons.receipt_long),
-                label: Text(hasImage ? 'Change Receipt' : 'Add Receipt'),
-              ),
-              if (hasImage)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                SizedBox(height: 8),
+                Text(
+                  'Cannot upload or display image without Order ID.',
+                  style: TextStyle(color: Colors.red[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Color(0xFFF8FBF8),
+      appBar: AppBar(
+        title: Text(
+          'Receipt Image',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF66BB6A), Color(0xFF4CAF50), Color(0xFF2E7D32)],
+            ),
+          ),
+        ),
+      ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('orders')
+            .doc(orderId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          final bool hasImage =
+              _imageFile != null ||
+              (_uploadedUrl != null && _uploadedUrl!.isNotEmpty);
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20),
+                  margin: EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.3),
+                        spreadRadius: 0,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                     children: [
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade400,
-                          iconColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                      Icon(Icons.receipt_long, size: 32, color: Colors.white),
+                      SizedBox(height: 8),
+                      Text(
+                        'Order Receipt',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'Upload receipt image to complete the order',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Status Indicator
+                Container(
+                  padding: EdgeInsets.all(16),
+                  margin: EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Color(0xFF4CAF50).withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        hasImage ? Icons.check_circle : Icons.receipt_long,
+                        color: hasImage ? Color(0xFF4CAF50) : Colors.orange,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          hasImage
+                              ? 'Receipt image ready'
+                              : 'Receipt image required',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2E7D32),
                           ),
                         ),
-                        icon: Icon(Icons.visibility),
-                        label: Text('View Picture'),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (hasImage ? Color(0xFF4CAF50) : Colors.orange)
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          hasImage ? 'Ready' : 'Pending',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: hasImage
+                                ? Color(0xFF2E7D32)
+                                : Colors.orange[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Image Display Section
+                if (hasImage) ...[
+                  Text(
+                    'Receipt Image',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Color(0xFF4CAF50).withOpacity(0.3),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF4CAF50).withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: _imageFile != null
+                          ? Image.file(
+                              _imageFile!,
+                              height: 300,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : (_uploadedUrl != null && _uploadedUrl!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: _uploadedUrl!,
+                              height: 300,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                height: 300,
+                                color: Color(0xFFF1F8E9),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF4CAF50),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                height: 300,
+                                color: Color(0xFFF1F8E9),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error,
+                                        color: Color(0xFFE57373),
+                                        size: 48,
+                                      ),
+                                      Text(
+                                        'Failed to load image',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(height: 300, color: Color(0xFFF1F8E9)),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                ],
+
+                // Add/Change Receipt Button
+                Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.only(bottom: 16),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Color(0xFF4CAF50),
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Color(0xFF4CAF50), width: 2),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: _uploading ? null : _showImageSourceActionSheet,
+                    icon: _uploading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(
+                                Color(0xFF4CAF50),
+                              ),
+                            ),
+                          )
+                        : Icon(hasImage ? Icons.edit : Icons.add_a_photo),
+                    label: Text(
+                      hasImage ? 'Change Receipt' : 'Add Receipt',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Action Buttons (only if image exists)
+                if (hasImage) ...[
+                  // View Picture Button
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
                         onPressed: () {
                           if (_uploadedUrl != null &&
                               _uploadedUrl!.isNotEmpty) {
                             _showFullImageDialog(_uploadedUrl!);
                           }
                         },
-                      ),
-                      SizedBox(width: 16),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade700,
-                          iconColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                        icon: Icon(Icons.visibility, color: Colors.white),
+                        label: Text(
+                          'View Full Image',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        icon: Icon(Icons.done_all),
-                        label: Text('Done'),
+                      ),
+                    ),
+                  ),
+
+                  // Complete Order Button
+                  Container(
+                    width: double.infinity,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: _donePressed
+                              ? [Colors.grey[400]!, Colors.grey[400]!]
+                              : [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
                         onPressed: _donePressed
                             ? null
                             : () async {
@@ -350,18 +650,29 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
                                       content: Text(
                                         'Please upload a receipt image first!',
                                       ),
+                                      backgroundColor: Colors.orange,
                                     ),
                                   );
                                 }
                               },
+                        icon: Icon(Icons.done_all, color: Colors.white),
+                        label: Text(
+                          'Complete Order',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-            ],
-          ),
-        );
-      },
+                ],
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

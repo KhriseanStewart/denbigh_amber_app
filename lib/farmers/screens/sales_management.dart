@@ -1,8 +1,8 @@
-import 'package:denbigh_app/farmers/model/orders.dart' as model_orders;
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/services/auth.dart';
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:denbigh_app/farmers/widgets/add_receipt_image.dart';
+import 'package:denbigh_app/farmers/widgets/add_preparation_images.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -55,16 +55,84 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
     );
 
     return Scaffold(
+      backgroundColor: Color(0xFFF8FBF8),
       appBar: AppBar(
-        title: Text('Sales and Orders Management'),
+        title: Text(
+          'Sales & Orders',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
         leading: Container(),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF66BB6A), Color(0xFF4CAF50), Color(0xFF2E7D32)],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Column(
             children: [
+              // Welcome Header
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.analytics, size: 28, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text(
+                          'Sales Management',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Manage your orders and track sales performance',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               _ExpandableSection(
                 title: 'Orders',
                 expanded: _ordersExpanded,
@@ -217,13 +285,32 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                                 ),
                                               )
                                               .toList(),
-                                          onChanged: (value) {
+                                          onChanged: (value) async {
                                             if (value != null &&
                                                 value != order.status) {
-                                              _updateOrderStatus(
-                                                order.orderId,
-                                                value,
-                                              );
+                                              if (value == 'Preparing') {
+                                                // Navigate to preparation images screen
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AddPreparationImages(
+                                                          orderId:
+                                                              order.orderId,
+                                                          onImagesUploaded: (urls) {
+                                                            // The status is updated in the AddPreparationImages widget
+                                                            print(
+                                                              'Preparation images uploaded: $urls',
+                                                            );
+                                                          },
+                                                        ),
+                                                  ),
+                                                );
+                                              } else {
+                                                _updateOrderStatus(
+                                                  order.orderId,
+                                                  value,
+                                                );
+                                              }
                                             }
                                           },
                                         ),
@@ -422,21 +509,46 @@ class _ExpandableSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: expanded ? 4 : 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: ontap,
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.2), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(expanded ? 0.15 : 0.05),
+            spreadRadius: 0,
+            blurRadius: expanded ? 15 : 8,
+            offset: Offset(0, expanded ? 6 : 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: ontap,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: expanded
+                      ? [Color(0xFFF1F8E9), Color(0xFFE8F5E8)]
+                      : [Colors.white, Colors.white],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Row(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF4CAF50).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 300),
                       transitionBuilder: (child, anim) =>
@@ -444,36 +556,45 @@ class _ExpandableSection extends StatelessWidget {
                       child: Icon(
                         expanded ? Icons.remove : Icons.add,
                         key: ValueKey<bool>(expanded),
-                        size: 28,
-                        color: Theme.of(context).primaryColor,
+                        size: 24,
+                        color: Color(0xFF4CAF50),
                         semanticLabel: expanded
                             ? 'Collapse $title'
                             : 'Expand $title',
                       ),
                     ),
                   ),
+                  SizedBox(width: 16),
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 14.0),
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
                       ),
                     ),
+                  ),
+                  Icon(
+                    title.toLowerCase().contains('order')
+                        ? Icons.shopping_bag
+                        : Icons.analytics,
+                    color: Color(0xFF4CAF50),
+                    size: 20,
                   ),
                 ],
               ),
             ),
-            AnimatedCrossFade(
-              crossFadeState: expanded
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
-              duration: Duration(milliseconds: 600),
-              firstChild: child,
-              secondChild: SizedBox.shrink(),
-            ),
-          ],
-        ),
+          ),
+          AnimatedCrossFade(
+            crossFadeState: expanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            duration: Duration(milliseconds: 600),
+            firstChild: Container(padding: EdgeInsets.all(16), child: child),
+            secondChild: SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

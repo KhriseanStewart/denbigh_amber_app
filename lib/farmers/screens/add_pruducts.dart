@@ -245,8 +245,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Color(0xFFF8FBF8),
         appBar: AppBar(
-          title: Text(_name.isEmpty ? 'Add New Product' : 'Edit Product'),
+          title: Text(
+            _name.isEmpty ? 'Add New Product' : 'Edit Product',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: Colors.white),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF66BB6A),
+                  Color(0xFF4CAF50),
+                  Color(0xFF2E7D32),
+                ],
+              ),
+            ),
+          ),
         ),
         body: ListView(
           children: [

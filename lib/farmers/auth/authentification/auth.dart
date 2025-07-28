@@ -24,7 +24,7 @@ class FarmerAuthService {
       await auth.signInWithEmailAndPassword(email: email, password: password);
       return true;
     } catch (e) {
-      print("Error logging in $e");
+   
       return false;
     }
   }
@@ -37,7 +37,7 @@ class FarmerAuthService {
         final data = docSnapshot.data();
         if (data != null && data.containsKey('radaRegistrationNumber')) {
           if (data['radaRegistrationNumber'] == radaId) {
-            print(data['radaRegistrationNumber']);
+       
             return true;
           } else {
             return false;

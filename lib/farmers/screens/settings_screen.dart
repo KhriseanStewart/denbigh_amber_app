@@ -148,6 +148,10 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
         profileImageUrl: downloadUrl,
       );
 
+      // Refresh auth service to update farmer data
+      final authService = farmer_auth.AuthService();
+      await authService.refreshFarmerData();
+
       setState(() {
         _profileImageUrl = downloadUrl;
       });
@@ -212,6 +216,10 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
       await Future.delayed(
         Duration(milliseconds: 500),
       ); // Small delay for Firestore consistency
+
+      // Refresh auth service to update farmer data
+      await auth.refreshFarmerData();
+
       _loadfarmersData();
 
       // Clear password fields
@@ -243,292 +251,605 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
     final auth = farmer_auth.AuthService();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: false),
+      backgroundColor: Color(0xFFF8FBF8),
+      appBar: AppBar(
+        title: Text(
+          'Farm Settings',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Color(0xFF2E7D32),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF388E3C), Color(0xFF2E7D32)],
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              // Profile Picture Section
-              SizedBox(
-                height: 120,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: _profileImageUrl != null
-                          ? NetworkImage(_profileImageUrl!)
-                          : null,
-                      child: _profileImageUrl == null
-                          ? Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.grey[600],
-                            )
-                          : null,
+              // Welcome Header
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                margin: EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _isUploadingImage
-                            ? null
-                            : _pickAndUploadProfileImage,
-                        child: Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                          child: _isUploadingImage
-                              ? SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                        ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.agriculture, size: 32, color: Colors.white),
+                    SizedBox(height: 8),
+                    Text(
+                      'Manage Your Farm Profile',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Update your information and settings',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              SizedBox(height: 24),
-
-              // Basic Information Card
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Basic Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              // Profile Picture Section
+              Container(
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.photo_camera,
+                          color: Color(0xFF4CAF50),
+                          size: 20,
                         ),
-                      ),
-                      SizedBox(height: 16),
-
-                      CustomTextFormField(
-                        controller: _nameController,
-                        label: 'Farmer Name',
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Name is required';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: 16),
-
-                      CustomTextFormField(
-                        controller: _farmNameController,
-                        label: 'Farm Name',
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Farm name is required';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: 16),
-
-                      CustomTextFormField(
-                        controller: _emailController,
-                        label: 'Email',
-                        inputType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          ).hasMatch(value)) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: 16),
-
-                      // Location Dropdown
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        SizedBox(width: 8),
+                        Text(
+                          'Profile Picture',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      height: 120,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Text(
-                            'Location',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Color(0xFF4CAF50),
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.2),
+                                  spreadRadius: 0,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Color(0xFFF1F8E9),
+                              backgroundImage: _profileImageUrl != null
+                                  ? NetworkImage(_profileImageUrl!)
+                                  : null,
+                              child: _profileImageUrl == null
+                                  ? Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Color(0xFF4CAF50),
+                                    )
+                                  : null,
                             ),
                           ),
-                          SizedBox(height: 8),
-                          LocationAutoComplete(
-                            onCategorySelected: (location) {
-                              setState(() {
-                                _selectedLocation = location;
-                              });
-                            },
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: _isUploadingImage
+                                  ? null
+                                  : _pickAndUploadProfileImage,
+                              child: Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF66BB6A),
+                                      Color(0xFF4CAF50),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.4),
+                                      spreadRadius: 0,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: _isUploadingImage
+                                    ? SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(
+                                            Colors.white,
+                                          ),
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                              ),
+                            ),
                           ),
-                          if (_selectedLocation != null) ...[
-                            SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Basic Information Card
+              Container(
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.account_circle,
+                          color: Color(0xFF4CAF50),
+                          size: 24,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Farm Information',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+
+                    CustomTextFormField(
+                      controller: _nameController,
+                      label: 'Farmer Name',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Name is required';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 16),
+
+                    CustomTextFormField(
+                      controller: _farmNameController,
+                      label: 'Farm Name',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Farm name is required';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 16),
+
+                    CustomTextFormField(
+                      controller: _emailController,
+                      label: 'Email',
+                      inputType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Email is required';
+                        }
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value)) {
+                          return 'Enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Location Dropdown
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: Color(0xFF4CAF50),
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
                             Text(
-                              'Current: $_selectedLocation',
+                              'Farm Location',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.green[600],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2E7D32),
                               ),
                             ),
                           ],
-                        ],
-                      ),
-
-                      SizedBox(height: 16),
-
-                      // RADA Number (Read-only)
-                      TextFormField(
-                        initialValue: auth.farmer?.radaRegistrationNumber ?? '',
-                        decoration: InputDecoration(
-                          labelText: 'RADA Registration Number',
-                          labelStyle: TextStyle(color: Colors.grey[400]),
-                          suffixIcon: Icon(Icons.lock, color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 0.5,
+                        ),
+                        SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xFFF1F8E9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Color(0xFF4CAF50).withOpacity(0.3),
                             ),
                           ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: Colors.grey[300]!,
-                              width: 0.5,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: LocationAutoComplete(
+                              onCategorySelected: (location) {
+                                setState(() {
+                                  _selectedLocation = location;
+                                });
+                              },
                             ),
                           ),
                         ),
-                        enabled: false,
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
+                        if (_selectedLocation != null) ...[
+                          SizedBox(height: 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF4CAF50).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Color(0xFF4CAF50).withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 16,
+                                  color: Color(0xFF4CAF50),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Current: $_selectedLocation',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF2E7D32),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    // RADA Number (Read-only)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.verified_user,
+                              color: Color(0xFF4CAF50),
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'RADA Registration',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.lock,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  auth.farmer?.radaRegistrationNumber ??
+                                      'Not Available',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-
-              SizedBox(height: 16),
 
               // Change Password Card
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Change Password',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              Container(
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.security,
+                          color: Color(0xFF4CAF50),
+                          size: 24,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Security Settings',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFFFF3E0),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Color(0xFFFF9800).withOpacity(0.3),
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Leave blank if you don\'t want to change your password',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Color(0xFFFF9800),
+                            size: 16,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Leave password fields blank if you don\'t want to change your password',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFFE65100),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 16),
+                    ),
+                    SizedBox(height: 20),
 
-                      CustomTextFormField(
-                        controller: _currentPasswordController,
-                        label: 'Current Password',
-                        obscureText: true,
-                        validator: (value) {
-                          if (_newPasswordController.text.isNotEmpty &&
-                              (value == null || value.isEmpty)) {
-                            return 'Current password is required to change password';
-                          }
-                          return null;
-                        },
-                      ),
+                    CustomTextFormField(
+                      controller: _currentPasswordController,
+                      label: 'Current Password',
+                      obscureText: true,
+                      validator: (value) {
+                        if (_newPasswordController.text.isNotEmpty &&
+                            (value == null || value.isEmpty)) {
+                          return 'Current password is required to change password';
+                        }
+                        return null;
+                      },
+                    ),
 
-                      SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                      CustomTextFormField(
-                        controller: _newPasswordController,
-                        label: 'New Password',
-                        obscureText: true,
-                        validator: (value) {
-                          if (value != null &&
-                              value.isNotEmpty &&
-                              value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
-                      ),
+                    CustomTextFormField(
+                      controller: _newPasswordController,
+                      label: 'New Password',
+                      obscureText: true,
+                      validator: (value) {
+                        if (value != null &&
+                            value.isNotEmpty &&
+                            value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
 
-                      SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                      CustomTextFormField(
-                        controller: _confirmPasswordController,
-                        label: 'Confirm New Password',
-                        obscureText: true,
-                        validator: (value) {
-                          if (_newPasswordController.text.isNotEmpty &&
-                              value != _newPasswordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
+                    CustomTextFormField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm New Password',
+                      obscureText: true,
+                      validator: (value) {
+                        if (_newPasswordController.text.isNotEmpty &&
+                            value != _newPasswordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ),
               ),
 
-              SizedBox(height: 24),
-
               // Save Button
-              SizedBox(
+              Container(
                 width: double.infinity,
+                margin: EdgeInsets.symmetric(vertical: 8),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                   onPressed: _isLoading ? null : _updateProfile,
-                  child: _isLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: _isLoading
+                            ? [Colors.grey[400]!, Colors.grey[400]!]
+                            : [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _isLoading
+                              ? Colors.transparent
+                              : Colors.green.withOpacity(0.3),
+                          spreadRadius: 0,
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isLoading)
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        else ...[
+                          Icon(Icons.save, size: 20, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Save Farm Settings',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : Text('Save Changes', style: TextStyle(fontSize: 16)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

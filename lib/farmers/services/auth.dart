@@ -108,4 +108,12 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  // Add method to refresh farmer data after updates
+  Future<void> refreshFarmerData() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _onAuthStateChanged(user);
+    }
+  }
 }

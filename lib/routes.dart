@@ -19,6 +19,7 @@ import 'package:denbigh_app/users/screens/product_screen/product_screen.dart';
 import 'package:denbigh_app/users/screens/profile/account_information_screen.dart';
 import 'package:denbigh_app/users/screens/profile/credit_card_screen.dart';
 import 'package:denbigh_app/users/screens/profile/profile.dart';
+import 'package:denbigh_app/test_preparation_images.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -45,6 +46,7 @@ class AppRouter {
   static const String viewallitem = '/viewallitem';
   static const String userorders = '/userorders';
   static const String farmermainlayout = '/farmerMainLayout';
+  static const String testprep = '/testprep';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -70,6 +72,7 @@ class AppRouter {
       viewallitem: (context) => const ViewAllItems(),
       userorders: (context) => const UserOrdersScreen(),
       productdetail: (context) => const ProductScreen(),
+      testprep: (context) => const TestPreparationImages(),
     };
   }
 }

@@ -40,15 +40,17 @@ class FarmerService {
     GeoPoint? location,
     String? profileImageUrl,
     String? email,
-     required String? farmName,
+    required String? farmName,
   }) {
     Map<String, dynamic> updateData = {};
 
     if (farmerName != null) updateData['farmerName'] = farmerName;
+    if (farmName != null) updateData['farmName'] = farmName;
     if (locationName != null) updateData['locationName'] = locationName;
     if (location != null) updateData['location'] = location;
     if (profileImageUrl != null)
       updateData['profileImageUrl'] = profileImageUrl;
+    if (email != null) updateData['email'] = email;
 
     updateData['updatedAt'] = FieldValue.serverTimestamp();
 
@@ -58,7 +60,7 @@ class FarmerService {
   // Keep the old method names for backward compatibility
   Future<void> createFarmerData({
     required String farmerId,
-   final String? farmName,
+    final String? farmName,
     required String farmerName,
     required String radaRegistrationNumber,
     required GeoPoint location,

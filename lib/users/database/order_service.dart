@@ -325,6 +325,8 @@ class OrderService {
               'customerName': data['customerName'],
               'customerLocation': data['customerLocation'],
               'orderSessionId': sessionId,
+              'preparationImages': data['preparationImages'] ?? [],
+              'preparationTimestamp': data['preparationTimestamp'],
             });
           }
         }
@@ -341,6 +343,7 @@ class OrderService {
             // Multiple orders in session, combine them
             final firstOrder = ordersInSession.first;
             final combinedItems = <Map<String, dynamic>>[];
+            List<String> allPreparationImages = [];
             int combinedTotalPrice = 0;
             String combinedStatus = firstOrder['status'];
 
@@ -348,6 +351,11 @@ class OrderService {
               final items = order['items'] as List<dynamic>? ?? [];
               combinedItems.addAll(items.cast<Map<String, dynamic>>());
               combinedTotalPrice += (order['totalPrice'] as num?)?.toInt() ?? 0;
+
+              // Combine preparation images from all orders
+              final orderPrepImages =
+                  order['preparationImages'] as List<dynamic>? ?? [];
+              allPreparationImages.addAll(orderPrepImages.cast<String>());
 
               // Use the most advanced status
               final currentStatus = order['status'];
@@ -370,6 +378,8 @@ class OrderService {
               'customerName': firstOrder['customerName'],
               'customerLocation': firstOrder['customerLocation'],
               'orderSessionId': sessionId,
+              'preparationImages': allPreparationImages,
+              'preparationTimestamp': firstOrder['preparationTimestamp'],
             });
           }
         }

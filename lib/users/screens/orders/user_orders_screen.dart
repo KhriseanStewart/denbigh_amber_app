@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class UserOrdersScreen extends StatefulWidget {
   const UserOrdersScreen({super.key});
@@ -97,6 +98,13 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     final receiptImageUrl =
         order['imageUrl'] as String?; // Get receipt image URL
 
+    // Debug: Print order data to see what's available
+    print('Order ID: $orderId');
+    print('Status: $status');
+    print('Has preparationImages: ${order.containsKey('preparationImages')}');
+    print('PreparationImages: ${order['preparationImages']}');
+    print('---');
+
     // Format date
     String formattedDate = 'Unknown date';
     if (createdAt != null) {
@@ -140,6 +148,15 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
             // Progress indicator for all orders
             SizedBox(height: 12),
             _buildProgressIndicator(status),
+
+            // Preparation images section (if available)
+            if (order['preparationImages'] != null &&
+                (order['preparationImages'] as List<dynamic>).isNotEmpty) ...[
+              SizedBox(height: 12),
+              _buildPreparationImagesSection(
+                order['preparationImages'] as List<dynamic>,
+              ),
+            ],
 
             // Receipt image section (if available)
             if (receiptImageUrl != null && receiptImageUrl.isNotEmpty) ...[
@@ -248,11 +265,14 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       case 'confirmed':
         currentStep = 1;
         break;
-      case 'shipped':
+      case 'preparing':
         currentStep = 2;
         break;
-      case 'completed':
+      case 'shipped':
         currentStep = 3;
+        break;
+      case 'completed':
+        currentStep = 4;
         break;
       default:
         currentStep = 0; // Default to processing if unknown status
@@ -356,6 +376,10 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
       case 'confirmed':
         backgroundColor = Colors.orange[100]!;
         textColor = Colors.orange[800]!;
+        break;
+      case 'preparing':
+        backgroundColor = Colors.amber[100]!;
+        textColor = Colors.amber[800]!;
         break;
       case 'shipped':
         backgroundColor = Colors.purple[100]!;
@@ -474,6 +498,114 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.green[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreparationImagesSection(List<dynamic> preparationImages) {
+    if (preparationImages.isEmpty) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Color(0xFF4CAF50).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.agriculture, size: 20, color: Color(0xFF4CAF50)),
+              SizedBox(width: 8),
+              Text(
+                'Preparation Photos',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+              Spacer(),
+              Icon(Icons.visibility, size: 16, color: Color(0xFF4CAF50)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'See how your order was prepared by the farmer:',
+            style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32)),
+          ),
+          SizedBox(height: 12),
+          SizedBox(
+            height: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: preparationImages.length,
+              itemBuilder: (context, index) {
+                final imageUrl = preparationImages[index] as String;
+                return Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () =>
+                        _showPreparationImageDialog(imageUrl, index + 1),
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Color(0xFF4CAF50), width: 2),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Color(0xFF4CAF50).withOpacity(0.1),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF4CAF50),
+                                ),
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Color(0xFF4CAF50).withOpacity(0.1),
+                            child: Center(
+                              child: Icon(
+                                Icons.error_outline,
+                                color: Color(0xFF4CAF50),
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.touch_app, size: 14, color: Color(0xFF4CAF50)),
+              SizedBox(width: 4),
+              Text(
+                'Tap any photo to view full size',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF2E7D32),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -629,5 +761,71 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
         displaySnackBar(context, 'Failed to cancel order');
       }
     }
+  }
+
+  void _showPreparationImageDialog(String imageUrl, int imageNumber) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: const EdgeInsets.all(20),
+                minScale: 0.5,
+                maxScale: 4,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title at the top
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'Preparation Photo $imageNumber',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    // Image
+                    Flexible(
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF4CAF50),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Text(
+                            'Failed to load preparation image',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
