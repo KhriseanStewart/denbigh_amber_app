@@ -119,7 +119,7 @@ class SalesAndOrdersService {
         await _db.collection('products').doc(sale.productId).update({
           'stock': currentStock - sale.quantity,
           'totalSold': currentTotalSold + sale.quantity,
-          'totalEarnings': currentTotalEarnings + sale.totalPrice,
+          'totalEarnings': currentTotalEarnings + sale.totalPrice.toInt(),
         });
       }
     } catch (e) {
@@ -150,7 +150,7 @@ class SalesAndOrdersService {
           name: item.name,
           quantity: item.quantity,
           unit: item.unit,
-          totalPrice: item.price * item.quantity,
+          totalPrice: (item.price * item.quantity).toDouble(),
           date: Timestamp.now(),
           orderSessionId: order.orderSessionId,
           customerLocation: item.customerLocation,

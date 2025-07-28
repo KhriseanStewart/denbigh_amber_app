@@ -29,7 +29,9 @@ class _CartScreenState extends State<CartScreen> {
     });
 
     try {
+      print('DEBUG: Starting checkout process for user: $userId');
       final success = await OrderService().createOrderFromCart(userId);
+      print('DEBUG: Order creation result: $success');
 
       if (success) {
         displaySnackBar(context, "Order placed successfully!");
@@ -37,6 +39,7 @@ class _CartScreenState extends State<CartScreen> {
         displaySnackBar(context, "Failed to place order. Please try again.");
       }
     } catch (e) {
+      print('DEBUG: Error during checkout: $e');
       displaySnackBar(context, "Error: ${e.toString()}");
     } finally {
       setState(() {
@@ -460,7 +463,7 @@ class _CartScreenState extends State<CartScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      '${data['location']}',
+                                      'By: $farmerName',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.green.shade700,

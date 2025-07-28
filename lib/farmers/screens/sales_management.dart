@@ -172,7 +172,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 expanded: _ordersExpanded,
                 ontap: () => setState(() => _ordersExpanded = !_ordersExpanded),
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(2.0),
                   child: farmerId.isEmpty
                       ? Center(child: Text('Please log in to view orders'))
                       : StreamBuilder(
@@ -240,7 +240,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                       children: [
                                         Text('Customer: ${order.customerName}'),
                                         Text(
-                                          'Customer ID: ${order.customerId}',
+                                          'Customer ID: ${order.customerId.substring(0, 6)}',
                                         ),
                                         // Display all items in the order with numbering
                                         ...order.items.asMap().entries.map((
@@ -499,7 +499,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 expanded: _salesExpanded,
                 ontap: () => setState(() => _salesExpanded = !_salesExpanded),
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(2.0),
                   child: FutureBuilder<User?>(
                     future: FirebaseAuth.instance.authStateChanges().first,
                     builder: (context, userSnap) {
@@ -559,7 +559,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         'Customer: ${saleGroup.customerName}',
                                       ),
                                       Text(
-                                        'Customer ID: ${saleGroup.customerId}',
+                                        'Customer ID: ${saleGroup.customerId.substring(0, 6)}',
                                       ),
                                       Text(
                                         'Customer Location: ${saleGroup.customerLocation.isNotEmpty ? saleGroup.customerLocation : 'NO LOCATION'}',
@@ -604,7 +604,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         'Total: \$${saleGroup.totalPrice.toString()}',
                                       ),
                                       Text(
-                                        'Created: ${saleGroup.date.toDate()}',
+                                        'Created: ${saleGroup.date.toDate().toString().split('.')[0]}',
                                       ),
                                     ],
                                   ),
