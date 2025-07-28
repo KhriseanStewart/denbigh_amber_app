@@ -34,7 +34,7 @@ class NotificationService {
     }
   }
 
-  /// Send notification to customer about order status updates
+  /// Send notification to customer about order status pdates
   Future<void> notifyCustomerOrderUpdate({
     required String customerId,
     required String orderId,
