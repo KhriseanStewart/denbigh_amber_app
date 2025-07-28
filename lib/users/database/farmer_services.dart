@@ -17,7 +17,7 @@ class FarmerService {
 
   /// Create or overwrite the farmer’s data doc.
   /// Call this right after signup (when role == 'farmer').
-  Future<void> createFarmerData({
+  Future<void> createfarmersData({
     required String uid,
     required String farmName,
     required String farmersAddress,
@@ -37,13 +37,13 @@ class FarmerService {
   }
 
   /// Fetch the farmer’s data document.
-  Future<DocumentSnapshot> getFarmerData(String uid) {
+  Future<DocumentSnapshot> getfarmersData(String uid) {
     return _col.doc(uid).get();
   }
 
   /// Update only the fields you pass in.
   /// E.g. to correct the address or move the location.
-  Future<void> updateFarmerData({
+  Future<void> updatefarmersData({
     required String uid,
     String? farmName,
     String? farmersAddress,

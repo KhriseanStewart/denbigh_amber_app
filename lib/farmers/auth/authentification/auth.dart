@@ -6,7 +6,7 @@ class FarmerAuthService {
   final user = FirebaseAuth.instance.currentUser;
   final db = FirebaseFirestore.instance;
 
-  Future<bool?> signUpWithEmail(String email, String password ) async {
+  Future<bool?> signUpWithEmail(String email, String password) async {
     try {
       await auth.createUserWithEmailAndPassword(
         email: email,
@@ -56,17 +56,17 @@ class FarmerAuthService {
     }
   }
 
-  Future<bool?> setUpdateFarmerData(
+  Future<bool?> setUpdatefarmersData(
     String uid,
     String name,
     String location,
-    String radaNumber,
+    String radaRegistrationNumber,
   ) async {
     try {
       await db.collection("farmersData").doc(user!.uid).set({
         "farmerName": name,
         "location": location,
-        "radaRegistrationNumber": radaNumber,
+        "radaRegistrationNumber": radaRegistrationNumber,
         "farmerId": uid,
         "createdAt": FieldValue.serverTimestamp(),
       });

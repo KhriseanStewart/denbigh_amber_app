@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 final List<String> categories = [
-  'All'
-      'Vegetables',
+ 'All',
+  'Vegetables',
   'Fruits',
   'Dairy',
   'Grains',
@@ -23,6 +23,7 @@ final List<String> units = [
 ];
 
 final Map<String, Color> categoryColors = {
+  'All': Colors.grey.shade300,
   'Vegetables': Colors.green.shade100,
   'Fruits': Colors.orange.shade100,
   'Dairy': Colors.blue.shade100,
@@ -36,6 +37,7 @@ final Map<String, Color> categoryColors = {
 final Map<String, Color> statuses = {
   'Processing': Colors.yellow,
   'Confirmed': Colors.green,
+  'Preparing': Colors.orange,
   'Shipped': Colors.blue,
   'Completed': Colors.grey,
   'Cancelled': Colors.red,

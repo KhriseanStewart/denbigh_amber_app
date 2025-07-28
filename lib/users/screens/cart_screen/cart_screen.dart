@@ -418,35 +418,35 @@ class _CartScreenState extends State<CartScreen> {
                                   );
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
-                                    final farmerData =
+                                    final farmersData =
                                         farmerSnapshot.data!.data()
                                             as Map<String, dynamic>?;
-                                    print('DEBUG: Farmer data: $farmerData');
+                                    print('DEBUG: Farmer data: $farmersData');
                                   }
 
                                   String farmerName = 'Unknown Farmer';
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
-                                    final farmerData =
+                                    final farmersData =
                                         farmerSnapshot.data!.data()
                                             as Map<String, dynamic>?;
 
                                     // Safely get farmer name with type checking
-                                    final nameField = farmerData?['name'];
-                                    final firstNameField =
-                                        farmerData?['firstName'];
                                     final farmerNameField =
-                                        farmerData?['farmerName'];
+                                        farmersData?['farmerName'];
+                                    final nameField = farmersData?['name'];
+                                    final firstNameField =
+                                        farmersData?['firstName'];
 
-                                    if (nameField != null &&
+                                    if (farmerNameField != null &&
+                                        farmerNameField is String) {
+                                      farmerName = farmerNameField;
+                                    } else if (nameField != null &&
                                         nameField is String) {
                                       farmerName = nameField;
                                     } else if (firstNameField != null &&
                                         firstNameField is String) {
                                       farmerName = firstNameField;
-                                    } else if (farmerNameField != null &&
-                                        farmerNameField is String) {
-                                      farmerName = farmerNameField;
                                     }
                                   }
 
@@ -630,10 +630,10 @@ class _CartScreenState extends State<CartScreen> {
           .get();
 
       if (farmerDoc.exists) {
-        final farmerData = farmerDoc.data();
-        return farmerData?['name'] ??
-            farmerData?['farmerName'] ??
-            farmerData?['firstName'] ??
+        final farmersData = farmerDoc.data();
+        return farmersData?['farmerName'] ??
+            farmersData?['name'] ??
+            farmersData?['firstName'] ??
             'Unknown Farmer';
       }
       return 'Unknown Farmer';

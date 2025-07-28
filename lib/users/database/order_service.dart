@@ -178,6 +178,31 @@ class OrderService {
     String? username;
     String? location;
 
+    // Fetch user data first so we can add customer location to each item
+    DocumentReference docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(customerId);
+
+    try {
+      final snapshot = await docRef.get();
+      if (snapshot.exists) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        username = data['name'] ?? 'Unknown Customer';
+        location = data['location'] ?? 'No Location';
+
+        print('Username: $username');
+        print('Location: $location');
+      } else {
+        print('User document does not exist');
+        username = 'Unknown Customer';
+        location = 'No Location';
+      }
+    } catch (error) {
+      print('Error fetching user data: $error');
+      username = 'Unknown Customer';
+      location = 'No Location';
+    }
+
     // Convert cart items to order items and handle stock deduction
     for (var cartItem in cartItems) {
       final data = cartItem.data() as Map<String, dynamic>?;
@@ -212,36 +237,11 @@ class OrderService {
         'unit': data['unitType'] ?? 'piece',
         'imageUrl': data['imageUrl'] ?? '',
         'itemTotal': itemTotalPrice, // Total for this specific item
+        'customerLocation': location, // Add customer location to each item
       });
     }
 
-    // Reference to the user document
-    DocumentReference docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(customerId);
-
-    // Fetch the document snapshot asynchronously
-    docRef
-        .get()
-        .then((DocumentSnapshot snapshot) {
-          if (snapshot.exists) {
-            final data = snapshot.data() as Map<String, dynamic>;
-            username = data['name'];
-            location = data['location'];
-
-            print('Username: $username');
-            print('Location: $location');
-
-            // You can now use username and location as needed
-          } else {
-            print('Document does not exist');
-          }
-        })
-        .catchError((error) {
-          print('Error fetching user data: $error');
-        });
-
-    // Simple order data
+    // Simple order data (now username and location are properly set)
     final orderData = {
       'customerId': customerId,
       'farmerId': farmerId,

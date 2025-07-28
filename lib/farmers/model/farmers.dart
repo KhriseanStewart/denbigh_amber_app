@@ -7,7 +7,8 @@ class Farmer {
   final String radaRegistrationNumber;
   final String locationName;
   final GeoPoint location;
-  
+  final String? profileImageUrl;
+  final String farmName;
 
   Farmer({
     required this.id,
@@ -16,5 +17,7 @@ class Farmer {
     required this.radaRegistrationNumber,
     required this.locationName,
     required this.location,
+    this.profileImageUrl,
+    required this.farmName,
   });
 }

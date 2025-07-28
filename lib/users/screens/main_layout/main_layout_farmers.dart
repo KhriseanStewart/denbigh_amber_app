@@ -1,13 +1,12 @@
 import 'package:denbigh_app/farmers/screens/dashboard.dart';
 import 'package:denbigh_app/farmers/screens/sales_management.dart';
+import 'package:denbigh_app/farmers/screens/settings_screen.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/farmers/widgets/order_badge.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
 
 class FarmerMainLayout extends StatefulWidget {
   const FarmerMainLayout({super.key});
@@ -102,7 +101,11 @@ class _MainLayoutContentState extends State<_MainLayoutContent> {
               _selectedIndex = index;
             });
           },
-          children: [DashboardScreen(), SalesManagementPage()],
+          children: [
+            DashboardScreen(),
+            SalesManagementPage(),
+            FarmerSettingsScreen(),
+          ],
         ),
         bottomNavigationBar: StylishBottomBar(
           elevation: 6,
@@ -139,6 +142,14 @@ class _MainLayoutContentState extends State<_MainLayoutContent> {
               badgeColor: Colors.white,
               showBadge:
                   showBadge, // Pass the boolean value instead of the function
+            ),
+
+            BottomBarItem(
+              icon: Icon(Icons.settings),
+              selectedIcon: Icon(Icons.settings_outlined),
+              title: Text('Settings'),
+              backgroundColor: Colors.grey[600],
+              unSelectedColor: Colors.black,
             ),
           ],
           hasNotch: true,

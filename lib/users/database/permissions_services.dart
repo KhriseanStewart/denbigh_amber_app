@@ -107,7 +107,7 @@ class PromotionService {
             locationName == null) {
           throw Exception('Missing farmer fields');
         }
-        await _farmSvc.createFarmerData(
+        await _farmSvc.createfarmersData(
           uid: targetUid,
           farmName: farmName,
           farmersAddress: farmersAddress,

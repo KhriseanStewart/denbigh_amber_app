@@ -148,19 +148,20 @@ class FarmerProductCard extends StatelessWidget {
                     // Farmer Info
                     FutureBuilder<DocumentSnapshot>(
                       future: FirebaseFirestore.instance
-                          .collection('farmers')
+                          .collection('farmersData')
                           .doc(farmerId)
                           .get(),
                       builder: (context, farmerSnapshot) {
                         String farmerName = 'Unknown Farmer';
                         if (farmerSnapshot.hasData &&
                             farmerSnapshot.data!.exists) {
-                          final farmerData =
+                          final farmersData =
                               farmerSnapshot.data!.data()
                                   as Map<String, dynamic>?;
                           farmerName =
-                              farmerData?['name'] ??
-                              farmerData?['firstName'] ??
+                              farmersData?['farmerName'] ??
+                              farmersData?['name'] ??
+                              farmersData?['firstName'] ??
                               'Unknown Farmer';
                         }
 

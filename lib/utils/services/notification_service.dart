@@ -10,6 +10,7 @@ class NotificationService {
     required String customerName,
     required int totalAmount,
     required int itemCount,
+    required String customerLocation,
   }) async {
     try {
       await _db.collection('notifications').add({
@@ -21,6 +22,7 @@ class NotificationService {
         'data': {
           'orderId': orderId,
           'customerName': customerName,
+          'customerLocation': customerLocation,
           'totalAmount': totalAmount,
           'itemCount': itemCount,
         },

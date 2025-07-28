@@ -62,14 +62,15 @@ class MultiFarmerProductService {
             if (farmerId != null) {
               try {
                 final farmerDoc = await _db
-                    .collection('farmers')
+                    .collection('farmersData')
                     .doc(farmerId)
                     .get();
                 if (farmerDoc.exists) {
-                  final farmerData = farmerDoc.data();
+                  final farmersData = farmerDoc.data();
                   farmerName =
-                      farmerData?['name'] ??
-                      farmerData?['firstName'] ??
+                      farmersData?['farmerName'] ??
+                      farmersData?['name'] ??
+                      farmersData?['firstName'] ??
                       'Unknown Farmer';
                 }
               } catch (e) {
@@ -123,14 +124,15 @@ class MultiFarmerProductService {
               if (farmerId != null) {
                 try {
                   final farmerDoc = await _db
-                      .collection('farmers')
+                      .collection('farmersData')
                       .doc(farmerId)
                       .get();
                   if (farmerDoc.exists) {
-                    final farmerData = farmerDoc.data();
+                    final farmersData = farmerDoc.data();
                     farmerName =
-                        farmerData?['name'] ??
-                        farmerData?['firstName'] ??
+                        farmersData?['farmerName'] ??
+                        farmersData?['name'] ??
+                        farmersData?['firstName'] ??
                         'Unknown Farmer';
                   }
                 } catch (e) {
@@ -195,14 +197,15 @@ class MultiFarmerProductService {
             if (farmerId != null) {
               try {
                 final farmerDoc = await _db
-                    .collection('farmers')
+                    .collection('farmersData')
                     .doc(farmerId)
                     .get();
                 if (farmerDoc.exists) {
-                  final farmerData = farmerDoc.data();
+                  final farmersData = farmerDoc.data();
                   farmerName =
-                      farmerData?['name'] ??
-                      farmerData?['firstName'] ??
+                      farmersData?['farmerName'] ??
+                      farmersData?['name'] ??
+                      farmersData?['firstName'] ??
                       'Unknown Farmer';
                 }
               } catch (e) {
