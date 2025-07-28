@@ -24,12 +24,10 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   @override
   void initState() {
     super.initState();
-   
   }
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
     try {
-      
       final farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
       if (farmerId.isEmpty) {
         print('Error: No farmer ID available');
@@ -324,6 +322,107 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                           onChanged: (value) async {
                                             if (value != null &&
                                                 value != order.status) {
+                                              // Enforce sequential status flow: Processing → Confirmed → Preparing → Shipped
+                                              bool canChangeStatus = false;
+                                              String errorMessage = '';
+
+                                              switch (order.status
+                                                  .toLowerCase()) {
+                                                case 'processing':
+                                                  // From Processing, can only go to Confirmed or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Confirmed' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders must be Confirmed first before proceeding to other stages.';
+                                                  }
+                                                  break;
+                                                case 'confirmed':
+                                                  // From Confirmed, can only go to Preparing or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Preparing' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders must be set to Preparing before shipping.';
+                                                  }
+                                                  break;
+                                                case 'preparing':
+                                                  // From Preparing, can only go to Shipped or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Shipped' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders can only be marked as Shipped after preparation.';
+                                                  }
+                                                  break;
+                                                case 'shipped':
+                                                  // From Shipped, can only go to Completed
+                                                  canChangeStatus =
+                                                      value == 'Completed';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Shipped orders can only be marked as Completed.';
+                                                  }
+                                                  break;
+                                                default:
+                                                  // For Completed or Cancelled, no further changes allowed except Cancelled can be set from any state
+                                                  canChangeStatus =
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'This order status cannot be changed further.';
+                                                  }
+                                                  break;
+                                              }
+
+                                              if (!canChangeStatus) {
+                                                // Show error dialog
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons.warning,
+                                                            color:
+                                                                Colors.orange,
+                                                          ),
+                                                          SizedBox(width: 8),
+                                                          Text(
+                                                            'Invalid Status Change',
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      content: Text(
+                                                        errorMessage,
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                context,
+                                                              ).pop(),
+                                                          child: Text(
+                                                            'OK',
+                                                            style: TextStyle(
+                                                              color: Color(
+                                                                0xFF4CAF50,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                                return; // Don't proceed with status change
+                                              }
+
+                                              // Proceed with allowed status changes
                                               if (value == 'Preparing') {
                                                 // Navigate to preparation images screen
                                                 Navigator.of(context).push(

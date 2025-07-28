@@ -425,14 +425,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/testprep');
-        },
-        backgroundColor: Color(0xFF4CAF50),
-        child: Icon(Icons.bug_report, color: Colors.white),
-        tooltip: 'Test Prep Images',
-      ),
     );
   }
 
