@@ -27,7 +27,7 @@ class OrderService {
 
       // Generate a unique order session ID for grouping related orders
       final orderSessionId =
-          DateTime.now().millisecondsSinceEpoch.toString() + '_' + userId;
+          '${DateTime.now().millisecondsSinceEpoch}_$userId';
       print('DEBUG: Generated order session ID: $orderSessionId');
 
       // First, validate stock for all items before creating any orders

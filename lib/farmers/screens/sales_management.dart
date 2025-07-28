@@ -211,7 +211,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                             child: Row(
                                               children: [
                                                 Text(
-                                                  '${index}.',
+                                                  '$index.',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.black87,
@@ -233,7 +233,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                               ],
                                             ),
                                           );
-                                        }).toList(),
+                                        }),
                                         SizedBox(height: 4),
                                         Text(
                                           'Customer Location: ${(order.items.isNotEmpty && order.items.first.customerLocation.isNotEmpty) ? order.items.first.customerLocation : 'NO LOCATION'}',
@@ -530,7 +530,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                           child: Row(
                                             children: [
                                               Text(
-                                                '${index}.',
+                                                '$index.',
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black87,
@@ -551,7 +551,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                             ],
                                           ),
                                         );
-                                      }).toList(),
+                                      }),
                                       SizedBox(height: 4),
                                       Text(
                                         'Total: \$${saleGroup.totalPrice.toString()}',

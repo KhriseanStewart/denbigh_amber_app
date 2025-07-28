@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               await AuthService().signUpWithEmail(
                 email: email,
                 password: password,
-                role: selectedRole!,
+                role: selectedRole,
                 location: location,
                 name: name,
                 farmerId: selectedRole == 'farmer'

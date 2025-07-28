@@ -617,7 +617,7 @@ class _AddReceiptImageState extends State<AddReceiptImage> {
                   ),
 
                   // Complete Order Button
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Container(
                       decoration: BoxDecoration(

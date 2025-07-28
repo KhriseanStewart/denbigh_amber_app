@@ -5,10 +5,11 @@ import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
     hide AuthService;
-import 'package:denbigh_app/users/database/product_services.dart';
+
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _categoryFilter = 'All'; // default category
   double _maxPriceFilter = 200000; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
-  double _currentSliderPrice = 100;
+  final double _currentSliderPrice = 100;
   String? _selectedValue;
 
   @override
@@ -81,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: hexToColor("F4F6F8"),
       drawerEnableOpenDragGesture: false,
       endDrawer: buildEndDrawer(),
+   
       body: RefreshIndicator(
         onRefresh: onRefresh,
         child: SafeArea(

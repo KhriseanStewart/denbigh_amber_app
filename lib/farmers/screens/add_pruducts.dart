@@ -7,7 +7,7 @@ import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:denbigh_app/widgets/autoCompleter.dart';
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';

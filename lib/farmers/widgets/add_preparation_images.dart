@@ -20,7 +20,7 @@ class AddPreparationImages extends StatefulWidget {
 }
 
 class _AddPreparationImagesState extends State<AddPreparationImages> {
-  List<File> _imageFiles = [];
+  final List<File> _imageFiles = [];
   List<String> _uploadedUrls = [];
   bool _uploading = false;
   final ImagePicker _picker = ImagePicker();
@@ -566,7 +566,7 @@ class _AddPreparationImagesState extends State<AddPreparationImages> {
 
             // Complete Button (only if images are uploaded)
             if (_uploadedUrls.isNotEmpty && _imageFiles.isEmpty)
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(

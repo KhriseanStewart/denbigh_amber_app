@@ -48,8 +48,9 @@ class FarmerService {
     if (farmName != null) updateData['farmName'] = farmName;
     if (locationName != null) updateData['locationName'] = locationName;
     if (location != null) updateData['location'] = location;
-    if (profileImageUrl != null)
+    if (profileImageUrl != null) {
       updateData['profileImageUrl'] = profileImageUrl;
+    }
     if (email != null) updateData['email'] = email;
 
     updateData['updatedAt'] = FieldValue.serverTimestamp();
