@@ -292,8 +292,23 @@ class OrderService {
 
     print('DEBUG: Adding order to Firestore for farmer $farmerId');
     // Add to main orders collection
-    await _db.collection('orders').add(orderData);
+    final orderRef = await _db.collection('orders').add(orderData);
     print('DEBUG: Successfully added order to Firestore for farmer $farmerId');
+
+    // Send push notification to farmer about new order
+    try {
+      await _notificationService.notifyFarmerNewOrder(
+        farmerId: farmerId,
+        orderId: orderRef.id,
+        customerName: username ?? 'Unknown Customer',
+        totalAmount: totalPrice.toInt(),
+        itemCount: orderItems.length,
+        customerLocation: location ?? 'Unknown Location',
+      );
+      print('DEBUG: Notification sent to farmer $farmerId');
+    } catch (e) {
+      print('DEBUG: Failed to send notification to farmer $farmerId: $e');
+    }
   }
 
   /// Clear user's cart after successful order creation

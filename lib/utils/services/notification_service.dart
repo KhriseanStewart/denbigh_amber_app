@@ -1,9 +1,60 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  /// Send notification to farmer when new order is created
+  /// Initialize FCM and request permissions
+  Future<void> initialize() async {
+    // Request permission for notifications
+    NotificationSettings settings = await _messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+
+    // Get FCM token and save to user profile
+    String? token = await _messaging.getToken();
+    if (token != null) {
+      await _saveFCMToken(token);
+    }
+
+    // Listen for token refresh
+    _messaging.onTokenRefresh.listen(_saveFCMToken);
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+    // Handle background messages
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+
+  /// Save FCM token to user's Firestore document
+  Future<void> _saveFCMToken(String token) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await _db.collection('users').doc(user.uid).update({
+        'fcmToken': token,
+        'lastTokenUpdate': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  /// Handle foreground messages (when app is open)
+  void _handleForegroundMessage(RemoteMessage message) {
+    print('Received foreground message: ${message.notification?.title}');
+    // You can show an in-app notification here if needed
+  }
+
+  /// Send push notification to farmer when new order is created
   Future<void> notifyFarmerNewOrder({
     required String farmerId,
     required String orderId,
@@ -13,28 +64,36 @@ class NotificationService {
     required String customerLocation,
   }) async {
     try {
-      await _db.collection('notifications').add({
-        'recipientId': farmerId,
-        'type': 'new_order',
-        'title': 'New Order Received!',
-        'message':
+      // Get farmer's FCM token
+      String? fcmToken = await _getFCMToken(farmerId);
+      if (fcmToken == null) {
+        print('No FCM token found for farmer: $farmerId');
+        return;
+      }
+
+      // Send push notification
+      await _sendPushNotification(
+        token: fcmToken,
+        title: 'New Order Received! 🛒',
+        body:
             'You received a new order from $customerName worth \$${totalAmount.toStringAsFixed(2)} ($itemCount items)',
-        'data': {
+        data: {
+          'type': 'new_order',
           'orderId': orderId,
           'customerName': customerName,
           'customerLocation': customerLocation,
-          'totalAmount': totalAmount,
-          'itemCount': itemCount,
+          'totalAmount': totalAmount.toString(),
+          'itemCount': itemCount.toString(),
         },
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      );
+
+      print('Push notification sent to farmer: $farmerId');
     } catch (e) {
-      print('Error sending notification: $e');
+      print('Error sending push notification: $e');
     }
   }
 
-  /// Send notification to customer about order status pdates
+  /// Send push notification to customer about order status updates
   Future<void> notifyCustomerOrderUpdate({
     required String customerId,
     required String orderId,
@@ -42,96 +101,105 @@ class NotificationService {
     String? message,
   }) async {
     try {
+      // Get customer's FCM token
+      String? fcmToken = await _getFCMToken(customerId);
+      if (fcmToken == null) {
+        print('No FCM token found for customer: $customerId');
+        return;
+      }
+
       String title = 'Order Update';
       String defaultMessage =
           'Your order status has been updated to $newStatus';
+      String emoji = '📦';
 
       switch (newStatus.toLowerCase()) {
         case 'confirmed':
           title = 'Order Confirmed';
           defaultMessage =
               'Your order has been confirmed and is being prepared';
+          emoji = '✅';
+          break;
+        case 'preparing':
+          title = 'Order Being Prepared';
+          defaultMessage = 'Your order is now being prepared';
+          emoji = '👨‍🍳';
+          break;
+        case 'shipped':
+          title = 'Order Shipped';
+          defaultMessage = 'Your order has been shipped and is on the way';
+          emoji = '🚚';
           break;
         case 'completed':
           title = 'Order Completed';
           defaultMessage = 'Your order has been completed successfully';
+          emoji = '🎉';
           break;
         case 'cancelled':
           title = 'Order Cancelled';
           defaultMessage = 'Your order has been cancelled';
+          emoji = '❌';
           break;
       }
 
-      await _db.collection('notifications').add({
-        'recipientId': customerId,
-        'type': 'order_update',
-        'title': title,
-        'message': message ?? defaultMessage,
-        'data': {'orderId': orderId, 'status': newStatus},
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      // Send push notification
+      await _sendPushNotification(
+        token: fcmToken,
+        title: '$title $emoji',
+        body: message ?? defaultMessage,
+        data: {'type': 'order_update', 'orderId': orderId, 'status': newStatus},
+      );
+
+      print('Push notification sent to customer: $customerId');
     } catch (e) {
-      print('Error sending notification: $e');
+      print('Error sending push notification: $e');
     }
   }
 
-  /// Get notifications for a specific user
-  Stream<List<Map<String, dynamic>>> getNotifications(String userId) {
-    return _db
-        .collection('notifications')
-        .where('recipientId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => {'id': doc.id, ...doc.data()})
-              .toList(),
-        );
-  }
-
-  /// Mark notification as read
-  Future<void> markAsRead(String notificationId) async {
+  /// Get FCM token for a specific user
+  Future<String?> _getFCMToken(String userId) async {
     try {
-      await _db.collection('notifications').doc(notificationId).update({
-        'isRead': true,
-        'readAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('Error marking notification as read: $e');
-    }
-  }
-
-  /// Mark all notifications as read for a user
-  Future<void> markAllAsRead(String userId) async {
-    try {
-      final batch = _db.batch();
-      final snapshot = await _db
-          .collection('notifications')
-          .where('recipientId', isEqualTo: userId)
-          .where('isRead', isEqualTo: false)
-          .get();
-
-      for (var doc in snapshot.docs) {
-        batch.update(doc.reference, {
-          'isRead': true,
-          'readAt': FieldValue.serverTimestamp(),
-        });
+      DocumentSnapshot doc = await _db.collection('users').doc(userId).get();
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return data['fcmToken'] as String?;
       }
-
-      await batch.commit();
     } catch (e) {
-      print('Error marking all notifications as read: $e');
+      print('Error getting FCM token: $e');
+    }
+    return null;
+  }
+
+  /// Send push notification using FCM
+  Future<void> _sendPushNotification({
+    required String token,
+    required String title,
+    required String body,
+    Map<String, String>? data,
+  }) async {
+    try {
+      // For sending push notifications, you'll need to use Firebase Functions
+      // or a server-side implementation. FCM client SDK can't send notifications directly.
+      // For now, we'll store the notification request and use a server trigger
+
+      await _db.collection('notification_requests').add({
+        'token': token,
+        'title': title,
+        'body': body,
+        'data': data ?? {},
+        'createdAt': FieldValue.serverTimestamp(),
+        'processed': false,
+      });
+
+      print('Notification request created - will be processed by server');
+    } catch (e) {
+      print('Error creating notification request: $e');
     }
   }
+}
 
-  /// Get unread notification count
-  Stream<int> getUnreadCount(String userId) {
-    return _db
-        .collection('notifications')
-        .where('recipientId', isEqualTo: userId)
-        .where('isRead', isEqualTo: false)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-  }
+/// Background message handler (must be top-level function)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('Handling background message: ${message.notification?.title}');
 }

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
+import 'package:denbigh_app/utils/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,10 @@ void main() async {
     );
     // Initialize farmer auth service
     farmer_auth.AuthService().initialize();
+
+    // Initialize notification service
+    NotificationService().initialize();
+
     runApp(const MyApp());
   } catch (e) {
     runApp(
