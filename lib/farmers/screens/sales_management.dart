@@ -30,7 +30,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
     try {
       final farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
       if (farmerId.isEmpty) {
-        print('Error: No farmer ID available');
         return;
       }
 
@@ -40,7 +39,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
           .get();
 
       if (!orderDoc.exists) {
-        print('Error: Order document not found: $orderId');
         return;
       }
 
@@ -49,9 +47,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
 
       // Only allow farmer to update their own orders
       if (orderFarmerId != farmerId) {
-        print(
-          'Error: Farmer $farmerId cannot update order belonging to $orderFarmerId',
-        );
         return;
       }
 
@@ -59,10 +54,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
       await FirebaseFirestore.instance.collection('orders').doc(orderId).update(
         {'status': newStatus},
       );
-
-      print('Successfully updated order $orderId status to $newStatus');
     } catch (e) {
-      print('Error updating order status: $e');
       // Don't throw the error to prevent app crashes
     }
   }
@@ -75,18 +67,8 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
       final authService = Provider.of<AuthService>(context, listen: false);
       farmerId = authService.farmer?.id ?? '';
     } catch (e) {
-      print('DEBUG: Error accessing AuthService provider: $e');
-
       farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
     }
-
-    print('DEBUG: Sales Management - farmerId from Provider: $farmerId');
-    print(
-      'DEBUG: Sales Management - farmerId from FirebaseAuth: ${FirebaseAuth.instance.currentUser?.uid}',
-    );
-    print(
-      'DEBUG: Sales Management - Current farmer ID being used for StreamBuilder: $farmerId',
-    );
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FBF8),
@@ -179,34 +161,11 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                           stream: SalesAndOrdersService()
                               .getFilteredOrdersForFarmerManual(farmerId),
                           builder: (context, snapshot) {
-                            print(
-                              'DEBUG: StreamBuilder state - connectionState: ${snapshot.connectionState}',
-                            );
-                            print(
-                              'DEBUG: StreamBuilder state - hasData: ${snapshot.hasData}',
-                            );
-                            print(
-                              'DEBUG: StreamBuilder state - hasError: ${snapshot.hasError}',
-                            );
-                            if (snapshot.hasError) {
-                              print(
-                                'DEBUG: StreamBuilder error: ${snapshot.error}',
-                              );
-                            }
-                            if (snapshot.hasData) {
-                              print(
-                                'DEBUG: StreamBuilder data length: ${snapshot.data?.length}',
-                              );
-                            }
-
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return Center(child: CircularProgressIndicator());
                             }
                             final orders = snapshot.data ?? [];
-                            print(
-                              'DEBUG: Final orders list length: ${orders.length}',
-                            );
                             if (orders.isEmpty) {
                               return Text('No orders yet.');
                             }
@@ -217,9 +176,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final order = orders[index];
-                                print(
-                                  'Order debug: items=${order.items.map((e) => '${e.name},${e.unit},${e.quantity},${e.customerLocation}').toList()}',
-                                );
                                 return Card(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
@@ -433,9 +389,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                                               order.orderId,
                                                           onImagesUploaded: (urls) {
                                                             // The status is updated in the AddPreparationImages widget
-                                                            print(
-                                                              'Preparation images uploaded: $urls',
-                                                            );
                                                           },
                                                         ),
                                                   ),
