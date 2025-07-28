@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
@@ -97,6 +98,7 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     final createdAt = order['createdAt'];
     final receiptImageUrl =
         order['imageUrl'] as String?; // Get receipt image URL
+    final farmerId = order['farmerId'] ?? '';
 
     // Debug: Print order data to see what's available
     print('Order ID: $orderId');
@@ -140,6 +142,13 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
               'Date: $formattedDate',
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
+
+            // Farmer information section
+            if (farmerId.isNotEmpty) ...[
+              SizedBox(height: 8),
+              _buildFarmerInfo(farmerId),
+            ],
+
             SizedBox(height: 12),
 
             // Order items
@@ -245,6 +254,56 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFarmerInfo(String farmerId) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('farmersData')
+          .doc(farmerId)
+          .get(),
+      builder: (context, snapshot) {
+        String farmerName = 'Unknown Farmer';
+        String farmName = '';
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          farmerName =
+              data?['farmerName'] ??
+              data?['name'] ??
+              data?['firstName'] ??
+              'Unknown Farmer';
+          farmName = data?['farmName'] ?? '';
+        }
+
+        return Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green[50],
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.green[200]!),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.agriculture, size: 16, color: Colors.green[600]),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  farmName.isNotEmpty
+                      ? 'From: $farmerName ($farmName)'
+                      : 'From: $farmerName',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

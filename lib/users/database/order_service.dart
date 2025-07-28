@@ -303,16 +303,11 @@ class OrderService {
       (QuerySnapshot ordersSnapshot, QuerySnapshot salesSnapshot) {
         List<Map<String, dynamic>> combinedData = [];
 
-        // Group current orders by orderSessionId
-        Map<String, List<Map<String, dynamic>>> ordersBySession = {};
+        // Add each order separately (no grouping by session - each farmer gets separate order display)
         for (var doc in ordersSnapshot.docs) {
           final data = doc.data() as Map<String, dynamic>?;
           if (data != null) {
-            final sessionId = data['orderSessionId']?.toString() ?? doc.id;
-            if (!ordersBySession.containsKey(sessionId)) {
-              ordersBySession[sessionId] = [];
-            }
-            ordersBySession[sessionId]!.add({
+            combinedData.add({
               'id': doc.id,
               'type': 'order',
               'orderId': doc.id,
@@ -324,62 +319,9 @@ class OrderService {
               'farmerId': data['farmerId'],
               'customerName': data['customerName'],
               'customerLocation': data['customerLocation'],
-              'orderSessionId': sessionId,
+              'orderSessionId': data['orderSessionId']?.toString() ?? doc.id,
               'preparationImages': data['preparationImages'] ?? [],
               'preparationTimestamp': data['preparationTimestamp'],
-            });
-          }
-        }
-
-        // Convert grouped orders to combined orders
-        for (var entry in ordersBySession.entries) {
-          final sessionId = entry.key;
-          final ordersInSession = entry.value;
-
-          if (ordersInSession.length == 1) {
-            // Single order in session, add as is
-            combinedData.add(ordersInSession.first);
-          } else {
-            // Multiple orders in session, combine them
-            final firstOrder = ordersInSession.first;
-            final combinedItems = <Map<String, dynamic>>[];
-            List<String> allPreparationImages = [];
-            int combinedTotalPrice = 0;
-            String combinedStatus = firstOrder['status'];
-
-            for (var order in ordersInSession) {
-              final items = order['items'] as List<dynamic>? ?? [];
-              combinedItems.addAll(items.cast<Map<String, dynamic>>());
-              combinedTotalPrice += (order['totalPrice'] as num?)?.toInt() ?? 0;
-
-              // Combine preparation images from all orders
-              final orderPrepImages =
-                  order['preparationImages'] as List<dynamic>? ?? [];
-              allPreparationImages.addAll(orderPrepImages.cast<String>());
-
-              // Use the most advanced status
-              final currentStatus = order['status'];
-              if (_getStatusPriority(currentStatus) >
-                  _getStatusPriority(combinedStatus)) {
-                combinedStatus = currentStatus;
-              }
-            }
-
-            combinedData.add({
-              'id': sessionId,
-              'type': 'order',
-              'orderId': sessionId,
-              'status': combinedStatus,
-              'createdAt': firstOrder['createdAt'],
-              'totalPrice': combinedTotalPrice,
-              'items': combinedItems,
-              'imageUrl': firstOrder['imageUrl'],
-              'farmerId': 'multiple', // Indicate multiple farmers
-              'customerName': firstOrder['customerName'],
-              'customerLocation': firstOrder['customerLocation'],
-              'orderSessionId': sessionId,
-              'preparationImages': allPreparationImages,
-              'preparationTimestamp': firstOrder['preparationTimestamp'],
             });
           }
         }
@@ -514,24 +456,6 @@ class OrderService {
     } catch (e) {
       print('Error cancelling order: $e');
       return false;
-    }
-  }
-
-  /// Helper method to determine status priority for combining orders
-  int _getStatusPriority(String status) {
-    switch (status.toLowerCase()) {
-      case 'processing':
-        return 1;
-      case 'confirmed':
-        return 2;
-      case 'shipped':
-        return 3;
-      case 'completed':
-        return 4;
-      case 'cancelled':
-        return 0; // Lowest priority
-      default:
-        return 1;
     }
   }
 }

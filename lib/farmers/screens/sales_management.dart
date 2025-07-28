@@ -24,13 +24,49 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   @override
   void initState() {
     super.initState();
-    // We'll get the farmer ID in build method from Provider for consistency
+   
   }
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-      'status': newStatus,
-    });
+    try {
+      
+      final farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      if (farmerId.isEmpty) {
+        print('Error: No farmer ID available');
+        return;
+      }
+
+      final orderDoc = await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .get();
+
+      if (!orderDoc.exists) {
+        print('Error: Order document not found: $orderId');
+        return;
+      }
+
+      final orderData = orderDoc.data() as Map<String, dynamic>;
+      final orderFarmerId = orderData['farmerId'] ?? '';
+
+      // Only allow farmer to update their own orders
+      if (orderFarmerId != farmerId) {
+        print(
+          'Error: Farmer $farmerId cannot update order belonging to $orderFarmerId',
+        );
+        return;
+      }
+
+      // Update the order status
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).update(
+        {'status': newStatus},
+      );
+
+      print('Successfully updated order $orderId status to $newStatus');
+    } catch (e) {
+      print('Error updating order status: $e');
+      // Don't throw the error to prevent app crashes
+    }
   }
 
   @override
