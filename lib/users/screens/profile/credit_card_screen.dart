@@ -120,16 +120,23 @@ class _CardScreenState extends State<CardScreen> {
     //there is no card information available yet, so we will show a placeholder
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Card Information'),
         centerTitle: true,
         automaticallyImplyLeading: true,
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+      body: GestureDetector(
+        onTap: () {
+          // Dismiss keyboard when tapping outside of text fields
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             CreditCardWidget(
               cardBgColor: Colors.deepOrangeAccent,
               cardNumber: cardNumber,
@@ -250,7 +257,10 @@ class _CardScreenState extends State<CardScreen> {
                 size: 16,
               ),
             ),
+            // Add extra space at bottom for keyboard
+            SizedBox(height: 50),
           ],
+        ),
         ),
       ),
     );
