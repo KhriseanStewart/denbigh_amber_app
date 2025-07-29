@@ -9,12 +9,16 @@ class OrderService {
   /// Create orders from user's cart items - SIMPLIFIED
   Future<bool> createOrderFromCart(String userId) async {
     try {
+      print('DEBUG: Starting createOrderFromCart for user: $userId');
+
       // Get cart items
       final cartSnapshot = await _db
           .collection('users')
           .doc(userId)
           .collection('cartItems')
           .get();
+
+      print('DEBUG: Found ${cartSnapshot.docs.length} cart items');
 
       if (cartSnapshot.docs.isEmpty) {
         print('Cart is empty');
@@ -24,6 +28,7 @@ class OrderService {
       // Generate a unique order session ID for grouping related orders
       final orderSessionId =
           DateTime.now().millisecondsSinceEpoch.toString() + '_' + userId;
+      print('DEBUG: Generated order session ID: $orderSessionId');
 
       // First, validate stock for all items before creating any orders
       for (var cartItem in cartSnapshot.docs) {
@@ -32,6 +37,9 @@ class OrderService {
 
         final productId = data['productId'];
         final quantity = data['customerQuantity'] ?? 1;
+        print(
+          'DEBUG: Validating stock for product $productId, quantity: $quantity',
+        );
 
         if (productId != null) {
           // Check if stock is available (without deducting yet)
@@ -40,13 +48,18 @@ class OrderService {
               .doc(productId)
               .get();
           if (!productDoc.exists) {
+            print('ERROR: Product not found: $productId');
             throw Exception('Product not found: ${data['name']}');
           }
 
           final productData = productDoc.data();
           final availableStock = (productData?['stock'] as num?)?.toInt() ?? 0;
+          print('DEBUG: Product $productId has stock: $availableStock');
 
           if (availableStock < quantity) {
+            print(
+              'ERROR: Insufficient stock for ${data['name']}. Available: $availableStock, Requested: $quantity',
+            );
             throw Exception(
               'Insufficient stock for ${data['name']}. Available: $availableStock, Requested: $quantity',
             );
@@ -69,24 +82,32 @@ class OrderService {
         itemsByFarmer[farmerId]!.add(cartItem);
       }
 
+      print('DEBUG: Grouped items by ${itemsByFarmer.keys.length} farmers');
+
       // Create order for each farmer with the same session ID
       for (var entry in itemsByFarmer.entries) {
         final farmerId = entry.key;
         final farmerItems = entry.value;
+        print(
+          'DEBUG: Creating order for farmer $farmerId with ${farmerItems.length} items',
+        );
         await _createOrderForFarmer(
           userId,
           farmerId,
           farmerItems,
           orderSessionId,
         );
+        print('DEBUG: Successfully created order for farmer $farmerId');
       }
 
       // Clear cart
+      print('DEBUG: Clearing cart');
       await _clearCart(userId);
       print('Orders created successfully');
       return true;
     } catch (e) {
       print('Error creating order: $e');
+      print('Stack trace: ${StackTrace.current}');
       return false;
     }
   }
@@ -173,10 +194,40 @@ class OrderService {
     List<QueryDocumentSnapshot> cartItems,
     String orderSessionId,
   ) async {
+    print(
+      'DEBUG: Creating order for farmer $farmerId with ${cartItems.length} items',
+    );
+
     int totalPrice = 0;
     List<Map<String, dynamic>> orderItems = [];
     String? username;
     String? location;
+
+    // Fetch user data first so we can add customer location to each item
+    DocumentReference docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(customerId);
+
+    try {
+      print('DEBUG: Fetching user data for $customerId');
+      final snapshot = await docRef.get();
+      if (snapshot.exists) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        username = data['name'] ?? 'Unknown Customer';
+        location = data['location'] ?? 'No Location';
+
+        print('Username: $username');
+        print('Location: $location');
+      } else {
+        print('User document does not exist');
+        username = 'Unknown Customer';
+        location = 'No Location';
+      }
+    } catch (error) {
+      print('Error fetching user data: $error');
+      username = 'Unknown Customer';
+      location = 'No Location';
+    }
 
     // Convert cart items to order items and handle stock deduction
     for (var cartItem in cartItems) {
@@ -187,6 +238,10 @@ class OrderService {
       final price = (data['price'] as num).toInt();
       final productId = data['productId'];
 
+      print(
+        'DEBUG: Processing cart item - Product: ${data['name']}, Price: $price, Quantity: $quantity',
+      );
+
       // Calculate individual item total price
       final itemTotalPrice = (price * quantity).toInt();
       totalPrice += itemTotalPrice;
@@ -194,10 +249,12 @@ class OrderService {
       // Handle stock deduction for this specific product
       if (productId != null) {
         try {
+          print('DEBUG: Updating stock for product $productId');
           final stockUpdated = await calculateStock(productId, quantity);
           if (!stockUpdated) {
             throw Exception('Insufficient stock for product: ${data['name']}');
           }
+          print('DEBUG: Successfully updated stock for product $productId');
         } catch (e) {
           print('Failed to update stock for product $productId: $e');
           throw Exception('Failed to process order due to stock issues');
@@ -212,36 +269,15 @@ class OrderService {
         'unit': data['unitType'] ?? 'piece',
         'imageUrl': data['imageUrl'] ?? '',
         'itemTotal': itemTotalPrice, // Total for this specific item
+        'customerLocation': location, // Add customer location to each item
       });
     }
 
-    // Reference to the user document
-    DocumentReference docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(customerId);
+    print(
+      'DEBUG: Created ${orderItems.length} order items with total price: $totalPrice',
+    );
 
-    // Fetch the document snapshot asynchronously
-    docRef
-        .get()
-        .then((DocumentSnapshot snapshot) {
-          if (snapshot.exists) {
-            final data = snapshot.data() as Map<String, dynamic>;
-            username = data['name'];
-            location = data['location'];
-
-            print('Username: $username');
-            print('Location: $location');
-
-            // You can now use username and location as needed
-          } else {
-            print('Document does not exist');
-          }
-        })
-        .catchError((error) {
-          print('Error fetching user data: $error');
-        });
-
-    // Simple order data
+    // Simple order data (now username and location are properly set)
     final orderData = {
       'customerId': customerId,
       'farmerId': farmerId,
@@ -254,8 +290,10 @@ class OrderService {
       'customerLocation': location,
     };
 
+    print('DEBUG: Adding order to Firestore for farmer $farmerId');
     // Add to main orders collection
     await _db.collection('orders').add(orderData);
+    print('DEBUG: Successfully added order to Firestore for farmer $farmerId');
   }
 
   /// Clear user's cart after successful order creation
@@ -303,16 +341,11 @@ class OrderService {
       (QuerySnapshot ordersSnapshot, QuerySnapshot salesSnapshot) {
         List<Map<String, dynamic>> combinedData = [];
 
-        // Group current orders by orderSessionId
-        Map<String, List<Map<String, dynamic>>> ordersBySession = {};
+        // Add each order separately (no grouping by session - each farmer gets separate order display)
         for (var doc in ordersSnapshot.docs) {
           final data = doc.data() as Map<String, dynamic>?;
           if (data != null) {
-            final sessionId = data['orderSessionId']?.toString() ?? doc.id;
-            if (!ordersBySession.containsKey(sessionId)) {
-              ordersBySession[sessionId] = [];
-            }
-            ordersBySession[sessionId]!.add({
+            combinedData.add({
               'id': doc.id,
               'type': 'order',
               'orderId': doc.id,
@@ -324,52 +357,9 @@ class OrderService {
               'farmerId': data['farmerId'],
               'customerName': data['customerName'],
               'customerLocation': data['customerLocation'],
-              'orderSessionId': sessionId,
-            });
-          }
-        }
-
-        // Convert grouped orders to combined orders
-        for (var entry in ordersBySession.entries) {
-          final sessionId = entry.key;
-          final ordersInSession = entry.value;
-
-          if (ordersInSession.length == 1) {
-            // Single order in session, add as is
-            combinedData.add(ordersInSession.first);
-          } else {
-            // Multiple orders in session, combine them
-            final firstOrder = ordersInSession.first;
-            final combinedItems = <Map<String, dynamic>>[];
-            int combinedTotalPrice = 0;
-            String combinedStatus = firstOrder['status'];
-
-            for (var order in ordersInSession) {
-              final items = order['items'] as List<dynamic>? ?? [];
-              combinedItems.addAll(items.cast<Map<String, dynamic>>());
-              combinedTotalPrice += (order['totalPrice'] as num?)?.toInt() ?? 0;
-
-              // Use the most advanced status
-              final currentStatus = order['status'];
-              if (_getStatusPriority(currentStatus) >
-                  _getStatusPriority(combinedStatus)) {
-                combinedStatus = currentStatus;
-              }
-            }
-
-            combinedData.add({
-              'id': sessionId,
-              'type': 'order',
-              'orderId': sessionId,
-              'status': combinedStatus,
-              'createdAt': firstOrder['createdAt'],
-              'totalPrice': combinedTotalPrice,
-              'items': combinedItems,
-              'imageUrl': firstOrder['imageUrl'],
-              'farmerId': 'multiple', // Indicate multiple farmers
-              'customerName': firstOrder['customerName'],
-              'customerLocation': firstOrder['customerLocation'],
-              'orderSessionId': sessionId,
+              'orderSessionId': data['orderSessionId']?.toString() ?? doc.id,
+              'preparationImages': data['preparationImages'] ?? [],
+              'preparationTimestamp': data['preparationTimestamp'],
             });
           }
         }
@@ -504,24 +494,6 @@ class OrderService {
     } catch (e) {
       print('Error cancelling order: $e');
       return false;
-    }
-  }
-
-  /// Helper method to determine status priority for combining orders
-  int _getStatusPriority(String status) {
-    switch (status.toLowerCase()) {
-      case 'processing':
-        return 1;
-      case 'confirmed':
-        return 2;
-      case 'shipped':
-        return 3;
-      case 'completed':
-        return 4;
-      case 'cancelled':
-        return 0; // Lowest priority
-      default:
-        return 1;
     }
   }
 }

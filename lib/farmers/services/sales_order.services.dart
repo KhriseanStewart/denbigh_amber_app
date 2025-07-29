@@ -119,7 +119,7 @@ class SalesAndOrdersService {
         await _db.collection('products').doc(sale.productId).update({
           'stock': currentStock - sale.quantity,
           'totalSold': currentTotalSold + sale.quantity,
-          'totalEarnings': currentTotalEarnings + sale.totalPrice,
+          'totalEarnings': currentTotalEarnings + sale.totalPrice.toInt(),
         });
       }
     } catch (e) {
@@ -150,7 +150,7 @@ class SalesAndOrdersService {
           name: item.name,
           quantity: item.quantity,
           unit: item.unit,
-          totalPrice: item.price * item.quantity,
+          totalPrice: (item.price * item.quantity).toDouble(),
           date: Timestamp.now(),
           orderSessionId: order.orderSessionId,
           customerLocation: item.customerLocation,
@@ -175,88 +175,36 @@ class SalesAndOrdersService {
     String farmerId,
   ) {
     print('DEBUG: Farmer querying for orders with farmerId: $farmerId');
-    return _db.collection('orders').snapshots().map((snapshot) {
-      print('DEBUG: Total orders in database: ${snapshot.docs.length}');
-
-      // Group orders by orderSessionId
-      Map<String, List<Map<String, dynamic>>> ordersBySession = {};
-      Set<String> farmerSessionIds = {};
-
-      // First pass: identify which sessions contain this farmer's orders
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final orderFarmerId = data['farmerId'];
-        final sessionId = data['orderSessionId']?.toString() ?? doc.id;
-
-        if (orderFarmerId == farmerId) {
-          farmerSessionIds.add(sessionId);
-        }
-      }
-
-      // Second pass: collect all orders from sessions that include this farmer
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final sessionId = data['orderSessionId']?.toString() ?? doc.id;
-
-        if (farmerSessionIds.contains(sessionId)) {
-          if (!ordersBySession.containsKey(sessionId)) {
-            ordersBySession[sessionId] = [];
-          }
-          ordersBySession[sessionId]!.add({'id': doc.id, ...data});
-        }
-      }
-
-      // Convert grouped orders to combined orders
-      List<model_orders.Orderlist> result = [];
-
-      for (var entry in ordersBySession.entries) {
-        final sessionId = entry.key;
-        final ordersInSession = entry.value;
-
-        if (ordersInSession.length == 1) {
-          // Single order in session, add as is
-          result.add(
-            model_orders.Orderlist.fromMap(
-              ordersInSession.first,
-              ordersInSession.first['id'],
-            ),
+    return _db
+        .collection('orders')
+        .where('farmerId', isEqualTo: farmerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          print(
+            'DEBUG: Total orders for farmer $farmerId: ${snapshot.docs.length}',
           );
-        } else {
-          // Multiple orders in session, combine them
-          final firstOrder = ordersInSession.first;
-          final combinedItems = <Map<String, dynamic>>[];
-          int combinedTotalPrice = 0;
 
-          for (var order in ordersInSession) {
-            final items = order['items'] as List<dynamic>? ?? [];
-            for (var item in items) {
-              final itemMap = Map<String, dynamic>.from(item);
-              // Mark items as belonging to this farmer or not
-              itemMap['belongsToFarmer'] = order['farmerId'] == farmerId;
-              combinedItems.add(itemMap);
+          // Return each order individually - no grouping
+          List<model_orders.Orderlist> result = [];
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            print('DEBUG: Processing individual order: ${doc.id}');
+
+            try {
+              result.add(model_orders.Orderlist.fromMap(data, doc.id));
+            } catch (e) {
+              print('ERROR: Failed to parse order ${doc.id}: $e');
+              continue;
             }
-            combinedTotalPrice += (order['totalPrice'] as num?)?.toInt() ?? 0;
           }
 
-          // Create combined order data
-          final combinedOrderData = Map<String, dynamic>.from(firstOrder);
-          combinedOrderData['items'] = combinedItems;
-          combinedOrderData['totalPrice'] = combinedTotalPrice;
-          combinedOrderData['farmerId'] =
-              farmerId; // Keep farmer's ID for permissions
-          combinedOrderData['isMultiFarmerOrder'] = ordersInSession.length > 1;
-
-          result.add(
-            model_orders.Orderlist.fromMap(combinedOrderData, sessionId),
+          print(
+            'DEBUG: Found ${result.length} individual orders for farmer: $farmerId',
           );
-        }
-      }
-
-      print(
-        'DEBUG: Found ${result.length} order sessions for farmer: $farmerId',
-      );
-      return result;
-    });
+          return result;
+        });
   }
 
   Stream<List<model_orders.Orderlist>> getOrdersForCustomer(String customerId) {

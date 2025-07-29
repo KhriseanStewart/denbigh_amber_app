@@ -1,5 +1,154 @@
 # Change Log - Denbigh Amber App
 
+## [2025.07.28] - Order Management & Multi-Farmer System Enhancements
+
+### 🔧 Order System Overhaul
+
+#### **Order Separation by Farmer**
+- **Fixed:** Orders from different farmers are now properly separated instead of being grouped as one combined order
+- **Issue:** Previously, when a user placed orders with multiple farmers in the same session, they appeared as a single combined order
+- **Resolution:** Modified `OrderService.showOrdersForCustomer()` to create individual order entries for each farmer
+- **Impact:** Each farmer now gets their own distinct order card on user order screen with proper farmer information display
+
+#### **Farmer Order Management Separation**
+- **Fixed:** Farmers now see only their own individual orders instead of combined multi-farmer orders
+- **Issue:** `SalesAndOrdersService.getFilteredOrdersForFarmerManual()` was grouping orders by session and showing combined orders from multiple farmers
+- **Resolution:** Replaced complex grouping logic with direct Firestore query filtering by farmer ID
+- **Impact:** Each farmer sees their own orders separately with proper authorization and unique order IDs
+
+#### **Farmer Information Display**
+- **Enhanced:** User order screen now displays detailed farmer information for each order
+- **Added:** `_buildFarmerInfo()` method that fetches and displays farmer name and farm name
+- **Features:**
+  - Farmer name display with fallback handling
+  - Farm name when available
+  - Consistent styling with green accent colors
+  - Error handling for missing farmer data
+
+### 🛡️ Security & Authorization Improvements
+
+#### **Farmer Order Authorization**
+- **Enhanced:** Robust farmer authorization system for order status updates
+- **Security:** Added comprehensive document validation and farmer ID verification
+- **Features:**
+  - Document existence checks before status updates
+  - Farmer ID authorization (farmers can only update their own orders)
+  - Proper error handling to prevent app crashes
+  - Detailed logging for debugging and security monitoring
+
+#### **Firebase Exception Handling**
+- **Fixed:** "FirebaseException ([cloud_firestore/not-found] Some requested document was not found.)" errors
+- **Resolution:** Added proper document validation in `_updateOrderStatus()` method
+- **Security:** Prevents unauthorized access to other farmers' orders
+- **Stability:** Try-catch error handling prevents application crashes
+
+### 🎨 UI/UX Improvements
+
+#### **Product Card Farmer Count Indicators**
+- **Verified:** Orange indicator system already properly implemented
+- **Feature:** Shows farmer count when multiple farmers sell the same product
+- **Behavior:** Only displays orange indicator badge when more than one farmer sells the product
+- **Location:** User dashboard product cards with proper count display
+
+#### **Order Display Enhancements**
+- **Improved:** Individual order cards with farmer-specific information
+- **Enhanced:** Order ID display consistency between user and farmer views
+- **Added:** Proper customer location display for each order
+- **Styling:** Consistent card design with appropriate color coding
+
+### 📊 Data Flow Improvements
+
+#### **Order Creation Process**
+- **Maintained:** Cart grouping by farmer during checkout process
+- **Enhanced:** Each farmer gets separate order document in Firestore
+- **Preserved:** Order session ID for tracking related orders
+- **Improved:** Customer information consistency across all farmer orders
+
+#### **Order Retrieval Optimization**
+- **Users:** Individual orders displayed with farmer information
+- **Farmers:** Direct query filtering for improved performance
+- **Consistency:** Order IDs match between user and farmer interfaces
+- **Authorization:** Proper access control throughout the system
+
+### 🔄 Service Layer Refactoring
+
+#### **SalesAndOrdersService Updates**
+- **Method:** `getFilteredOrdersForFarmerManual()` completely refactored
+- **Change:** From complex session-based grouping to simple farmer-filtered query
+- **Performance:** Improved query performance with direct Firestore filtering
+- **Maintainability:** Simplified code logic for better maintainability
+
+#### **OrderService Enhancements**
+- **Method:** `showOrdersForCustomer()` updated for proper order separation
+- **Feature:** Individual order processing instead of session grouping
+- **Data:** Comprehensive order data including farmer information
+- **Consistency:** Maintained data integrity across user and farmer views
+
+### 📂 Files Modified
+
+**Core Services:**
+- `lib/users/database/order_service.dart` - Order separation and customer display
+- `lib/farmers/services/sales_order.services.dart` - Farmer order filtering and authorization
+
+**UI Screens:**
+- `lib/users/screens/orders/user_orders_screen.dart` - Farmer info display and individual order cards
+- `lib/farmers/screens/sales_management.dart` - Authorization improvements and error handling
+
+**Product System:**
+- `lib/users/screens/product_screen/product_card.dart` - Verified farmer count indicators (already implemented)
+
+### 🎯 Impact Summary
+
+#### **Before Fixes:**
+- ❌ Orders from multiple farmers grouped as one order
+- ❌ Farmers could see combined orders from multiple farmers
+- ❌ Firebase "not-found" exceptions on order updates
+- ❌ Inconsistent order ID display between user and farmer views
+- ❌ Limited farmer information on user order cards
+
+#### **After Fixes:**
+- ✅ Each farmer gets separate order display
+- ✅ Farmers see only their own individual orders
+- ✅ Robust authorization with proper error handling
+- ✅ Consistent order IDs across all interfaces
+- ✅ Comprehensive farmer information display
+- ✅ Orange farmer count indicators working correctly
+
+### 🚀 Technical Improvements
+
+#### **Database Queries:**
+- **Optimization:** Direct farmer ID filtering instead of complex grouping
+- **Performance:** Reduced query complexity and improved response times
+- **Consistency:** Maintained data integrity across all operations
+
+#### **Security Enhancements:**
+- **Authorization:** Comprehensive farmer verification for order updates
+- **Validation:** Document existence checks before operations
+- **Error Handling:** Graceful failure handling without app crashes
+
+#### **Code Quality:**
+- **Maintainability:** Simplified service methods with clear logic
+- **Debugging:** Enhanced logging for troubleshooting
+- **Documentation:** Clear code comments explaining authorization logic
+
+### 📊 System Architecture
+
+#### **Multi-Farmer Order System:**
+```
+User Cart → Group by Farmer → Individual Orders per Farmer
+     ↓              ↓                    ↓
+User View ← Farmer Info Display ← Farmer Authorization
+```
+
+#### **Order Flow:**
+1. **Cart Checkout:** Items grouped by farmer ID
+2. **Order Creation:** Separate order document per farmer
+3. **User Display:** Individual orders with farmer information
+4. **Farmer Management:** Filtered view of own orders only
+5. **Status Updates:** Authorized updates with validation
+
+---
+
 ## [2025.01.24-2] - User Experience Enhancements
 
 ### 🎨 UI/UX Improvements

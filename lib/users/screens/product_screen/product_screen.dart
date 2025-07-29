@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/farmers/screens/farmers_info_for_user.dart';
 import 'package:denbigh_app/users/database/cart.dart';
 import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:denbigh_app/widgets/ExpandedText.dart';
@@ -302,6 +303,74 @@ class _ProductScreenState extends State<ProductScreen> {
                                       fontFamily: 'Switzer',
                                       fontWeight: FontWeight.w300,
                                     ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  // Farmer name
+                                  FutureBuilder<DocumentSnapshot>(
+                                    future: FirebaseFirestore.instance
+                                        .collection('farmersData')
+                                        .doc(args['farmerId'])
+                                        .get(),
+                                    builder: (context, farmerSnapshot) {
+                                      String farmerName = 'Loading...';
+                                      if (farmerSnapshot.hasData &&
+                                          farmerSnapshot.data!.exists) {
+                                        final farmersData =
+                                            farmerSnapshot.data!.data()
+                                                as Map<String, dynamic>?;
+                                        farmerName =
+                                            farmersData?['farmerName'] ??
+                                            farmersData?['name'] ??
+                                            farmersData?['firstName'] ??
+                                            'Unknown Farmer';
+                                      } else if (farmerSnapshot.hasError) {
+                                        farmerName = 'Unknown Farmer';
+                                      }
+
+                                      return Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.person,
+                                              size: 14,
+                                              color: Colors.green.shade700,
+                                            ),
+                                            SizedBox(width: 4),
+                                            GestureDetector(
+                                              onTap: () {
+                                                FarmerInfoPopup.showFarmerInfo(
+                                                  context,
+                                                  args['farmerId'],
+                                                );
+                                              },
+                                              child: Text(
+                                                'By: $farmerName',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.green.shade700,
+                                                  fontWeight: FontWeight.w500,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
                                   SizedBox(height: 8),
                                   // Price row

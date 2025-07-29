@@ -1,10 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:denbigh_app/farmers/auth/screen/farmer_login.dart';
+import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/routes.dart';
-import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
 import 'package:denbigh_app/widgets/autoCompleter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class FarmerSignUp extends StatefulWidget {
@@ -20,7 +21,6 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
   bool _obscureId = true;
 
   final _formKey = GlobalKey<FormState>();
-  final AuthService authService = AuthService();
 
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -207,10 +207,13 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                       ),
                     ),
                     validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
                       if (value != passwordController.text) {
                         return 'Passwords do not match';
                       }
-                      return passwordValidator(value);
+                      return null;
                     },
                   ),
                   const SizedBox(height: 30),
@@ -231,13 +234,19 @@ class _FarmerSignUpState extends State<FarmerSignUp> {
                           }
 
                           try {
-                            await authService.signUpWithEmail(
-                              email: emailController.text,
-                              password: passwordController.text,
-                              role: 'farmer',
-                              name: nameController.text,
-                              location: farmLocationController.text,
-                              farmerId: radaIdController.text,
+                            final authService = farmer_auth.AuthService();
+
+                            // Use the farmer auth service for signup
+                            await authService.signUp(
+                              emailController.text,
+                              passwordController.text,
+                              farmerName: nameController.text,
+                              radaRegistrationNumber: radaIdController.text,
+                              locationName: farmLocationController.text,
+                              location: const GeoPoint(
+                                0,
+                                0,
+                              ), // You might want to get actual coordinates
                             );
 
                             Navigator.pushReplacementNamed(

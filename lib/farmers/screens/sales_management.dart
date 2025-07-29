@@ -1,8 +1,8 @@
-import 'package:denbigh_app/farmers/model/orders.dart' as model_orders;
 import 'package:denbigh_app/farmers/model/sales.dart';
 import 'package:denbigh_app/farmers/services/auth.dart';
 import 'package:denbigh_app/farmers/services/sales_order.services.dart';
 import 'package:denbigh_app/farmers/widgets/add_receipt_image.dart';
+import 'package:denbigh_app/farmers/widgets/add_preparation_images.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,13 +24,39 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
   @override
   void initState() {
     super.initState();
-    // We'll get the farmer ID in build method from Provider for consistency
   }
 
   Future<void> _updateOrderStatus(String orderId, String newStatus) async {
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-      'status': newStatus,
-    });
+    try {
+      final farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      if (farmerId.isEmpty) {
+        return;
+      }
+
+      final orderDoc = await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .get();
+
+      if (!orderDoc.exists) {
+        return;
+      }
+
+      final orderData = orderDoc.data() as Map<String, dynamic>;
+      final orderFarmerId = orderData['farmerId'] ?? '';
+
+      // Only allow farmer to update their own orders
+      if (orderFarmerId != farmerId) {
+        return;
+      }
+
+      // Update the order status
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).update(
+        {'status': newStatus},
+      );
+    } catch (e) {
+      // Don't throw the error to prevent app crashes
+    }
   }
 
   @override
@@ -41,70 +67,105 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
       final authService = Provider.of<AuthService>(context, listen: false);
       farmerId = authService.farmer?.id ?? '';
     } catch (e) {
-      print('DEBUG: Error accessing AuthService provider: $e');
-
       farmerId = FirebaseAuth.instance.currentUser?.uid ?? '';
     }
 
-    print('DEBUG: Sales Management - farmerId from Provider: $farmerId');
-    print(
-      'DEBUG: Sales Management - farmerId from FirebaseAuth: ${FirebaseAuth.instance.currentUser?.uid}',
-    );
-    print(
-      'DEBUG: Sales Management - Current farmer ID being used for StreamBuilder: $farmerId',
-    );
-
     return Scaffold(
+      backgroundColor: Color(0xFFF8FBF8),
       appBar: AppBar(
-        title: Text('Sales and Orders Management'),
+        title: Text(
+          'Sales & Orders',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
         leading: Container(),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF66BB6A), Color(0xFF4CAF50), Color(0xFF2E7D32)],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Column(
             children: [
+              // Welcome Header
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.analytics, size: 28, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text(
+                          'Sales Management',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Manage your orders and track sales performance',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               _ExpandableSection(
                 title: 'Orders',
                 expanded: _ordersExpanded,
                 ontap: () => setState(() => _ordersExpanded = !_ordersExpanded),
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(2.0),
                   child: farmerId.isEmpty
                       ? Center(child: Text('Please log in to view orders'))
                       : StreamBuilder(
                           stream: SalesAndOrdersService()
                               .getFilteredOrdersForFarmerManual(farmerId),
                           builder: (context, snapshot) {
-                            print(
-                              'DEBUG: StreamBuilder state - connectionState: ${snapshot.connectionState}',
-                            );
-                            print(
-                              'DEBUG: StreamBuilder state - hasData: ${snapshot.hasData}',
-                            );
-                            print(
-                              'DEBUG: StreamBuilder state - hasError: ${snapshot.hasError}',
-                            );
-                            if (snapshot.hasError) {
-                              print(
-                                'DEBUG: StreamBuilder error: ${snapshot.error}',
-                              );
-                            }
-                            if (snapshot.hasData) {
-                              print(
-                                'DEBUG: StreamBuilder data length: ${snapshot.data?.length}',
-                              );
-                            }
-
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return Center(child: CircularProgressIndicator());
                             }
                             final orders = snapshot.data ?? [];
-                            print(
-                              'DEBUG: Final orders list length: ${orders.length}',
-                            );
                             if (orders.isEmpty) {
                               return Text('No orders yet.');
                             }
@@ -115,9 +176,6 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final order = orders[index];
-                                print(
-                                  'Order debug: items=${order.items.map((e) => '${e.name},${e.unit},${e.quantity},${e.customerLocation}').toList()}',
-                                );
                                 return Card(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
@@ -138,7 +196,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                       children: [
                                         Text('Customer: ${order.customerName}'),
                                         Text(
-                                          'Customer ID: ${order.customerId}',
+                                          'Customer ID: ${order.customerId.substring(0, 6)}',
                                         ),
                                         // Display all items in the order with numbering
                                         ...order.items.asMap().entries.map((
@@ -217,13 +275,130 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                                 ),
                                               )
                                               .toList(),
-                                          onChanged: (value) {
+                                          onChanged: (value) async {
                                             if (value != null &&
                                                 value != order.status) {
-                                              _updateOrderStatus(
-                                                order.orderId,
-                                                value,
-                                              );
+                                              // Enforce sequential status flow: Processing → Confirmed → Preparing → Shipped
+                                              bool canChangeStatus = false;
+                                              String errorMessage = '';
+
+                                              switch (order.status
+                                                  .toLowerCase()) {
+                                                case 'processing':
+                                                  // From Processing, can only go to Confirmed or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Confirmed' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders must be Confirmed first before proceeding to other stages.';
+                                                  }
+                                                  break;
+                                                case 'confirmed':
+                                                  // From Confirmed, can only go to Preparing or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Preparing' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders must be set to Preparing before shipping.';
+                                                  }
+                                                  break;
+                                                case 'preparing':
+                                                  // From Preparing, can only go to Shipped or Cancelled
+                                                  canChangeStatus =
+                                                      value == 'Shipped' ||
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Orders can only be marked as Shipped after preparation.';
+                                                  }
+                                                  break;
+                                                case 'shipped':
+                                                  // From Shipped, can only go to Completed
+                                                  canChangeStatus =
+                                                      value == 'Completed';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'Shipped orders can only be marked as Completed.';
+                                                  }
+                                                  break;
+                                                default:
+                                                  // For Completed or Cancelled, no further changes allowed except Cancelled can be set from any state
+                                                  canChangeStatus =
+                                                      value == 'Cancelled';
+                                                  if (!canChangeStatus) {
+                                                    errorMessage =
+                                                        'This order status cannot be changed further.';
+                                                  }
+                                                  break;
+                                              }
+
+                                              if (!canChangeStatus) {
+                                                // Show error dialog
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons.warning,
+                                                            color:
+                                                                Colors.orange,
+                                                          ),
+                                                          SizedBox(width: 8),
+                                                          Text(
+                                                            'Invalid Status Change',
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      content: Text(
+                                                        errorMessage,
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                context,
+                                                              ).pop(),
+                                                          child: Text(
+                                                            'OK',
+                                                            style: TextStyle(
+                                                              color: Color(
+                                                                0xFF4CAF50,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                                return; // Don't proceed with status change
+                                              }
+
+                                              // Proceed with allowed status changes
+                                              if (value == 'Preparing') {
+                                                // Navigate to preparation images screen
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AddPreparationImages(
+                                                          orderId:
+                                                              order.orderId,
+                                                          onImagesUploaded: (urls) {
+                                                            // The status is updated in the AddPreparationImages widget
+                                                          },
+                                                        ),
+                                                  ),
+                                                );
+                                              } else {
+                                                _updateOrderStatus(
+                                                  order.orderId,
+                                                  value,
+                                                );
+                                              }
                                             }
                                           },
                                         ),
@@ -277,7 +452,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                 expanded: _salesExpanded,
                 ontap: () => setState(() => _salesExpanded = !_salesExpanded),
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(2.0),
                   child: FutureBuilder<User?>(
                     future: FirebaseAuth.instance.authStateChanges().first,
                     builder: (context, userSnap) {
@@ -337,7 +512,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         'Customer: ${saleGroup.customerName}',
                                       ),
                                       Text(
-                                        'Customer ID: ${saleGroup.customerId}',
+                                        'Customer ID: ${saleGroup.customerId.substring(0, 6)}',
                                       ),
                                       Text(
                                         'Customer Location: ${saleGroup.customerLocation.isNotEmpty ? saleGroup.customerLocation : 'NO LOCATION'}',
@@ -382,7 +557,7 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                         'Total: \$${saleGroup.totalPrice.toString()}',
                                       ),
                                       Text(
-                                        'Created: ${saleGroup.date.toDate()}',
+                                        'Created: ${saleGroup.date.toDate().toString().split('.')[0]}',
                                       ),
                                     ],
                                   ),
@@ -422,21 +597,46 @@ class _ExpandableSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: expanded ? 4 : 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: ontap,
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.2), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(expanded ? 0.15 : 0.05),
+            spreadRadius: 0,
+            blurRadius: expanded ? 15 : 8,
+            offset: Offset(0, expanded ? 6 : 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: ontap,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: expanded
+                      ? [Color(0xFFF1F8E9), Color(0xFFE8F5E8)]
+                      : [Colors.white, Colors.white],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Row(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF4CAF50).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 300),
                       transitionBuilder: (child, anim) =>
@@ -444,36 +644,45 @@ class _ExpandableSection extends StatelessWidget {
                       child: Icon(
                         expanded ? Icons.remove : Icons.add,
                         key: ValueKey<bool>(expanded),
-                        size: 28,
-                        color: Theme.of(context).primaryColor,
+                        size: 24,
+                        color: Color(0xFF4CAF50),
                         semanticLabel: expanded
                             ? 'Collapse $title'
                             : 'Expand $title',
                       ),
                     ),
                   ),
+                  SizedBox(width: 16),
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 14.0),
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
                       ),
                     ),
+                  ),
+                  Icon(
+                    title.toLowerCase().contains('order')
+                        ? Icons.shopping_bag
+                        : Icons.analytics,
+                    color: Color(0xFF4CAF50),
+                    size: 20,
                   ),
                 ],
               ),
             ),
-            AnimatedCrossFade(
-              crossFadeState: expanded
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
-              duration: Duration(milliseconds: 600),
-              firstChild: child,
-              secondChild: SizedBox.shrink(),
-            ),
-          ],
-        ),
+          ),
+          AnimatedCrossFade(
+            crossFadeState: expanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            duration: Duration(milliseconds: 600),
+            firstChild: Container(padding: EdgeInsets.all(16), child: child),
+            secondChild: SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
