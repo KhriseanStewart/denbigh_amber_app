@@ -7,7 +7,6 @@ import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
 import 'package:denbigh_app/widgets/autoCompleter.dart';
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -353,10 +352,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               LocationAutoComplete(
                                 underlineBorder: true,
                                 onCategorySelected: (selectedLocation) {
-                                  setState(() {
-                                    _location = selectedLocation;
-                                  });
-                                  _checkAllFieldsFilled();
+                                  try {
+                                    setState(() {
+                                      _location = selectedLocation;
+                                    });
+                                    _checkAllFieldsFilled();
+                                  } catch (e) {
+                                    print('Error in location selection: $e');
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error selecting location: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 },
                               ),
                             ],

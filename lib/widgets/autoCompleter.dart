@@ -19,14 +19,23 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
         if (textEditingValue.text == '') {
           return const Iterable<String>.empty();
         }
-        return jamaicaParishesWithTowns.where((String category) {
-          return category.toLowerCase().contains(
-            textEditingValue.text.toLowerCase(),
-          );
-        });
+        try {
+          return jamaicaParishesWithTowns.where((String category) {
+            return category.toLowerCase().contains(
+              textEditingValue.text.toLowerCase(),
+            );
+          });
+        } catch (e) {
+          print('Error in LocationAutoComplete optionsBuilder: $e');
+          return const Iterable<String>.empty();
+        }
       },
       onSelected: (String selection) {
-        widget.onCategorySelected(selection);
+        try {
+          widget.onCategorySelected(selection);
+        } catch (e) {
+          print('Error in LocationAutoComplete onSelected: $e');
+        }
       },
       fieldViewBuilder:
           (
@@ -35,25 +44,42 @@ class _LocationAutoCompleteState extends State<LocationAutoComplete> {
             FocusNode focusNode,
             VoidCallback onFieldSubmitted,
           ) {
-            return TextFormField(
-              controller: controller,
-              focusNode: focusNode,
-              style: TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                hintText: "Enter Location",
-                hintStyle: TextStyle(color: Colors.black),
-                prefixIcon: Icon(Icons.location_on, color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            try {
+              return TextFormField(
+                controller: controller,
+                focusNode: focusNode,
+                style: TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  hintText: "Enter Location",
+                  hintStyle: TextStyle(color: Colors.black),
+                  prefixIcon: Icon(Icons.location_on, color: Colors.grey),
+                  border: widget.underlineBorder == true
+                      ? UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        )
+                      : OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                  enabledBorder: widget.underlineBorder == true
+                      ? UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        )
+                      : OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
                 ),
-                enabledBorder: widget.underlineBorder == true
-                    ? UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey),
-                      )
-                    : null, 
-              ),
-              validator: validateNotEmpty,
-            );
+                validator: validateNotEmpty,
+              );
+            } catch (e) {
+              print('Error in LocationAutoComplete fieldViewBuilder: $e');
+              return TextFormField(
+                decoration: InputDecoration(
+                  hintText: "Error loading location field",
+                  border: OutlineInputBorder(),
+                ),
+              );
+            }
           },
     );
   }
