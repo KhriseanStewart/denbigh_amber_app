@@ -24,7 +24,7 @@ class Cart_Service {
     if (existingItem.docs.isNotEmpty) {
       final docId = existingItem.docs.first.id;
       await cartRef.doc(docId).update({
-        'quantity': FieldValue.increment(quantity),
+        'customerQuantity': FieldValue.increment(quantity),
       });
     } else {
       //add the item
@@ -86,6 +86,7 @@ class Cart_Service {
       await cartRef.doc(docSnapshot.docs.first.id).delete();
     }
   }
+
   Future<bool> isProductInCart(String userId, String productId) async {
     final cartRef = FirebaseFirestore.instance
         .collection('users')
@@ -98,6 +99,7 @@ class Cart_Service {
 
     return querySnapshot.docs.isNotEmpty;
   }
+
   Stream<QuerySnapshot> readCart(String uid) {
     return _db.collection("users").doc(uid).collection("cartItems").snapshots();
   }

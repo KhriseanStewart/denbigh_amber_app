@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/users/database/paypal_info.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
@@ -40,6 +41,27 @@ class _CardScreenState extends State<CardScreen> {
       displaySnackBar(context, "Something is wrong");
       return;
     }
+
+    // Check if cart has items before processing payment
+    try {
+      final cartSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cartItems')
+          .get();
+
+      if (cartSnapshot.docs.isEmpty) {
+        displaySnackBar(
+          context,
+          "Your cart is empty. Please add items before checkout.",
+        );
+        return;
+      }
+    } catch (e) {
+      displaySnackBar(context, "Error checking cart. Please try again.");
+      return;
+    }
+
     setState(() {
       _isProcessingOrder = true;
     });
@@ -53,22 +75,29 @@ class _CardScreenState extends State<CardScreen> {
       );
       if (payment == true) {
         try {
-          final success = await OrderService().createOrderFromCart(userId);
-
-          if (success) {
-            displaySnackBar(context, "Order placed successfully!");
-            Future.microtask(() {
-              Duration(seconds: 2);
-              Navigator.pop(context);
-            });
-          } else {
-            displaySnackBar(
-              context,
-              "Failed to place order. Please try again.",
-            );
-          }
+          await OrderService().createOrderFromCart(userId);
+          displaySnackBar(context, "Order placed successfully!");
+          Future.microtask(() {
+            Duration(seconds: 2);
+            Navigator.pop(context);
+          });
         } catch (e) {
-          displaySnackBar(context, "Error: ${e.toString()}");
+          String errorMessage = "Failed to place order. ";
+
+          // Check for specific error types
+          String errorString = e.toString().toLowerCase();
+          if (errorString.contains('insufficient stock')) {
+            errorMessage += "Some items are out of stock.";
+          } else if (errorString.contains('cart is empty')) {
+            errorMessage += "Your cart is empty.";
+          } else if (errorString.contains('product not found')) {
+            errorMessage += "Some products are no longer available.";
+          } else {
+            errorMessage += "Please try again.";
+          }
+
+          displaySnackBar(context, errorMessage);
+          print('Order creation error: $e');
         } finally {
           setState(() {
             _isProcessingOrder = false;

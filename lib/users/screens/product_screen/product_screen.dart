@@ -7,7 +7,6 @@ import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   int quantity = 0;
   bool isLoading = false;
-  bool _showLottieAnimation = false;
   bool exists = false;
 
   @override
@@ -36,7 +34,8 @@ class _ProductScreenState extends State<ProductScreen> {
     if (quantity == 0) {
       setState(() {
         try {
-          quantity = args['minUnitNum'] ?? 1;
+          final data = args.data() as Map<String, dynamic>?;
+          quantity = data?['minUnitNum'] ?? 1;
         } catch (e) {
           print('Error accessing minUnitNum: $e');
           quantity = 1;
@@ -47,17 +46,28 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   void checkProductInCart() async {
-    final arguments = ModalRoute.of(context)?.settings.arguments;
-    if (arguments == null) return;
+    try {
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      if (arguments == null) return;
 
-    final args = arguments as QueryDocumentSnapshot;
-    bool inCart = await Cart_Service().isProductInCart(
-      auth!.uid,
-      args['productId'],
-    );
-    setState(() {
-      exists = inCart;
-    });
+      final args = arguments as QueryDocumentSnapshot;
+      final data = args.data() as Map<String, dynamic>?;
+      final productId = data?['productId'];
+
+      if (productId != null && auth?.uid != null) {
+        bool inCart = await Cart_Service().isProductInCart(
+          auth!.uid,
+          productId,
+        );
+        if (mounted) {
+          setState(() {
+            exists = inCart;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error checking product in cart: $e');
+    }
   }
 
   @override
@@ -87,15 +97,17 @@ class _ProductScreenState extends State<ProductScreen> {
     final args = arguments as QueryDocumentSnapshot;
 
     try {
-      final int totalNum = (args['price'] ?? 0).toInt();
+      final data = args.data() as Map<String, dynamic>?;
+      final num priceNum = data?['price'] ?? 0;
+      final int totalNum = priceNum.toInt();
       final formatter = NumberFormat('#,###');
       final firebasePrice = formatter.format(totalNum);
 
-      int quantityPriceDemo = ((args['price'] ?? 0) * quantity).toInt();
+      int quantityPriceDemo = (priceNum * quantity).toInt();
       final quantityPriceNum = quantityPriceDemo;
       final quantityPrice = formatter.format(quantityPriceNum);
 
-      final dynamic categoryData = args['category'] ?? 'Uncategorized';
+      final dynamic categoryData = data?['category'] ?? 'Uncategorized';
 
       String category;
 
@@ -110,7 +122,7 @@ class _ProductScreenState extends State<ProductScreen> {
         category = 'Uncategorized';
       }
 
-      final dynamic unitTypeData = args['unit'] ?? 'unit';
+      final dynamic unitTypeData = data?['unit'] ?? 'unit';
 
       String unitType;
 
@@ -131,15 +143,15 @@ class _ProductScreenState extends State<ProductScreen> {
             isLoading = true;
           });
           await Cart_Service().addToCart(auth!.uid, args, quantity);
-          exists = await Cart_Service().isProductInCart(
-            auth!.uid,
-            args['productId'],
-          );
-          print(args['productId']);
-          print(exists);
-          // Show the Lottie popup after successful add to cart
+          final productId = data?['productId'];
+          if (productId != null) {
+            exists = await Cart_Service().isProductInCart(auth!.uid, productId);
+            print(productId);
+            print(exists);
+          }
+          // Show success message
           setState(() {
-            _showLottieAnimation = true;
+            // Animation state removed - not needed
           });
           // showDialog(
           //   context: context,
@@ -168,9 +180,6 @@ class _ProductScreenState extends State<ProductScreen> {
           ).showSnackBar(SnackBar(content: Text('Failed to add to cart')));
         } finally {
           setState(() {
-            _showLottieAnimation = false;
-          });
-          setState(() {
             isLoading = false;
           });
         }
@@ -191,7 +200,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           height: double.infinity,
                           width: double.infinity,
                           child: Image.network(
-                            args['imageUrl'] ?? '',
+                            data?['imageUrl']?.toString() ?? '',
                             fit: BoxFit.cover,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) {
@@ -295,7 +304,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                 children: [
                                   // Product name with ellipsis
                                   Text(
-                                    args['name'] ?? 'Unknown Product',
+                                    data?['name']?.toString() ??
+                                        'Unknown Product',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -309,7 +319,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   FutureBuilder<DocumentSnapshot>(
                                     future: FirebaseFirestore.instance
                                         .collection('farmersData')
-                                        .doc(args['farmerId'])
+                                        .doc(data?['farmerId'] ?? '')
                                         .get(),
                                     builder: (context, farmerSnapshot) {
                                       String farmerName = 'Loading...';
@@ -351,7 +361,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                               onTap: () {
                                                 FarmerInfoPopup.showFarmerInfo(
                                                   context,
-                                                  args['farmerId'],
+                                                  data?['farmerId'] ?? '',
                                                 );
                                               },
                                               child: Text(
@@ -489,7 +499,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                         color: Colors.white,
                                       ),
                                       Text(
-                                        args['location'] ?? 'Unknown Location',
+                                        data?['location'] ?? 'Unknown Location',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 14,
@@ -537,7 +547,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           ),
                           child: ExpandableText(
                             text:
-                                args['description'] ??
+                                data?['description'] ??
                                 'No description available',
                           ),
                         ),

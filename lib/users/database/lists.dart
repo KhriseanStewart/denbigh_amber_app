@@ -5,7 +5,7 @@ List<String> jamaicaParishesWithTowns = [
   'St. Andrew - Half Way Tree',
   'St. Thomas - St. Thomas Parish Capital',
   'St. Thomas - Morant Bay',
-  'Portland -  Buff Bay',
+  'Portland - Buff Bay',
   'Portland - Port Antonio',
   'St. Mary - Kingston',
   'St. Mary - Oracabessa',
@@ -31,6 +31,4 @@ List<String> jamaicaParishesWithTowns = [
   'Clarendon - May Pen',
   'St. Catherine - Spanish Town',
   'St. Catherine - Portmore',
-  'St. Catherine - Portmore',
 ];
-

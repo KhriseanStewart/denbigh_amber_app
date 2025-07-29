@@ -352,19 +352,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               LocationAutoComplete(
                                 underlineBorder: true,
                                 onCategorySelected: (selectedLocation) {
+                                  print(
+                                    'AddProductScreen: Location selected callback called with: $selectedLocation',
+                                  );
                                   try {
+                                    print('AddProductScreen: Before setState');
                                     setState(() {
                                       _location = selectedLocation;
+                                      print(
+                                        'AddProductScreen: Location set to: $_location',
+                                      );
                                     });
+                                    print('AddProductScreen: After setState');
                                     _checkAllFieldsFilled();
+                                    print(
+                                      'AddProductScreen: After _checkAllFieldsFilled',
+                                    );
                                   } catch (e) {
                                     print('Error in location selection: $e');
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Error selecting location: $e'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
+                                    print('Error stack trace: ${e.toString()}');
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Error selecting location: $e',
+                                          ),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                               ),

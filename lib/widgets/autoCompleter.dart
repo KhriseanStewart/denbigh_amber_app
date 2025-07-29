@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 class LocationAutoComplete extends StatefulWidget {
   final Function(String?) onCategorySelected;
   final bool? underlineBorder;
-  const LocationAutoComplete({super.key, required this.onCategorySelected, this.underlineBorder});
+  const LocationAutoComplete({
+    super.key,
+    required this.onCategorySelected,
+    this.underlineBorder,
+  });
 
   @override
   _LocationAutoCompleteState createState() => _LocationAutoCompleteState();
@@ -14,27 +18,67 @@ class LocationAutoComplete extends StatefulWidget {
 class _LocationAutoCompleteState extends State<LocationAutoComplete> {
   @override
   Widget build(BuildContext context) {
+    print('LocationAutoComplete build called');
     return Autocomplete<String>(
       optionsBuilder: (TextEditingValue textEditingValue) {
+        print(
+          'LocationAutoComplete optionsBuilder called with: ${textEditingValue.text}',
+        );
         if (textEditingValue.text == '') {
           return const Iterable<String>.empty();
         }
         try {
-          return jamaicaParishesWithTowns.where((String category) {
-            return category.toLowerCase().contains(
-              textEditingValue.text.toLowerCase(),
-            );
-          });
+          final results = jamaicaParishesWithTowns
+              .where((String category) {
+                // Filter out null, empty, or malformed entries
+                if (category.isEmpty || category.trim().isEmpty) {
+                  print('LocationAutoComplete: Filtering out empty category');
+                  return false;
+                }
+
+                return category.toLowerCase().contains(
+                  textEditingValue.text.toLowerCase(),
+                );
+              })
+              .map((category) => category.trim()) // Ensure no extra whitespace
+              .where(
+                (category) => category.isNotEmpty,
+              ); // Double-check after trimming
+
+          print(
+            'LocationAutoComplete optionsBuilder returning ${results.length} results',
+          );
+          return results;
         } catch (e) {
           print('Error in LocationAutoComplete optionsBuilder: $e');
+          print('Error stack trace: ${e.toString()}');
           return const Iterable<String>.empty();
         }
       },
       onSelected: (String selection) {
+        print('LocationAutoComplete onSelected called with: $selection');
         try {
-          widget.onCategorySelected(selection);
+          // Validate the selection is not null or empty
+          if (selection.isEmpty) {
+            print('LocationAutoComplete: Empty selection received');
+            return;
+          }
+
+          // Trim any extra whitespace
+          final cleanSelection = selection.trim();
+          if (cleanSelection.isEmpty) {
+            print('LocationAutoComplete: Selection is empty after trimming');
+            return;
+          }
+
+          print(
+            'LocationAutoComplete: Calling onCategorySelected with clean selection: $cleanSelection',
+          );
+          widget.onCategorySelected(cleanSelection);
+          print('LocationAutoComplete onSelected completed successfully');
         } catch (e) {
           print('Error in LocationAutoComplete onSelected: $e');
+          print('Error stack trace: ${e.toString()}');
         }
       },
       fieldViewBuilder:

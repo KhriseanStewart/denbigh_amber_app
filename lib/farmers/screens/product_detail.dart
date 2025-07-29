@@ -724,11 +724,31 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                         children: [
                                           SizedBox(height: 4),
                                           Text(
-                                            'Customer: ${s.customerId}',
+                                            'Customer ID: ${s.customerId.substring(0, 6)}...',
                                             style: TextStyle(
                                               fontFamily: 'Switzer',
                                               color: Colors.grey[600],
                                             ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          FutureBuilder<String>(
+                                            future: _getCustomerName(
+                                              s.customerId,
+                                              s.customerName,
+                                            ),
+                                            builder: (context, nameSnapshot) {
+                                              final displayName =
+                                                  nameSnapshot.data ??
+                                                  s.customerName;
+                                              return Text(
+                                                'Name: ${displayName.isNotEmpty && displayName != 'Unknown Customer' ? displayName : 'Customer Name Not Available'}',
+                                                style: TextStyle(
+                                                  fontFamily: 'Switzer',
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              );
+                                            },
                                           ),
                                           Text(
                                             'Total: \$${s.totalPrice.toStringAsFixed(2)}',
@@ -782,6 +802,33 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
       ),
     );
+  }
+
+  // Helper method to get customer name from users collection if not available
+  Future<String> _getCustomerName(String customerId, String currentName) async {
+    // If we already have a valid name, return it
+    if (currentName.isNotEmpty && currentName != 'Unknown Customer') {
+      return currentName;
+    }
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(customerId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        return userData?['name'] ??
+            userData?['username'] ??
+            userData?['firstName'] ??
+            'Customer Name Not Available';
+      }
+    } catch (e) {
+      print('Error fetching customer name: $e');
+    }
+
+    return 'Customer Name Not Available';
   }
 }
 
