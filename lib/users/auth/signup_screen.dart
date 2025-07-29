@@ -45,10 +45,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (password == confirmPasswordController.text) {
           if (selectedLocation != null && selectedLocation!.isNotEmpty) {
             try {
-              await AuthService().signUpWithEmail(
+              final authcheck = await AuthService().signUpWithEmail(
                 email: email,
                 password: password,
-                role: selectedRole!,
+                role: selectedRole,
                 location: location,
                 name: name,
                 farmerId: selectedRole == 'farmer'
@@ -56,15 +56,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     : null, // Only pass RADA ID for farmers
               );
 
-              // Navigate based on role
-              if (selectedRole == 'farmer') {
-                Navigator.pushReplacementNamed(
-                  context,
-                  AppRouter.farmermainlayout,
-                );
-              } else {
+              if (authcheck != false) {
                 // For users and other roles, go to main layout
                 Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+              } else {
+                setState(() {
+                  isLoggingIn = false;
+                });
+                displaySnackBar(context, "Error signing up");
               }
             } on FirebaseAuthException catch (e) {
               setState(() {
@@ -78,7 +77,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             });
             displaySnackBar(context, "Please select a location");
           }
-                } else {
+        } else {
           setState(() {
             isLoggingIn = false;
           });

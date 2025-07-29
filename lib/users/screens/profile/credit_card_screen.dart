@@ -1,4 +1,8 @@
+import 'package:denbigh_app/users/database/order_service.dart';
+import 'package:denbigh_app/users/database/paypal_info.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
+import 'package:denbigh_app/widgets/misc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 
@@ -20,8 +24,63 @@ class _CardScreenState extends State<CardScreen> {
   final expDate = GlobalKey<FormFieldState<String>>();
   final cardHolder = GlobalKey<FormFieldState<String>>();
   final cardNumberKey = GlobalKey<FormFieldState<String>>();
+  bool _isProcessingOrder = false;
+  double totalCost = 0;
+
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+
+  /// Handle checkout process
+  Future<void> _handleCheckout() async {
+    if (_isProcessingOrder) return;
+
+    setState(() {
+      _isProcessingOrder = true;
+    });
+    final token = await PaypalInfo().getPaypalAccessToken();
+
+    if (token != null) {
+      final payment = await PaypalInfo().createPaypalPayment(
+        totalCost,
+        "AgriConnect Payment",
+        token,
+      );
+      if (payment == true) {
+        try {
+          final success = await OrderService().createOrderFromCart(userId);
+
+          if (success) {
+            displaySnackBar(context, "Order placed successfully!");
+            Future.microtask(() {
+              Duration(seconds: 2);
+              Navigator.pop(context);
+            });
+          } else {
+            displaySnackBar(
+              context,
+              "Failed to place order. Please try again.",
+            );
+          }
+        } catch (e) {
+          displaySnackBar(context, "Error: ${e.toString()}");
+        } finally {
+          setState(() {
+            _isProcessingOrder = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isProcessingOrder = false;
+        });
+        displaySnackBar(context, "Error: Payment Error");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    totalCost = args['totalCost'];
     //there is no card information available yet, so we will show a placeholder
 
     return Scaffold(
@@ -36,6 +95,7 @@ class _CardScreenState extends State<CardScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CreditCardWidget(
+              cardBgColor: Colors.deepOrangeAccent,
               cardNumber: cardNumber,
               expiryDate: expiryDate,
               cardHolderName: cardHolderName,
@@ -45,11 +105,6 @@ class _CardScreenState extends State<CardScreen> {
               floatingConfig: FloatingConfig(
                 isGlareEnabled: true,
                 isShadowEnabled: true,
-                shadowConfig: FloatingShadowConfig(
-                  offset: Offset(0, 1),
-                  color: Colors.black,
-                  blurRadius: 4,
-                ),
               ),
               onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
             ),
@@ -129,9 +184,10 @@ class _CardScreenState extends State<CardScreen> {
             Padding(
               padding: const EdgeInsets.all(14.0),
               child: CustomButtonElevated(
-                btntext: "Validate",
-                onpress: () {},
-                bgcolor: Colors.grey,
+                btntext: _isProcessingOrder ? "Validating" : "Paypal",
+                icon: Icon(Icons.paypal_outlined, size: 28),
+                onpress: _isProcessingOrder ? null : _handleCheckout,
+                bgcolor: _isProcessingOrder ? Colors.grey : Colors.orangeAccent,
                 textcolor: Colors.white,
                 isBoldtext: true,
                 size: 16,

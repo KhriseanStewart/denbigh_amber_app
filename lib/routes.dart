@@ -2,7 +2,6 @@ import 'package:denbigh_app/auth_wrapper.dart';
 import 'package:denbigh_app/farmers/auth/screen/farmer_login.dart';
 import 'package:denbigh_app/farmers/auth/screen/farmer_signup.dart';
 import 'package:denbigh_app/farmers/screens/dashboard.dart';
-import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 
 import 'package:denbigh_app/users/auth/signin_screen.dart';
 import 'package:denbigh_app/users/auth/signup_screen.dart';
@@ -20,7 +19,6 @@ import 'package:denbigh_app/users/screens/profile/account_information_screen.dar
 import 'package:denbigh_app/users/screens/profile/credit_card_screen.dart';
 import 'package:denbigh_app/users/screens/profile/profile.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class AppRouter {
   static const String intro = "/";

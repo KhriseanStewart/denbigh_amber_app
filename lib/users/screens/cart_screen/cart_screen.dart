@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/cart.dart';
-import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 class CartScreen extends StatefulWidget {
@@ -17,32 +18,16 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   Map<String, int> cartQuantities = {};
   bool _isProcessingOrder = false;
+  double totalCost = 0;
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  /// Handle checkout process
-  Future<void> _handleCheckout() async {
-    if (_isProcessingOrder) return;
-
-    setState(() {
-      _isProcessingOrder = true;
-    });
-
-    try {
-      final success = await OrderService().createOrderFromCart(userId);
-
-      if (success) {
-        displaySnackBar(context, "Order placed successfully!");
-      } else {
-        displaySnackBar(context, "Failed to place order. Please try again.");
-      }
-    } catch (e) {
-      displaySnackBar(context, "Error: ${e.toString()}");
-    } finally {
-      setState(() {
-        _isProcessingOrder = false;
-      });
-    }
+  void handleCheckout() async {
+    Navigator.pushNamed(
+      context,
+      AppRouter.card,
+      arguments: <String, dynamic>{'totalCost': totalCost},
+    );
   }
 
   Future<void> _updateCartItemQuantity(
@@ -104,8 +89,8 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           int subTax = (itemCost * 0.08).toInt();
-          int deliveryFee = 10;
-          int totalCost = itemCost + subTax + deliveryFee;
+          double deliveryFee = 10;
+          totalCost = itemCost + subTax + deliveryFee;
           return Column(
             children: [
               Container(
@@ -163,7 +148,7 @@ class _CartScreenState extends State<CartScreen> {
                         btntext: _isProcessingOrder
                             ? "Processing..."
                             : "Continue to Checkout",
-                        onpress: _isProcessingOrder ? null : _handleCheckout,
+                        onpress: _isProcessingOrder ? null : handleCheckout,
                         isBoldtext: true,
                         bgcolor: _isProcessingOrder
                             ? Colors.grey
@@ -407,24 +392,10 @@ class _CartScreenState extends State<CartScreen> {
                                     .doc(data['farmerId'])
                                     .get(),
                                 builder: (context, farmerSnapshot) {
-                                  print(
-                                    'DEBUG: Cart item farmerId: ${data['farmerId']}',
-                                  );
-                                  print(
-                                    'DEBUG: Farmer snapshot hasData: ${farmerSnapshot.hasData}',
-                                  );
-                                  print(
-                                    'DEBUG: Farmer snapshot exists: ${farmerSnapshot.data?.exists}',
-                                  );
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
-                                    final farmerData =
-                                        farmerSnapshot.data!.data()
-                                            as Map<String, dynamic>?;
-                                    print('DEBUG: Farmer data: $farmerData');
                                   }
 
-                                  String farmerName = 'Unknown Farmer';
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
                                     final farmerData =
@@ -440,13 +411,10 @@ class _CartScreenState extends State<CartScreen> {
 
                                     if (nameField != null &&
                                         nameField is String) {
-                                      farmerName = nameField;
                                     } else if (firstNameField != null &&
                                         firstNameField is String) {
-                                      farmerName = firstNameField;
                                     } else if (farmerNameField != null &&
                                         farmerNameField is String) {
-                                      farmerName = farmerNameField;
                                     }
                                   }
 

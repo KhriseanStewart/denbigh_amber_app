@@ -35,7 +35,7 @@ class AuthService {
   }
 
   /// Register with email/password *and* set the user’s role in Firestore
-  Future<User?> signUpWithEmail({
+  Future<bool?> signUpWithEmail({
     required String email,
     required String password,
     required String role, // 'customer', 'farmer', or 'admin'
@@ -71,10 +71,10 @@ class AuthService {
       // 3️⃣ Write their profile, including role
       await _db.collection('users').doc(uid).set(userData);
 
-      return cred.user;
+      return true;
     } catch (e) {
       print('Error signing up: $e');
-      return null;
+      return false;
     }
   }
 

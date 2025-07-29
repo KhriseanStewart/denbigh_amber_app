@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/cart.dart';
-import 'package:denbigh_app/users/database/multi_farmer_product_service.dart';
 import 'package:denbigh_app/users/screens/dashboard/home.dart';
-import 'package:denbigh_app/users/screens/products/farmers_selling_product_screen.dart';
 import 'package:denbigh_app/widgets/ExpandedText.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -19,6 +18,8 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   int quantity = 0;
+  bool isLoading = false;
+  bool _showLottieAnimation = false;
 
   @override
   void didChangeDependencies() {
@@ -106,6 +107,63 @@ class _ProductScreenState extends State<ProductScreen> {
         // Fallback in case it's something else
         unitType = 'Uncategorized';
       }
+      bool exists = false;
+      void checkProductInCart() async {
+        exists = await Cart_Service().isProductInCart(
+          auth!.uid,
+          args['productId'],
+        );
+        if (exists) {
+          print('Product is already in the cart.');
+        } else {
+          print('Product is not in the cart.');
+        }
+      }
+
+      void handleAddToCart() async {
+        try {
+          setState(() {
+            isLoading = true;
+          });
+          await Cart_Service().addToCart(auth!.uid, args, quantity);
+          // Show the Lottie popup after successful add to cart
+          setState(() {
+            _showLottieAnimation = true;
+          });
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent dismiss by tapping outside
+            builder: (context) => Center(
+              child: Lottie.asset(
+                'assets/AddToCart.json', // replace with your Lottie file path
+              ),
+            ),
+          );
+
+          // Wait for the animation duration or a fixed delay
+          await Future.delayed(
+            Duration(seconds: 1),
+          ); // Adjust duration as needed
+
+          // Close the dialog
+          Navigator.of(context).pop();
+          setState(() {
+            isLoading = false;
+          });
+        } catch (e) {
+          print('Error adding to cart: $e');
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to add to cart')));
+        } finally {
+          setState(() {
+            _showLottieAnimation = false;
+          });
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
 
       return Scaffold(
         body: SafeArea(
@@ -147,16 +205,20 @@ class _ProductScreenState extends State<ProductScreen> {
                           top: 10,
                           left: 10,
                           child: IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                  },
                             icon: Icon(
                               Icons.close,
                               size: 30,
                               color: Colors.white,
                             ),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: isLoading
+                                  ? Colors.grey
+                                  : Colors.green,
                             ),
                           ),
                         ),
@@ -413,15 +475,19 @@ class _ProductScreenState extends State<ProductScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: CustomButtonElevated(
-                    btntext: "Add to Cart",
-                    onpress: () {
-                      Cart_Service().addToCart(auth!.uid, args, quantity);
-                    },
-                    bgcolor: Colors.grey.shade400,
-                    textcolor: Colors.black,
-                    isBoldtext: true,
-                    size: 18,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomButtonElevated(
+                        btntext: isLoading ? 'Loading..' : "Add to Cart",
+                        // Inside your _ProductScreenState class
+                        onpress: isLoading ? null : handleAddToCart,
+                        bgcolor: isLoading ? Colors.grey : Colors.orangeAccent,
+                        textcolor: Colors.white,
+                        isBoldtext: true,
+                        size: 18,
+                      ),
+                    ],
                   ),
                 ),
               ),

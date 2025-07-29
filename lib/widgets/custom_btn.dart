@@ -64,6 +64,7 @@ class CustomButtonElevated extends StatelessWidget {
   final bool isItalic;
   final bool isBoldtext;
   final double? size;
+  final Icon? icon;
 
   const CustomButtonElevated({
     super.key,
@@ -77,6 +78,7 @@ class CustomButtonElevated extends StatelessWidget {
     this.isItalic = false,
     this.isBoldtext = false,
     this.size,
+    this.icon
   });
 
   @override
@@ -84,15 +86,16 @@ class CustomButtonElevated extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 50,
-      child: ElevatedButton(
+      child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           shape:
               shape ??
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: bgcolor ?? Color.fromRGBO(55, 255, 72, 0.6),
         ),
+        icon: icon,
         onPressed: onpress,
-        child: Text(
+        label: Text(
           btntext,
           style: TextStyle(
             color: textcolor,

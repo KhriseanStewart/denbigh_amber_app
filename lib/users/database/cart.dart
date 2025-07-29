@@ -86,7 +86,18 @@ class Cart_Service {
       await cartRef.doc(docSnapshot.docs.first.id).delete();
     }
   }
+  Future<bool> isProductInCart(String userId, String productId) async {
+    final cartRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('cartItems');
 
+    final querySnapshot = await cartRef
+        .where('productId', isEqualTo: productId)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
+  }
   Stream<QuerySnapshot> readCart(String uid) {
     return _db.collection("users").doc(uid).collection("cartItems").snapshots();
   }

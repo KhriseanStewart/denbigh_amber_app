@@ -5,7 +5,6 @@ import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
     hide AuthService;
-import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
@@ -27,12 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   double _maxPriceFilter = 200000; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
   double _currentSliderPrice = 100;
-  String? _selectedValue;
 
   @override
   void initState() {
     super.initState();
-    _selectedValue = 'default';
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.green),
     );
@@ -68,7 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData) {
-          return Center(child: Text("Please sign in"));
+          Future.microtask(() {
+            Navigator.pushReplacementNamed(context, AppRouter.login);
+          });
         }
         return buildUserHome(context);
       },
@@ -225,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Text(
-                          data?['name'] ??
+                          data!['name'] ??
                               data?['firstName'] ??
                               FirebaseAuth.instance.currentUser?.displayName ??
                               FirebaseAuth.instance.currentUser?.email
