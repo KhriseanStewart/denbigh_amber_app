@@ -137,130 +137,135 @@ class _CardScreenState extends State<CardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-            CreditCardWidget(
-              cardBgColor: Colors.deepOrangeAccent,
-              cardNumber: cardNumber,
-              expiryDate: expiryDate,
-              cardHolderName: cardHolderName,
-              cvvCode: cvvCode,
-              showBackView: false,
-              enableFloatingCard: true,
-              floatingConfig: FloatingConfig(
-                isGlareEnabled: true,
-                isShadowEnabled: true,
+              CreditCardWidget(
+                cardBgColor: Colors.deepOrangeAccent,
+                cardNumber: cardNumber,
+                expiryDate: expiryDate,
+                cardHolderName: cardHolderName,
+                cvvCode: cvvCode,
+                showBackView: false,
+                enableFloatingCard: true,
+                floatingConfig: FloatingConfig(
+                  isGlareEnabled: true,
+                  isShadowEnabled: true,
+                ),
+                onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
               ),
-              onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
-            ),
-            CreditCardForm(
-              formKey: formKeyOne, // Required
-              cardNumber: cardNumber, // Required
-              expiryDate: expiryDate, // Required
-              cardHolderName: cardHolderName, // Required
-              cvvCode: cvvCode, // Required
-              cardNumberKey: cardNumberKey,
-              cvvCodeKey: cvvKey,
-              expiryDateKey: expDate,
-              cardHolderKey: cardHolder,
-              onCreditCardModelChange: onCreditCardModelChange,
-              obscureCvv: true,
-              obscureNumber: true,
-              isHolderNameVisible: true,
-              isCardNumberVisible: true,
-              isExpiryDateVisible: true,
-              enableCvv: true,
-              cvvValidationMessage: 'Please input a valid CVV',
-              dateValidationMessage: 'Please input a valid date',
-              numberValidationMessage: 'Please input a valid number',
-              cardNumberValidator: (String? cardNumber) {
-                return null;
-              },
-              expiryDateValidator: (String? expiryDate) {
-                return null;
-              },
-              cvvValidator: (String? cvv) {
-                return null;
-              },
-              cardHolderValidator: (String? cardHolderName) {
-                return null;
-              },
-              isCardHolderNameUpperCase: true,
-              onFormComplete: () {
-                // callback to execute at the end of filling card data
-              },
-              autovalidateMode: AutovalidateMode.always,
-              disableCardNumberAutoFillHints: false,
-              inputConfiguration: const InputConfiguration(
-                cardNumberDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Number',
-                  hintText: 'XXXX XXXX XXXX XXXX',
-                ),
-                expiryDateDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Expired Date',
-                  hintText: 'XX/XX',
-                ),
-                cvvCodeDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'CVV',
-                  hintText: 'XXX',
-                ),
-                cardHolderDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Card Holder',
-                ),
-                cardNumberTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                cardHolderTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                expiryDateTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                cvvCodeTextStyle: TextStyle(fontSize: 10, color: Colors.black),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: TextFormField(
-                controller: billingAddressController,
-                focusNode: billingAddressFocusNode,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Billing Address',
-                  hintText: 'Enter your billing address',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your billing address';
-                  }
+              CreditCardForm(
+                formKey: formKeyOne, // Required
+                cardNumber: cardNumber, // Required
+                expiryDate: expiryDate, // Required
+                cardHolderName: cardHolderName, // Required
+                cvvCode: cvvCode, // Required
+                cardNumberKey: cardNumberKey,
+                cvvCodeKey: cvvKey,
+                expiryDateKey: expDate,
+                cardHolderKey: cardHolder,
+                onCreditCardModelChange: onCreditCardModelChange,
+                obscureCvv: true,
+                obscureNumber: true,
+                isHolderNameVisible: true,
+                isCardNumberVisible: true,
+                isExpiryDateVisible: true,
+                enableCvv: true,
+                cvvValidationMessage: 'Please input a valid CVV',
+                dateValidationMessage: 'Please input a valid date',
+                numberValidationMessage: 'Please input a valid number',
+                cardNumberValidator: (String? cardNumber) {
                   return null;
                 },
-                onChanged: (value) {
-                  billingAddress = value;
+                expiryDateValidator: (String? expiryDate) {
+                  return null;
                 },
+                cvvValidator: (String? cvv) {
+                  return null;
+                },
+                cardHolderValidator: (String? cardHolderName) {
+                  return null;
+                },
+                isCardHolderNameUpperCase: true,
+                onFormComplete: () {
+                  // callback to execute at the end of filling card data
+                },
+                autovalidateMode: AutovalidateMode.always,
+                disableCardNumberAutoFillHints: false,
+                inputConfiguration: const InputConfiguration(
+                  cardNumberDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Number',
+                    hintText: 'XXXX XXXX XXXX XXXX',
+                  ),
+                  expiryDateDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Expired Date',
+                    hintText: 'XX/XX',
+                  ),
+                  cvvCodeDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'CVV',
+                    hintText: 'XXX',
+                  ),
+                  cardHolderDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Card Holder',
+                  ),
+                  cardNumberTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  cardHolderTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  expiryDateTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  cvvCodeTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: CustomButtonElevated(
-                btntext: _isProcessingOrder ? "Validating" : "Paypal",
-                icon: Icon(Icons.paypal_outlined, size: 28),
-                onpress: _isProcessingOrder ? null : _handleCheckout,
-                bgcolor: _isProcessingOrder ? Colors.grey : Colors.orangeAccent,
-                textcolor: Colors.white,
-                isBoldtext: true,
-                size: 16,
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: TextFormField(
+                  controller: billingAddressController,
+                  focusNode: billingAddressFocusNode,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Billing Address',
+                    hintText: 'Enter your billing address',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your billing address';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    billingAddress = value;
+                  },
+                ),
               ),
-            ),
-            // Add extra space at bottom for keyboard
-            SizedBox(height: 50),
-          ],
-        ),
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: CustomButtonElevated(
+                  btntext: _isProcessingOrder ? "Validating" : "Paypal",
+                  icon: Icon(Icons.paypal_outlined, size: 28),
+                  onpress: _isProcessingOrder ? null : _handleCheckout,
+                  bgcolor: _isProcessingOrder
+                      ? Colors.grey
+                      : Colors.orangeAccent,
+                  textcolor: Colors.white,
+                  isBoldtext: true,
+                  size: 16,
+                ),
+              ),
+              // Add extra space at bottom for keyboard
+              SizedBox(height: 50),
+            ],
+          ),
         ),
       ),
     );
