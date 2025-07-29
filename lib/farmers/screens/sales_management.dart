@@ -59,6 +59,28 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
     }
   }
 
+  // Helper method to get customer name from users collection
+  Future<String> _getCustomerName(String customerId) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(customerId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        return userData?['name'] ??
+            userData?['username'] ??
+            userData?['firstName'] ??
+            'Unknown Customer';
+      }
+      return 'Unknown Customer';
+    } catch (e) {
+      print('Error fetching customer name: $e');
+      return 'Unknown Customer';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Safely get farmer ID with try-catch to handle logout scenarios
@@ -194,7 +216,20 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text('Customer: ${order.customerName}'),
+                                        // Dynamic customer name fetching for orders
+                                        FutureBuilder<String>(
+                                          future: _getCustomerName(
+                                            order.customerId,
+                                          ),
+                                          builder: (context, snapshot) {
+                                            final customerName =
+                                                snapshot.data ??
+                                                order.customerName;
+                                            return Text(
+                                              'Customer: $customerName',
+                                            );
+                                          },
+                                        ),
                                         Text(
                                           'Customer ID: ${order.customerId.substring(0, 6)}',
                                         ),
@@ -508,8 +543,19 @@ class _SalesManagementPageState extends State<SalesManagementPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Customer: ${saleGroup.customerName}',
+                                      // Dynamic customer name fetching
+                                      FutureBuilder<String>(
+                                        future: _getCustomerName(
+                                          saleGroup.customerId,
+                                        ),
+                                        builder: (context, snapshot) {
+                                          final customerName =
+                                              snapshot.data ??
+                                              saleGroup.customerName;
+                                          return Text(
+                                            'Customer: $customerName',
+                                          );
+                                        },
                                       ),
                                       Text(
                                         'Customer ID: ${saleGroup.customerId.substring(0, 6)}',

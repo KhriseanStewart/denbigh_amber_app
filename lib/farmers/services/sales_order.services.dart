@@ -139,6 +139,27 @@ class SalesAndOrdersService {
         orderDoc.id,
       );
 
+      // Get customer name from users collection if not available in order
+      String customerName = order.customerName;
+      if (customerName == 'Unknown Customer' || customerName.isEmpty) {
+        try {
+          final userDoc = await _db
+              .collection('users')
+              .doc(order.customerId)
+              .get();
+          if (userDoc.exists) {
+            final userData = userDoc.data();
+            customerName =
+                userData?['name'] ??
+                userData?['username'] ??
+                userData?['firstName'] ??
+                'Unknown Customer';
+          }
+        } catch (e) {
+          print('Error fetching customer name: $e');
+        }
+      }
+
       // Create sales for each item in the order
       for (final item in order.items) {
         final sale = Sale(
@@ -146,7 +167,7 @@ class SalesAndOrdersService {
           productId: item.productId,
           farmerId: order.farmerId,
           customerId: order.customerId,
-          customerName: order.customerName,
+          customerName: customerName,
           name: item.name,
           quantity: item.quantity,
           unit: item.unit,
