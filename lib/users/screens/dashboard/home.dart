@@ -5,7 +5,6 @@ import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
     hide AuthService;
-import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
@@ -23,16 +22,14 @@ class HomeScreen extends StatefulWidget {
 final auth = AuthService().currentUser;
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _categoryFilter = 'All'; // default category
+  String _categoryFilter = 'All'; // default category
   double _maxPriceFilter = 200000; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
   double _currentSliderPrice = 100;
-  String? _selectedValue;
 
   @override
   void initState() {
     super.initState();
-    _selectedValue = 'default';
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.green),
     );
@@ -68,7 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData) {
-          return Center(child: Text("Please sign in"));
+          Future.microtask(() {
+            Navigator.pushReplacementNamed(context, AppRouter.login);
+          });
         }
         return buildUserHome(context);
       },
@@ -208,37 +207,46 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor:
                         Colors.transparent, // make AppBar transparent
                     titleSpacing: 10,
-                    leading: Container(
-                      decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: PicCard(),
+                    leading: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                      child: Container(
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: PicCard(),
+                      ),
                     ),
                     actions: [Container()],
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Welcome",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w300,
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w300,
+                            ),
                           ),
-                        ),
-                        Text(
-                          data?['name'] ??
-                              data?['firstName'] ??
-                              FirebaseAuth.instance.currentUser?.displayName ??
-                              FirebaseAuth.instance.currentUser?.email
-                                  ?.split('@')
-                                  .first ??
-                              'User',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                          Text(
+                            data!['name'] ??
+                                data?['firstName'] ??
+                                FirebaseAuth
+                                    .instance
+                                    .currentUser
+                                    ?.displayName ??
+                                FirebaseAuth.instance.currentUser?.email
+                                    ?.split('@')
+                                    .first ??
+                                'User',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -337,14 +345,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Expanded(
                     child: Slider(
-                      value: _maxPriceFilter,
+                      value: _currentSliderPrice,
                       min: 100,
                       max: 200000,
                       divisions: 100,
-                      label: _maxPriceFilter.round().toString(),
+                      label: _currentSliderPrice.round().toString(),
                       onChanged: (double value) {
                         setState(() {
-                          _maxPriceFilter = value;
+                          _currentSliderPrice = value;
                         });
                       },
                     ),
@@ -404,16 +412,19 @@ class _HomeScreenState extends State<HomeScreen> {
         'products',
       );
 
-      // Apply category filter
+      // Start with base query
       Query query = productsRef;
+
+      // Apply category filter (arrayContains)
       if (_categoryFilter != null && _categoryFilter != 'All') {
-        query = query.where('category', isEqualTo: _categoryFilter);
+        query = query.where('category', arrayContains: _categoryFilter);
       }
 
       // Apply price filter
-      query = query.where('price', isLessThanOrEqualTo: _maxPriceFilter);
+      query = query.where('price', isGreaterThan: _currentSliderPrice);
+      print(_currentSliderPrice);
 
-      // Apply delivery zone filter (assuming delivery zone info is stored in 'deliveryZone' field)
+      // Apply delivery zone filter
       if (_deliveryZoneFilter != null && _deliveryZoneFilter != 'default') {
         query = query.where('deliveryZone', isEqualTo: _deliveryZoneFilter);
       }

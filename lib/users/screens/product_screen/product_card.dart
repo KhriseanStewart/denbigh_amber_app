@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:denbigh_app/users/screens/products/farmers_selling_product_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -49,11 +48,10 @@ class _UserProductCardState extends State<UserProductCard> {
           });
         }
       } catch (e) {
-        setState(() {
-          farmerName = 'Unknown Farmer';
-        });
+        if (!mounted) return;
       }
     } else {
+      if (mounted) return;
       setState(() {
         farmerName = 'Unknown Farmer';
       });

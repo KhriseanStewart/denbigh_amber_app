@@ -7,6 +7,7 @@ import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -18,6 +19,9 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   int quantity = 0;
+  bool isLoading = false;
+  bool _showLottieAnimation = false;
+  bool exists = false;
 
   @override
   void didChangeDependencies() {
@@ -39,6 +43,21 @@ class _ProductScreenState extends State<ProductScreen> {
         }
       });
     }
+    checkProductInCart();
+  }
+
+  void checkProductInCart() async {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments == null) return;
+
+    final args = arguments as QueryDocumentSnapshot;
+    bool inCart = await Cart_Service().isProductInCart(
+      auth!.uid,
+      args['productId'],
+    );
+    setState(() {
+      exists = inCart;
+    });
   }
 
   @override
@@ -106,6 +125,57 @@ class _ProductScreenState extends State<ProductScreen> {
         unitType = 'Uncategorized';
       }
 
+      void handleAddToCart() async {
+        try {
+          setState(() {
+            isLoading = true;
+          });
+          await Cart_Service().addToCart(auth!.uid, args, quantity);
+          exists = await Cart_Service().isProductInCart(
+            auth!.uid,
+            args['productId'],
+          );
+          print(args['productId']);
+          print(exists);
+          // Show the Lottie popup after successful add to cart
+          setState(() {
+            _showLottieAnimation = true;
+          });
+          // showDialog(
+          //   context: context,
+          //   barrierDismissible: false, // Prevent dismiss by tapping outside
+          //   builder: (context) => Center(
+          //     child: Lottie.asset(
+          //       'assets/AddToCart.json', // replace with your Lottie file path
+          //     ),
+          //   ),
+          // );
+
+          // Wait for the animation duration or a fixed delay
+          await Future.delayed(
+            Duration(seconds: 1),
+          ); // Adjust duration as needed
+
+          // Close the dialog
+          // Navigator.of(context).pop();
+          setState(() {
+            isLoading = false;
+          });
+        } catch (e) {
+          print('Error adding to cart: $e');
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to add to cart')));
+        } finally {
+          setState(() {
+            _showLottieAnimation = false;
+          });
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+
       return Scaffold(
         body: SafeArea(
           child: Stack(
@@ -146,16 +216,20 @@ class _ProductScreenState extends State<ProductScreen> {
                           top: 10,
                           left: 10,
                           child: IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                  },
                             icon: Icon(
                               Icons.close,
                               size: 30,
                               color: Colors.white,
                             ),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: isLoading
+                                  ? Colors.grey
+                                  : Colors.lightGreen,
                             ),
                           ),
                         ),
@@ -388,7 +462,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             horizontal: 12.0,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green,
+                            color: Colors.lightGreen,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Row(
@@ -480,15 +554,34 @@ class _ProductScreenState extends State<ProductScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: CustomButtonElevated(
-                    btntext: "Add to Cart",
-                    onpress: () {
-                      Cart_Service().addToCart(auth!.uid, args, quantity);
-                    },
-                    bgcolor: Colors.grey.shade400,
-                    textcolor: Colors.black,
-                    isBoldtext: true,
-                    size: 18,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      exists
+                          ? CustomButtonElevated(
+                              icon: Icon(
+                                Icons.shopping_bag_outlined,
+                                size: 24,
+                                color: Colors.black,
+                              ),
+                              btntext: "Item in Cart",
+                              bgcolor: Colors.lightGreen,
+                              textcolor: Colors.black,
+                              isBoldtext: false,
+                              size: 18,
+                            )
+                          : CustomButtonElevated(
+                              btntext: isLoading ? 'Adding..' : "Add to Cart",
+                              // Inside your _ProductScreenState class
+                              onpress: isLoading ? null : handleAddToCart,
+                              bgcolor: isLoading
+                                  ? Colors.grey
+                                  : Colors.lightGreen,
+                              textcolor: Colors.white,
+                              isBoldtext: true,
+                              size: 18,
+                            ),
+                    ],
                   ),
                 ),
               ),

@@ -1,6 +1,8 @@
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
+import 'package:denbigh_app/users/screens/profile/about_us.dart';
 import 'package:denbigh_app/users/screens/profile/profile_pic_card.dart';
+import 'package:denbigh_app/widgets/misc.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -58,17 +60,18 @@ class ProfileScreen extends StatelessWidget {
             _profileContainer('Account Information', () {
               Navigator.pushNamed(context, AppRouter.accountInformation);
             }),
-            _profileContainer('Card Information', () {
-              Navigator.pushNamed(context, AppRouter.card);
-            }),
 
             _profileContainer('Preferences', () {
-              // logic to Navigate to preferences page
+              displaySnackBar(context, "Future update");
             }),
             _profileContainer('My Orders', () {
               Navigator.pushNamed(context, AppRouter.userorders);
             }),
             _profileContainer('About Us', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AboutUsScreen()),
+              );
               // logic to Navigate to about us page
             }),
           ],
