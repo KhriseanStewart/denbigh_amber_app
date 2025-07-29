@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -8,43 +9,243 @@ class NotificationService {
 
   /// Initialize FCM and request permissions
   Future<void> initialize() async {
-    // Request permission for notifications
-    NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    try {
+      print('🔥 Starting FCM initialization...');
 
-    print('User granted permission: ${settings.authorizationStatus}');
+      // Request permission for notifications
+      NotificationSettings settings = await _messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
-    // Get FCM token and save to user profile
-    String? token = await _messaging.getToken();
-    if (token != null) {
-      await _saveFCMToken(token);
+      print('📱 Permission status: ${settings.authorizationStatus}');
+
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        print(
+          '❌ Notifications not authorized! Status: ${settings.authorizationStatus}',
+        );
+        return;
+      }
+
+      // Get FCM token with better error handling
+      await _getAndSaveToken();
+
+      // Listen for token refresh
+      _messaging.onTokenRefresh.listen((newToken) {
+        print('🔄 FCM Token refreshed');
+        _saveFCMToken(newToken);
+      });
+
+      // Handle foreground messages
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+      // Handle background messages
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+
+      print('✅ FCM initialization completed');
+    } catch (e) {
+      print('💥 FCM initialization failed: $e');
     }
+  }
 
-    // Listen for token refresh
-    _messaging.onTokenRefresh.listen(_saveFCMToken);
+  /// Get FCM token and save it with detailed logging
+  Future<void> _getAndSaveToken() async {
+    try {
+      print('🎯 Getting FCM token...');
 
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      String? token;
 
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      // Check if we're on web platform
+      if (kIsWeb) {
+        print('🌐 Running on web platform');
+        try {
+          token = await _messaging.getToken();
+          print('🌐 Web token result: ${token != null ? "SUCCESS" : "FAILED"}');
+        } catch (webError) {
+          print('🌐 Web FCM error: $webError');
+          token = null;
+        }
+      } else {
+        print('📱 Running on mobile platform');
+
+        // For mobile, try multiple times if needed
+        for (int attempt = 1; attempt <= 3; attempt++) {
+          try {
+            print('📱 Token attempt $attempt/3...');
+            token = await _messaging.getToken();
+
+            if (token != null) {
+              print('📱 Token SUCCESS on attempt $attempt');
+              break;
+            } else {
+              print('📱 Token was null on attempt $attempt');
+              if (attempt < 3) {
+                await Future.delayed(Duration(seconds: 2));
+              }
+            }
+          } catch (e) {
+            print('📱 Token attempt $attempt failed: $e');
+            if (attempt < 3) {
+              await Future.delayed(Duration(seconds: 2));
+            }
+          }
+        }
+      }
+
+      if (token != null) {
+        print('🎉 FCM Token received: ${token.substring(0, 30)}...');
+        print('📏 Full token length: ${token.length} characters');
+
+        // Save token to Firestore
+        await _saveFCMToken(token);
+      } else {
+        print('❌ Failed to get FCM token after all attempts');
+
+        // Check if Google Play Services are available (Android)
+        if (!kIsWeb) {
+          print('🔍 Checking device compatibility...');
+          // The token being null usually means:
+          // 1. Google Play Services not installed/updated
+          // 2. Device doesn't support FCM
+          // 3. Network issues
+          print('💡 Possible issues:');
+          print('   - Google Play Services not available');
+          print('   - Device in airplane mode');
+          print('   - FCM not supported on this device');
+        }
+      }
+    } catch (e) {
+      print('💥 Error in _getAndSaveToken: $e');
+    }
   }
 
   /// Save FCM token to user's Firestore document
   Future<void> _saveFCMToken(String token) async {
+    try {
+      print('💾 Attempting to save FCM token...');
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        print('👤 User authenticated: ${user.uid}');
+        print('📝 Saving token to Firestore...');
+
+        await _db.collection('users').doc(user.uid).set({
+          'fcmToken': token,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+          'platform': kIsWeb ? 'web' : 'mobile',
+          'tokenLength': token.length,
+        }, SetOptions(merge: true));
+
+        print('✅ FCM token saved successfully to Firestore!');
+        print('📄 User document: users/${user.uid}');
+
+        // Verify the token was saved by reading it back
+        await _verifyTokenSaved(user.uid, token);
+      } else {
+        print('❌ User not authenticated - cannot save FCM token');
+        print(
+          '💡 Make sure user is logged in before initializing notifications',
+        );
+      }
+    } catch (e) {
+      print('💥 Error saving FCM token to Firestore: $e');
+      print('🔍 This could be a Firestore permissions issue');
+    }
+  }
+
+  /// Verify that the token was actually saved to Firestore
+  Future<void> _verifyTokenSaved(String userId, String expectedToken) async {
+    try {
+      print('🔍 Verifying token was saved...');
+
+      DocumentSnapshot doc = await _db.collection('users').doc(userId).get();
+
+      if (doc.exists) {
+        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+        String? savedToken = data?['fcmToken'];
+
+        if (savedToken == expectedToken) {
+          print('✅ Token verification successful!');
+          print('📱 Saved token: ${savedToken?.substring(0, 30)}...');
+        } else {
+          print('❌ Token verification failed!');
+          print('💡 Expected: ${expectedToken.substring(0, 30)}...');
+          print('💡 Found: ${savedToken?.substring(0, 30)}...');
+        }
+      } else {
+        print('❌ User document does not exist!');
+        print('💡 Document path: users/$userId');
+      }
+    } catch (e) {
+      print('💥 Error verifying token: $e');
+    }
+  }
+
+  /// Manually retry getting and saving FCM token (for debugging)
+  Future<bool> retryTokenGeneration() async {
+    print('🔄 Manual token generation retry...');
+    await _getAndSaveToken();
+
+    // Check if we now have a token saved
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await _db.collection('users').doc(user.uid).update({
-        'fcmToken': token,
-        'lastTokenUpdate': FieldValue.serverTimestamp(),
-      });
+      DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+        String? token = data?['fcmToken'];
+        return token != null;
+      }
+    }
+    return false;
+  }
+
+  /// Get current user's FCM token status
+  Future<Map<String, dynamic>> getTokenStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return {
+        'status': 'error',
+        'message': 'User not authenticated',
+        'hasToken': false,
+      };
+    }
+
+    try {
+      DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
+
+      if (!doc.exists) {
+        return {
+          'status': 'error',
+          'message': 'User document not found',
+          'hasToken': false,
+        };
+      }
+
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      String? token = data?['fcmToken'];
+
+      return {
+        'status': 'success',
+        'hasToken': token != null,
+        'tokenPreview': token?.substring(0, 30),
+        'lastUpdate': data?['lastTokenUpdate'],
+        'platform': data?['platform'],
+        'userId': user.uid,
+      };
+    } catch (e) {
+      return {
+        'status': 'error',
+        'message': 'Error checking token: $e',
+        'hasToken': false,
+      };
     }
   }
 
