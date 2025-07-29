@@ -78,7 +78,7 @@ class CustomButtonElevated extends StatelessWidget {
     this.isItalic = false,
     this.isBoldtext = false,
     this.size,
-    this.icon
+    this.icon,
   });
 
   @override
@@ -100,7 +100,7 @@ class CustomButtonElevated extends StatelessWidget {
           style: TextStyle(
             color: textcolor,
             fontSize: size,
-            fontWeight: isBoldtext ? FontWeight.bold : FontWeight.w200,
+            fontWeight: isBoldtext ? FontWeight.bold : FontWeight.w400,
             fontFamily: 'Poppins',
           ),
         ),

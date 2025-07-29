@@ -24,6 +24,9 @@ class _CardScreenState extends State<CardScreen> {
   final expDate = GlobalKey<FormFieldState<String>>();
   final cardHolder = GlobalKey<FormFieldState<String>>();
   final cardNumberKey = GlobalKey<FormFieldState<String>>();
+  String billingAddress = '';
+  final billingAddressController = TextEditingController();
+  final billingAddressFocusNode = FocusNode();
   bool _isProcessingOrder = false;
   double totalCost = 0;
 
@@ -32,7 +35,11 @@ class _CardScreenState extends State<CardScreen> {
   /// Handle checkout process
   Future<void> _handleCheckout() async {
     if (_isProcessingOrder) return;
-
+    final form = formKeyOne.currentState;
+    if (form == null || !form.validate()) {
+      displaySnackBar(context, "Something is wrong");
+      return;
+    }
     setState(() {
       _isProcessingOrder = true;
     });
@@ -179,6 +186,27 @@ class _CardScreenState extends State<CardScreen> {
                   color: Colors.black,
                 ),
                 cvvCodeTextStyle: TextStyle(fontSize: 10, color: Colors.black),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: TextFormField(
+                controller: billingAddressController,
+                focusNode: billingAddressFocusNode,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Billing Address',
+                  hintText: 'Enter your billing address',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your billing address';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  billingAddress = value;
+                },
               ),
             ),
             Padding(

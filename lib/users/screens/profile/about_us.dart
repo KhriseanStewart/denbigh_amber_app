@@ -5,11 +5,7 @@ class AboutUsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       // AppBar with title
-      appBar: AppBar(
-        title: Text('About Us'),
-        centerTitle: true,
-        backgroundColor: Colors.greenAccent,
-      ),
+      appBar: AppBar(title: Text('About Us'), centerTitle: true),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Column(
