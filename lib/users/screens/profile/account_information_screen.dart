@@ -114,7 +114,15 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
             }
 
             final data = snapshot.data;
-            location = data!['location'];
+            final docData = data?.data() as Map<String, dynamic>?;
+            location = docData?['location'];
+
+            // Extract user data with fallbacks
+            final userName = docData?['name']?.toString() ?? 'Name';
+            final userEmail = docData?['email']?.toString() ?? 'Email';
+            final userPhone =
+                docData?['telephone']?.toString() ?? 'Phone Number';
+
             return Padding(
               padding: EdgeInsets.all(16.0),
               child: Form(
@@ -125,7 +133,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     SizedBox(height: 26),
                     CustomTextFormField(
                       controller: _nameController,
-                      label: '${data!['name']}',
+                      label: userName,
                       hintText: 'Jason Mitch',
                       inputType: TextInputType.text,
                       validator: validateNotEmpty,
@@ -134,15 +142,15 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     CustomTextFormField(
                       enabled: false,
                       controller: _emailController,
-                      label: '${data!['email']}',
-                      hintText: '${data['email']}',
+                      label: userEmail,
+                      hintText: userEmail,
                       inputType: TextInputType.emailAddress,
                       validator: emailValidator,
                     ),
                     SizedBox(height: 16),
                     CustomTextFormField(
                       controller: _phoneController,
-                      label: '${data['telephone']}',
+                      label: userPhone,
                       hintText: '8761234567',
                       inputType: TextInputType.phone,
                       validator: phoneNumberValidator,

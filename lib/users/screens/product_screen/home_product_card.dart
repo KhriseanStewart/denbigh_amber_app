@@ -14,7 +14,6 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
-
     final data = widget.data;
 
     // --- Start of Changes ---
@@ -102,7 +101,7 @@ class _ProductCardState extends State<ProductCard> {
             ),
             child: Text(
               category, // Use the safe variable
-              style: TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 18),
             ),
           ),
           SizedBox(height: 8),
@@ -111,11 +110,11 @@ class _ProductCardState extends State<ProductCard> {
             children: [
               Text(
                 "\$$displayNumber", // Already safe from the check above
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
               ),
               Text(
                 "/$unitType", // Use the safe variable
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.black, fontSize: 18),
               ),
               Spacer(),
             ],

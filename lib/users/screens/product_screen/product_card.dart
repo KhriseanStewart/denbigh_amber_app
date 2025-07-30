@@ -85,7 +85,7 @@ class _UserProductCardState extends State<UserProductCard> {
         setState(() {
           farmerCount = 1; // Default fallback
         });
-      } catch (e) {}
+      }
     }
   }
 
@@ -182,7 +182,7 @@ class _UserProductCardState extends State<UserProductCard> {
                     Text(
                       '$farmerCount farmers sell this',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: Colors.orange.shade700,
                         fontWeight: FontWeight.w600,
                       ),
@@ -251,7 +251,7 @@ class _UserProductCardState extends State<UserProductCard> {
                         Text(
                           name,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.black87,
                           ),
@@ -290,7 +290,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                       child: Text(
                                         farmerName,
                                         style: TextStyle(
-                                          fontSize: 9,
+                                          fontSize: 11,
                                           color: Colors.green.shade700,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -320,7 +320,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                 child: Text(
                                   category,
                                   style: TextStyle(
-                                    fontSize: 8,
+                                    fontSize: 11,
                                     color: Colors.black87,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -356,7 +356,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                           ? Text(
                                               "\$$displayNumber",
                                               style: TextStyle(
-                                                fontSize: 13,
+                                                fontSize: 15,
                                                 fontWeight: FontWeight.w700,
                                                 color: Colors.green.shade600,
                                               ),
@@ -366,7 +366,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                           : Text(
                                               "Out of Stock",
                                               style: TextStyle(
-                                                fontSize: 10,
+                                                fontSize: 13,
                                                 fontWeight: FontWeight.w600,
                                                 color: Colors.red.shade600,
                                               ),
@@ -381,7 +381,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                           "/$unitType",
                                           style: TextStyle(
                                             color: Colors.grey.shade600,
-                                            fontSize: 10,
+                                            fontSize: 12,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           maxLines: 1,
@@ -420,7 +420,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                       child: Text(
                                         data['location'] ?? 'No location',
                                         style: TextStyle(
-                                          fontSize: 8,
+                                          fontSize: 10,
                                           color: Colors.grey.shade700,
                                           fontWeight: FontWeight.w600,
                                         ),

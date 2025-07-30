@@ -445,32 +445,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      decoration: InputDecoration(hintText: 'Filter Price'),
-                      keyboardType: TextInputType.number,
-                      controller: _priceFilter,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(hintText: 'Filter Price'),
+                            keyboardType: TextInputType.number,
+                            controller: _priceFilter,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Delivery zone dropdown
+                    DropdownButton<String>(
+                      value: _deliveryZoneFilter,
+                      items: [
+                        DropdownMenuItem(value: 'default', child: Text('Default')),
+                        DropdownMenuItem(value: 'zone-one', child: Text('Zone 1')),
+                        DropdownMenuItem(value: 'zone-two', child: Text('Zone 2')),
+                        DropdownMenuItem(value: 'zone-three', child: Text('Zone 3')),
+                      ],
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _deliveryZoneFilter = newValue;
+                        });
+                      },
                     ),
                   ],
                 ),
-              ),
-              // Delivery zone dropdown
-              DropdownButton<String>(
-                value: _deliveryZoneFilter,
-                items: [
-                  DropdownMenuItem(value: 'default', child: Text('Default')),
-                  DropdownMenuItem(value: 'zone-one', child: Text('Zone 1')),
-                  DropdownMenuItem(value: 'zone-two', child: Text('Zone 2')),
-                  DropdownMenuItem(value: 'zone-three', child: Text('Zone 3')),
-                ],
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _deliveryZoneFilter = newValue;
-                  });
-                },
               ),
               Divider(),
               Align(
@@ -492,8 +496,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-      ),
-    );
+        ),
+      );
   }
 
   Widget buildGridViewProducts() {

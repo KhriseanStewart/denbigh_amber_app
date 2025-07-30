@@ -86,6 +86,20 @@ class Cart_Service {
     }
   }
 
+  // Remove cart item by document ID directly
+  Future<void> removeCartItem(String userId, String cartItemId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cartItems')
+          .doc(cartItemId)
+          .delete();
+    } catch (e) {
+      throw Exception('Failed to remove cart item: $e');
+    }
+  }
+
   Future<bool> isProductInCart(String userId, String productId) async {
     final cartRef = FirebaseFirestore.instance
         .collection('users')
