@@ -25,16 +25,13 @@ final auth = AuthService().currentUser;
 
 class _HomeScreenState extends State<HomeScreen> {
   String _categoryFilter = 'All'; // default category
-  double _maxPriceFilter = 100; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
-  double _tempSliderPrice = 100; // initialize with default value
   double _currentSliderPrice = 0;
   TextEditingController _priceFilter = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _tempSliderPrice = _maxPriceFilter;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.green),
     );
@@ -168,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Text(
                             data!['name'] ??
-                                data?['firstName'] ??
+                                data['firstName'] ??
                                 FirebaseAuth
                                     .instance
                                     .currentUser
@@ -383,80 +380,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                    SizedBox(height: 16),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        hintText: '\$100',
+                        fillColor: Color(0xFFF1F8E9),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF4CAF50).withOpacity(0.3),
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Color(0xFF4CAF50).withOpacity(0.5),
-                            ),
-                          ),
-                          child: Text(
-                            "\$${_currentSliderPrice.round()}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2E7D32),
-                            ),
-                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: Color(0xFF4CAF50),
-                              inactiveTrackColor: Color(
-                                0xFF4CAF50,
-                              ).withOpacity(0.3),
-                              thumbColor: Color(0xFF2E7D32),
-                              overlayColor: Color(0xFF4CAF50).withOpacity(0.2),
-                              valueIndicatorColor: Color(0xFF2E7D32),
-                            ),
-                            child: Slider(
-                              value: _currentSliderPrice,
-                              min: 0,
-                              max: 500,
-                              divisions: 100,
-                              label: "\$${_currentSliderPrice.round()}",
-                              onChanged: (double value) {
-                                setState(() {
-                                  _currentSliderPrice = value;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Color(0xFFF1F8E9),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      decoration: InputDecoration(hintText: 'Filter Price'),
+                      ),
                       keyboardType: TextInputType.number,
                       controller: _priceFilter,
                     ),
                   ],
                 ),
               ),
+              SizedBox(height: 16),
+
               // Delivery zone dropdown
               DropdownButton<String>(
                 value: _deliveryZoneFilter,

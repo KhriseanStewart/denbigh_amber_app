@@ -33,55 +33,40 @@ class AboutUsScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 30),
-            // Team Members
-            TeamCard(
-              name: 'Khrisean Stewart',
-              role: 'Project Leader',
-              email: 'stewartkhrisean8@gmail.com',
-              description:
-                  'Guiding the project with strategic vision, Khrisean led the team through planning, coordination, and execution, ensuring timely delivery of key features.',
-            ),
-            SizedBox(height: 20),
-            TeamCard(
-              name: 'Kashime Anderson',
-              role: 'Designer & Programmer',
-              email: 'kashime.anderson@gmail.com',
-              description:
-                  'Designing intuitive user interfaces and coding core functionalities, Kashime brought creativity and technical expertise to the project.',
-            ),
-            SizedBox(height: 20),
-            TeamCard(
-              name: 'Dovado Evans & Livingston Mitchell',
-              role: 'Backend & Frontend Programmers',
-              email: 'dovado@gmail.com\nlivingston@gmail.com',
-              description:
-                  'Dovado and Livingston worked collaboratively to develop robust backend systems and seamless frontend experiences, ensuring the app\'s performance and reliability.',
-            ),
-            SizedBox(height: 30),
-            // Additional Info
-            Text(
-              'Our Commitment:\n\nWe took on this project with a clear goal: to rapidly develop a high-quality MVP that meets everyones\' needs. Despite the tight three-week deadline, our team demonstrated exceptional collaboration, technical skill, and dedication to deliver an app that is scalable and ready for future enhancements.',
-              style: TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                color: Colors.grey[800],
+              SizedBox(height: 30),
+              // Team Members
+              TeamCard(
+                name: 'Khrisean Stewart',
+                role: 'Project Leader',
+                email: 'stewartkhrisean8@gmail.com',
+                description:
+                    'Guiding the project with strategic vision, Khrisean led the team through planning, coordination, and execution, ensuring timely delivery of key features.',
               ),
               SizedBox(height: 20),
-              TeamMemberCard(
+              TeamCard(
                 name: 'Kashime Anderson',
                 role: 'Designer & Programmer',
+                email: 'kashime.anderson@gmail.com',
                 description:
                     'Designing intuitive user interfaces and coding core functionalities, Kashime brought creativity and technical expertise to the project.',
               ),
               SizedBox(height: 20),
-              TeamMemberCard(
-                name: 'Dovado & Livingston',
+              TeamCard(
+                name: 'Dovado Evans & Livingston Mitchell',
                 role: 'Backend & Frontend Programmers',
+                email: 'dovado@gmail.com\nlivingston@gmail.com',
                 description:
-                    'Dovado and Livingston worked collaboratively to develop robust backend systems and seamless frontend experiences, ensuring the app’s performance and reliability.',
+                    'Dovado and Livingston worked collaboratively to develop robust backend systems and seamless frontend experiences, ensuring the app\'s performance and reliability.',
+              ),
+              SizedBox(height: 30),
+              // Additional Info
+              Text(
+                'Our Commitment:\n\nWe took on this project with a clear goal: to rapidly develop a high-quality MVP that meets everyones\' needs. Despite the tight three-week deadline, our team demonstrated exceptional collaboration, technical skill, and dedication to deliver an app that is scalable and ready for future enhancements.',
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.5,
+                  color: Colors.grey[800],
+                ),
               ),
               SizedBox(height: 30),
               // Additional Info
@@ -143,9 +128,10 @@ class _TeamCardState extends State<TeamCard>
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -209,7 +195,6 @@ class _TeamCardState extends State<TeamCard>
                 ),
               ),
             ),
-            
           ],
         ),
         SizedBox(height: 4),
@@ -256,11 +241,7 @@ class _TeamCardState extends State<TeamCard>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.person,
-                color: Colors.greenAccent,
-                size: 24,
-              ),
+              Icon(Icons.person, color: Colors.greenAccent, size: 24),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -277,19 +258,12 @@ class _TeamCardState extends State<TeamCard>
           SizedBox(height: 20),
           Row(
             children: [
-              Icon(
-                Icons.work,
-                color: Colors.grey[600],
-                size: 20,
-              ),
+              Icon(Icons.work, color: Colors.grey[600], size: 20),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
                   widget.role,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
               ),
             ],
@@ -297,11 +271,7 @@ class _TeamCardState extends State<TeamCard>
           SizedBox(height: 15),
           Row(
             children: [
-              Icon(
-                Icons.email,
-                color: Colors.grey[600],
-                size: 20,
-              ),
+              Icon(Icons.email, color: Colors.grey[600], size: 20),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -315,7 +285,6 @@ class _TeamCardState extends State<TeamCard>
               ),
             ],
           ),
-         
         ],
       ),
     );

@@ -138,7 +138,7 @@ class _CardScreenState extends State<CardScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CreditCardWidget(
-                cardBgColor: Colors.deepOrangeAccent,
+                cardBgColor: Colors.lightGreen,
                 cardNumber: cardNumber,
                 expiryDate: expiryDate,
                 cardHolderName: cardHolderName,
@@ -256,7 +256,7 @@ class _CardScreenState extends State<CardScreen> {
                   onpress: _isProcessingOrder ? null : _handleCheckout,
                   bgcolor: _isProcessingOrder
                       ? Colors.grey
-                      : Colors.orangeAccent,
+                      : Colors.lightGreen,
                   textcolor: Colors.white,
                   isBoldtext: true,
                   size: 16,

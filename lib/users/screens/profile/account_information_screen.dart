@@ -56,6 +56,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
         );
       }
     } on FirebaseException catch (e) {
+      displaySnackBar(context, e.message ?? 'An error occurred');
       setState(() {
         _isSaving = false;
       });
@@ -125,7 +126,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     SizedBox(height: 26),
                     CustomTextFormField(
                       controller: _nameController,
-                      label: '${data!['name']}',
+                      label: '${data['name']}',
                       hintText: 'Jason Mitch',
                       inputType: TextInputType.text,
                       validator: validateNotEmpty,
@@ -134,7 +135,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     CustomTextFormField(
                       enabled: false,
                       controller: _emailController,
-                      label: '${data!['email']}',
+                      label: '${data['email']}',
                       hintText: '${data['email']}',
                       inputType: TextInputType.emailAddress,
                       validator: emailValidator,
