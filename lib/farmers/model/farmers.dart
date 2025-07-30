@@ -9,6 +9,8 @@ class Farmer {
   final GeoPoint location;
   final String? profileImageUrl;
   final String farmName;
+  final bool isBanned;
+  final bool isFlagged;
 
   Farmer({
     required this.id,
@@ -19,5 +21,7 @@ class Farmer {
     required this.location,
     this.profileImageUrl,
     required this.farmName,
+    this.isBanned = false,
+    this.isFlagged = false,
   });
 }

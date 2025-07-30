@@ -2,6 +2,7 @@ import 'package:denbigh_app/auth_wrapper.dart';
 import 'package:denbigh_app/farmers/auth/screen/farmer_login.dart';
 import 'package:denbigh_app/farmers/auth/screen/farmer_signup.dart';
 import 'package:denbigh_app/farmers/screens/dashboard.dart';
+import 'package:denbigh_app/farmers/screens/farmer_profile_readonly.dart';
 
 import 'package:denbigh_app/users/auth/signin_screen.dart';
 import 'package:denbigh_app/users/auth/signup_screen.dart';
@@ -29,6 +30,7 @@ class AppRouter {
   static const String farmerlogin = "/farmerlogin";
   static const String farmersignup = "/farmersignup";
   static const String farmerdashboard = "/farmerdashboard";
+  static const String farmerProfileReadOnly = "/farmer-profile-readonly";
 
   static const String homepage = "/homepage";
   static const String cartpage = "/cartpage";
@@ -54,6 +56,7 @@ class AppRouter {
       farmerlogin: (context) => const FarmerLogin(),
       farmersignup: (context) => const FarmerSignUp(),
       farmerdashboard: (context) => const DashboardScreen(),
+      farmerProfileReadOnly: (context) => const FarmerProfileReadOnlyScreen(),
 
       homepage: (context) => const HomeScreen(),
       cartpage: (context) => const CartScreen(),

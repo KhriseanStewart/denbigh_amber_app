@@ -21,7 +21,8 @@ final List<String> units = [
   'pack',
   'LBS',
   'ounce',
-  'unit', // Fallback for empty units
+  'unit', 
+  'Flat'
 ];
 
 final Map<String, Color> categoryColors = {

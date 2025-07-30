@@ -58,6 +58,8 @@ class AuthService {
         locationName: locationName,
         location: location,
         profileImageUrl: profileImageUrl,
+        isBanned: data?['isBanned'] ?? false,
+        isFlagged: data?['isFlagged'] ?? false,
       );
     } catch (e) {
       // If there's an error loading farmer data, create farmer with basic info
@@ -70,6 +72,8 @@ class AuthService {
         locationName: '',
         location: const GeoPoint(0, 0),
         profileImageUrl: null,
+        isBanned: false,
+        isFlagged: false,
       );
     }
   }

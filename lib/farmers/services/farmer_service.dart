@@ -26,6 +26,8 @@ class FarmerService {
       'locationName': locationName,
       'createdAt': FieldValue.serverTimestamp(),
       'profileImageUrl': profileImageUrl,
+      'isBanned': false, // Default to not banned
+      'isFlagged': false, // Default to not flagged
     });
   }
 
@@ -55,6 +57,43 @@ class FarmerService {
     updateData['updatedAt'] = FieldValue.serverTimestamp();
 
     return _col.doc(farmerId).update(updateData);
+  }
+
+  // Method to update farmer ban status (for admin use)
+  Future<void> updateFarmerBanStatus({
+    required String farmerId,
+    required bool isBanned,
+  }) {
+    return _col.doc(farmerId).update({
+      'isBanned': isBanned,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Method to update farmer flag status (for admin use)
+  Future<void> updateFarmerFlagStatus({
+    required String farmerId,
+    required bool isFlagged,
+  }) {
+    return _col.doc(farmerId).update({
+      'isFlagged': isFlagged,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Method to check if farmer is banned
+  Future<bool> isFarmerBanned(String farmerId) async {
+    try {
+      final doc = await _col.doc(farmerId).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?['isBanned'] ?? false;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking ban status: $e');
+      return false;
+    }
   }
 
   // Keep the old method names for backward compatibility

@@ -3,6 +3,7 @@ import 'package:denbigh_app/farmers/screens/sales_management.dart';
 import 'package:denbigh_app/farmers/screens/settings_screen.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
 import 'package:denbigh_app/farmers/widgets/order_badge.dart';
+import 'package:denbigh_app/farmers/widgets/banned_user_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
@@ -86,6 +87,13 @@ class _MainLayoutContentState extends State<_MainLayoutContent> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = farmer_auth.AuthService();
+
+    // Check if farmer is banned and show banned widget instead of normal layout
+    if (auth.farmer != null && auth.farmer!.isBanned) {
+      return BannedUserWidget();
+    }
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Color(0xFFF8FBF8), // Light green background
