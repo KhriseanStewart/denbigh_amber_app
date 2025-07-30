@@ -64,7 +64,7 @@ class CustomButtonElevated extends StatelessWidget {
   final bool isItalic;
   final bool isBoldtext;
   final double? size;
-  final Icon? icon;
+  final Widget? icon;
 
   const CustomButtonElevated({
     super.key,
@@ -84,8 +84,8 @@ class CustomButtonElevated extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: 50,
+      width: width ?? double.infinity,
+      height: height ?? 50,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           shape:

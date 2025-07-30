@@ -70,9 +70,7 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
               });
             }
           }
-        } catch (e) {
-          print('Error loading farmer data: $e');
-        }
+        } catch (e) {}
 
         // Load profile image if exists (fallback to Firebase Storage)
         if (_profileImageUrl == null) {

@@ -68,7 +68,6 @@ class Cart_Service {
       await cartRef.doc(docId).update({'customerQuantity': newQuantity});
     } else {
       // Handle the case where the item isn't found, if necessary
-      print('Item with productId $productId not found in cart.');
     }
   }
 

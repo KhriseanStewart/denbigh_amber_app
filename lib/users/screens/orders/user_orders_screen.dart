@@ -101,11 +101,6 @@ class _UserOrdersScreenState extends State<UserOrdersScreen> {
     final farmerId = order['farmerId'] ?? '';
 
     // Debug: Print order data to see what's available
-    print('Order ID: $orderId');
-    print('Status: $status');
-    print('Has preparationImages: ${order.containsKey('preparationImages')}');
-    print('PreparationImages: ${order['preparationImages']}');
-    print('---');
 
     // Format date
     String formattedDate = 'Unknown date';

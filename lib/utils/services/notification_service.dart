@@ -29,9 +29,7 @@ class NotificationService {
         'isRead': false,
         'createdAt': FieldValue.serverTimestamp(),
       });
-    } catch (e) {
-      print('Error sending notification: $e');
-    }
+    } catch (e) {}
   }
 
   /// Send notification to customer about order status pdates
@@ -71,9 +69,7 @@ class NotificationService {
         'isRead': false,
         'createdAt': FieldValue.serverTimestamp(),
       });
-    } catch (e) {
-      print('Error sending notification: $e');
-    }
+    } catch (e) {}
   }
 
   /// Get notifications for a specific user
@@ -97,9 +93,7 @@ class NotificationService {
         'isRead': true,
         'readAt': FieldValue.serverTimestamp(),
       });
-    } catch (e) {
-      print('Error marking notification as read: $e');
-    }
+    } catch (e) {}
   }
 
   /// Mark all notifications as read for a user
@@ -120,9 +114,7 @@ class NotificationService {
       }
 
       await batch.commit();
-    } catch (e) {
-      print('Error marking all notifications as read: $e');
-    }
+    } catch (e) {}
   }
 
   /// Get unread notification count

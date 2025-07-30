@@ -14,7 +14,6 @@ class FarmerAuthService {
       );
       return true;
     } catch (e) {
-      print("Error signing in: $e");
       return false;
     }
   }
@@ -24,7 +23,6 @@ class FarmerAuthService {
       await auth.signInWithEmailAndPassword(email: email, password: password);
       return true;
     } catch (e) {
-   
       return false;
     }
   }
@@ -37,21 +35,17 @@ class FarmerAuthService {
         final data = docSnapshot.data();
         if (data != null && data.containsKey('radaRegistrationNumber')) {
           if (data['radaRegistrationNumber'] == radaId) {
-       
             return true;
           } else {
             return false;
           }
         } else {
-          print("Rada Registration Number not found");
           return false;
         }
       } else {
-        print("Document does not exist");
         return false;
       }
     } catch (e) {
-      print("Error getting Rada Id: $e");
       return false;
     }
   }
@@ -72,7 +66,6 @@ class FarmerAuthService {
       });
       return true;
     } catch (e) {
-      print("Error signing in: $e");
       return null;
     }
   }

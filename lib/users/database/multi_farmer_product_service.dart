@@ -73,9 +73,7 @@ class MultiFarmerProductService {
                       farmersData?['firstName'] ??
                       'Unknown Farmer';
                 }
-              } catch (e) {
-                print('Error fetching farmer info: $e');
-              }
+              } catch (e) {}
             }
 
             productsWithFarmers.add({
@@ -135,9 +133,7 @@ class MultiFarmerProductService {
                         farmersData?['firstName'] ??
                         'Unknown Farmer';
                   }
-                } catch (e) {
-                  print('Error fetching farmer info: $e');
-                }
+                } catch (e) {}
               }
 
               matchingProducts.add({
@@ -208,9 +204,7 @@ class MultiFarmerProductService {
                       farmersData?['firstName'] ??
                       'Unknown Farmer';
                 }
-              } catch (e) {
-                print('Error fetching farmer info: $e');
-              }
+              } catch (e) {}
             }
 
             productsWithFarmers.add({

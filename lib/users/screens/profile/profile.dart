@@ -118,9 +118,7 @@ class ProfileScreen extends StatelessWidget {
                   await AuthService().signOut();
 
                   Navigator.pushReplacementNamed(context, AppRouter.login);
-                } catch (e) {
-                  print(e);
-                }
+                } catch (e) {}
               },
               child: Text('Logout'),
             ),

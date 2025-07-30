@@ -13,7 +13,9 @@ class CustomTextFormField extends StatelessWidget {
   final VoidCallback? toggleObscure;
   final String? hintText;
   final List<TextInputFormatter>? inputFormatters;
-  final bool underlineborder; 
+  final bool underlineborder;
+  final bool enabled;
+  final bool readOnly;
 
   const CustomTextFormField({
     super.key,
@@ -28,7 +30,9 @@ class CustomTextFormField extends StatelessWidget {
     this.toggleObscure,
     this.hintText,
     this.inputFormatters,
-    this.underlineborder = false, 
+    this.underlineborder = false,
+    this.enabled = true,
+    this.readOnly = false
   });
 
   @override
@@ -42,10 +46,18 @@ class CustomTextFormField extends StatelessWidget {
     InputBorder focusedErrorBorder;
 
     if (underlineborder) {
-      enabledBorder = UnderlineInputBorder(borderSide: BorderSide(color: borderColor, width: 0.5));
-      focusedBorder = UnderlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1));
-      errorBorder = UnderlineInputBorder(borderSide: BorderSide(color: errorColor, width: 0.5));
-      focusedErrorBorder = UnderlineInputBorder(borderSide: BorderSide(color: errorColor, width: 1));
+      enabledBorder = UnderlineInputBorder(
+        borderSide: BorderSide(color: borderColor, width: 0.5),
+      );
+      focusedBorder = UnderlineInputBorder(
+        borderSide: BorderSide(color: borderColor, width: 1),
+      );
+      errorBorder = UnderlineInputBorder(
+        borderSide: BorderSide(color: errorColor, width: 0.5),
+      );
+      focusedErrorBorder = UnderlineInputBorder(
+        borderSide: BorderSide(color: errorColor, width: 1),
+      );
     } else {
       enabledBorder = OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -68,6 +80,8 @@ class CustomTextFormField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextFormField(
+        readOnly: readOnly,
+        enabled: enabled,
         controller: controller,
         keyboardType: inputType,
         inputFormatters: inputFormatters,
