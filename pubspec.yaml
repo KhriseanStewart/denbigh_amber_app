@@ -33,10 +33,16 @@ dependencies:
   rxdart: ^0.28.0
   flutter_paypal_payment: ^1.0.8
   lottie: ^3.3.1
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
 
   flutter_lints: ^5.0.0
 

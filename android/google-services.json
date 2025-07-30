@@ -1,4 +1,4 @@
-{
+
   "project_info": {
     "project_number": "300840934452",
     "project_id": "farmers-app-fbdb3",
@@ -54,42 +54,6 @@
         "mobilesdk_app_id": "1:300840934452:android:6da8106d59128fffeefe61",
         "android_client_info": {
           "package_name": "com.example.grocery_practice_app"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAgAej9FXPUUcXkmfzJlYJFGmGvb1E1ICY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "300840934452-cl5kq6k2oe9j7ad3kk2au7hhij5a76mu.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.groceryPracticeApp"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:300840934452:android:f5d8fdf9ebee5e0ceefe61",
-        "android_client_info": {
-          "package_name": "com.githubkhriseanstewart.agriconnect"
         }
       },
       "oauth_client": [

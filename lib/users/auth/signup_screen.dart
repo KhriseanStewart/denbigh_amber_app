@@ -17,6 +17,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _signupkey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController telephoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController farmerId = TextEditingController();
   final TextEditingController confirmPasswordController =
@@ -51,6 +52,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 role: selectedRole,
                 location: location,
                 name: name,
+                telephone: telephoneController.text,
                 farmerId: selectedRole == 'farmer'
                     ? radaId
                     : null, // Only pass RADA ID for farmers
@@ -156,6 +158,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     decoration: _inputDecoration(
                       "Enter Your Email",
                       Icons.email,
+                    ),
+                    validator: emailValidator,
+                  ),
+                  const SizedBox(height: 16),
+
+                  //telephone
+                  TextFormField(
+                    controller: telephoneController,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: _inputDecoration(
+                      "Enter Your Telephone",
+                      Icons.phone,
                     ),
                     validator: emailValidator,
                   ),

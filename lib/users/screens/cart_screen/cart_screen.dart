@@ -15,11 +15,19 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  Map<String, TextEditingController> controllers = {};
   Map<String, int> cartQuantities = {};
   bool _isProcessingOrder = false;
   double totalCost = 0;
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
+
+  @override
+  void dispose() {
+    // Dispose all controllers
+    controllers.forEach((key, controller) => controller.dispose());
+    super.dispose();
+  }
 
   void handleCheckout() async {
     Navigator.pushNamed(
@@ -43,6 +51,19 @@ class _CartScreenState extends State<CartScreen> {
     } catch (e) {
       // Show error to user
       displaySnackBar(context, "Failed to update quantity. Please try again.");
+    }
+  }
+
+  // Helper to initialize controllers
+  void initializeControllers(List<QueryDocumentSnapshot> cartItems) {
+    for (var item in cartItems) {
+      final id = item.id;
+      if (!controllers.containsKey(id)) {
+        final data = item.data() as Map<String, dynamic>?;
+        final currentQty =
+            (cartQuantities[id] ?? data?['customerQuantity'] ?? 1).toString();
+        controllers[id] = TextEditingController(text: currentQty);
+      }
     }
   }
 
@@ -77,12 +98,15 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           final cartItems = snapshot.data!.docs;
+          initializeControllers(cartItems);
 
           int itemCost = 0;
           for (var item in cartItems) {
+            final id = item.id;
+            final data = item.data() as Map<String, dynamic>?;
             final quantity =
-                cartQuantities[item.id] ?? item['customerQuantity'];
-            itemCost += ((item['price'] as num? ?? 0) * quantity).toInt();
+                cartQuantities[id] ?? data?['customerQuantity'] ?? 1;
+            itemCost += ((data?['price'] as num? ?? 0) * quantity).toInt();
           }
 
           int subTax = (itemCost * 0.08).toInt();
@@ -234,8 +258,14 @@ class _CartScreenState extends State<CartScreen> {
       final id = item.id;
       final currentQuantity = cartQuantities[id] ?? customerQuantity;
       final dynamic categoryData = data['category'] ?? 'Uncategorized';
+      final controller = controllers[id]!;
 
       String category;
+
+      // Ensure controller text is always current
+      if (controller.text != currentQuantity.toString()) {
+        controller.text = currentQuantity.toString();
+      }
 
       if (categoryData is List && categoryData.isNotEmpty) {
         // If it's a list, take the first element
@@ -389,8 +419,7 @@ class _CartScreenState extends State<CartScreen> {
                                     .get(),
                                 builder: (context, farmerSnapshot) {
                                   if (farmerSnapshot.hasData &&
-                                      farmerSnapshot.data!.exists) {
-                                  }
+                                      farmerSnapshot.data!.exists) {}
 
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
@@ -497,11 +526,27 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       // Show quantity only if quantity >= 1
                       if ((data['quantity'] ?? 0) >= 1)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            '$currentQuantity',
-                            style: TextStyle(fontSize: 18),
+                        SizedBox(
+                          width: 50,
+                          child: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                            onSubmitted: (value) async {
+                              final int? newQty = int.tryParse(value);
+                              if (newQty != null) {
+                                setState(() {
+                                  cartQuantities[id] = newQty;
+                                });
+                                await _updateCartItemQuantity(id, newQty);
+                              } else {
+                                // Optional: Reset to last known quantity if input invalid
+                                controller.text =
+                                    cartQuantities[id]?.toString() ??
+                                    data['customerQuantity'].toString();
+                              }
+                            },
                           ),
                         ),
                       IconButton(

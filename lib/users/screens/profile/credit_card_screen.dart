@@ -6,6 +6,7 @@ import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:lottie/lottie.dart';
 
 class CardScreen extends StatefulWidget {
   const CardScreen({super.key});
@@ -76,7 +77,10 @@ class _CardScreenState extends State<CardScreen> {
       if (payment == true) {
         try {
           await OrderService().createOrderFromCart(userId);
-          displaySnackBar(context, "Order placed successfully!");
+          showCenteredBottomSheet(context);
+          await Future.delayed(Duration(seconds: 3), () {
+            Navigator.pop(context);
+          });
           Future.microtask(() {
             Duration(seconds: 2);
             Navigator.pop(context);
@@ -254,9 +258,7 @@ class _CardScreenState extends State<CardScreen> {
                   btntext: _isProcessingOrder ? "Validating" : "Paypal",
                   icon: Icon(Icons.paypal_outlined, size: 28),
                   onpress: _isProcessingOrder ? null : _handleCheckout,
-                  bgcolor: _isProcessingOrder
-                      ? Colors.grey
-                      : Colors.lightGreen,
+                  bgcolor: _isProcessingOrder ? Colors.grey : Colors.lightGreen,
                   textcolor: Colors.white,
                   isBoldtext: true,
                   size: 16,
@@ -268,6 +270,32 @@ class _CardScreenState extends State<CardScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void showCenteredBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          // Optional: add some padding or decoration
+          padding: EdgeInsets.all(16),
+          // Center the content
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Wrap content height
+              children: [
+                Lottie.asset(
+                  "assets/paymentsucess.json",
+                  width: 400,
+                  height: 400,
+                  repeat: false,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

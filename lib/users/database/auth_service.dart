@@ -38,6 +38,7 @@ class AuthService {
     required String password,
     required String role, // 'customer', 'farmer', or 'admin'
     required String name,
+    required String telephone,
     required String location,
     String? farmerId, // Optional RADA ID for farmers
   }) async {
@@ -57,6 +58,7 @@ class AuthService {
         'createdAt': FieldValue.serverTimestamp(),
         'name': name,
         'location': location,
+        'telephone': telephone,
       };
 
       // Add farmerId/RADA ID if provided (for farmers)

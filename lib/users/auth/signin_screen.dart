@@ -23,8 +23,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
     void handleSubmit() async {
       setState(() {
         isLoggin = true;
@@ -94,6 +92,9 @@ class _SignInScreenState extends State<SignInScreen> {
     void pushFarmerLogin() {
       Navigator.pushNamed(context, AppRouter.farmerlogin);
     }
+
+  @override
+  Widget build(BuildContext context) {
 
     return Scaffold(
       body: Container(
