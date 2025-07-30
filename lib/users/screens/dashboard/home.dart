@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _maxPriceFilter = 100; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
   double _tempSliderPrice = 100; // initialize with default value
-  double _currentSliderPrice = 100;
+  double _currentSliderPrice = 0;
   TextEditingController _priceFilter = TextEditingController();
 
   @override
@@ -211,65 +211,239 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(Icons.filter_list, color: Color(0xFF4CAF50), size: 22),
+                  SizedBox(width: 8),
                   Text(
                     "Filter",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32),
+                    ),
                   ),
                 ],
               ),
-              ListTile(
-                title: Text(
-                  "Category",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF1F8E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
                 ),
-              ),
-              SizedBox(
-                height: 40, // Adjust height as needed
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final catName = categories[index];
-                    final isSelected = _categoryFilter == catName;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _categoryFilter = catName;
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(right: 6),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.category,
+                          color: Color(0xFF4CAF50),
+                          size: 18,
                         ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.green : Colors.black,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isSelected ? Colors.green : Colors.black,
+                        SizedBox(width: 8),
+                        Text(
+                          "Category",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
                           ),
                         ),
-                        child: Center(
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    SizedBox(
+                      height: 40,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: categories.length,
+                        itemBuilder: (context, index) {
+                          final catName = categories[index];
+                          final isSelected = _categoryFilter == catName;
+
+                          // Fallback for empty category
+                          if (catName.isEmpty) {
+                            return Container(
+                              margin: EdgeInsets.only(right: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'No Products Available',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _categoryFilter = catName;
+                              });
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(right: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: isSelected
+                                    ? LinearGradient(
+                                        colors: [
+                                          Color(0xFF4CAF50),
+                                          Color(0xFF66BB6A),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                    : null,
+                                color: isSelected ? null : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Color(0xFF4CAF50)
+                                      : Color(0xFF4CAF50).withOpacity(0.5),
+                                  width: 1.5,
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: Color(
+                                            0xFF4CAF50,
+                                          ).withOpacity(0.3),
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  catName.isEmpty ? 'Uncategorized' : catName,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Color(0xFF2E7D32),
+                                    fontSize: 14,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF1F8E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.attach_money,
+                          color: Color(0xFF4CAF50),
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          "Price Range",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Color(0xFF4CAF50).withOpacity(0.5),
+                            ),
+                          ),
                           child: Text(
-                            catName,
+                            "\$${_currentSliderPrice.round()}",
                             style: TextStyle(
-                              color: Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.w300,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2E7D32),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              activeTrackColor: Color(0xFF4CAF50),
+                              inactiveTrackColor: Color(
+                                0xFF4CAF50,
+                              ).withOpacity(0.3),
+                              thumbColor: Color(0xFF2E7D32),
+                              overlayColor: Color(0xFF4CAF50).withOpacity(0.2),
+                              valueIndicatorColor: Color(0xFF2E7D32),
+                            ),
+                            child: Slider(
+                              value: _currentSliderPrice,
+                              min: 0,
+                              max: 500,
+                              divisions: 100,
+                              label: "\$${_currentSliderPrice.round()}",
+                              onChanged: (double value) {
+                                setState(() {
+                                  _currentSliderPrice = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              Divider(),
-              ListTile(
-                title: Text(
-                  "Price",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF1F8E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
                 ),
               ),
               Row(
@@ -280,14 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       keyboardType: TextInputType.number,
                       controller: _priceFilter,
                     ),
-                  ),
-                ],
-              ),
-              Divider(),
-              ListTile(
-                title: Text(
-                  "Delivery",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  ],
                 ),
               ),
               // Delivery zone dropdown
@@ -343,12 +510,18 @@ class _HomeScreenState extends State<HomeScreen> {
       Query query = productsRef;
 
       // Apply category filter (arrayContains)
-      if (_categoryFilter != null && _categoryFilter != 'All') {
+      if (_categoryFilter != 'All') {
         query = query.where('category', arrayContains: _categoryFilter);
       }
 
-      // Apply price filter
-      query = query.where('price', isGreaterThan: _currentSliderPrice);
+      // Apply price filter - show products with price greater than or equal to the slider value
+      if (_currentSliderPrice > 0) {
+        query = query.where(
+          'price',
+          isGreaterThanOrEqualTo: _currentSliderPrice,
+        );
+      }
+      print(_currentSliderPrice);
 
       // Apply delivery zone filter
       if (_deliveryZoneFilter != null && _deliveryZoneFilter != 'default') {

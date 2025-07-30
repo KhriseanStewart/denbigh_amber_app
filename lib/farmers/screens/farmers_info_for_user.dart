@@ -89,9 +89,6 @@ class _FarmerInfoDialogContentState extends State<FarmerInfoDialogContent> {
         // Primary field name is profileImageUrl
         final profileImageUrl = farmerData['profileImageUrl'] as String?;
 
-        final radaRegistrationNumber =
-            farmerData['radaRegistrationNumber'] ?? 'N/A';
-
         return Container(
           width: 320,
           padding: EdgeInsets.all(20),
@@ -181,21 +178,9 @@ class _FarmerInfoDialogContentState extends State<FarmerInfoDialogContent> {
 
               SizedBox(height: 4),
 
-              // Farm name
-              if (farmName != 'Farm name not provided')
-                Text(
-                  farmName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey.shade600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
               SizedBox(height: 8),
 
-              // RADA number
+              // Farm name
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -204,7 +189,7 @@ class _FarmerInfoDialogContentState extends State<FarmerInfoDialogContent> {
                   border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Text(
-                  'RADA: $radaRegistrationNumber',
+                  'Farm: $farmName',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.black87,

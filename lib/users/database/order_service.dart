@@ -94,7 +94,10 @@ class OrderService {
 
       return true;
     } catch (e) {
-      return false;
+      print('Error creating order: $e');
+      print('Stack trace: ${StackTrace.current}');
+      // Re-throw the exception to provide more specific error messages
+      rethrow;
     }
   }
 

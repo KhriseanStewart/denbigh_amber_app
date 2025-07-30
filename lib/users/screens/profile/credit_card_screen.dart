@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/order_service.dart';
 import 'package:denbigh_app/users/database/paypal_info.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
@@ -40,6 +41,27 @@ class _CardScreenState extends State<CardScreen> {
       displaySnackBar(context, "Something is wrong");
       return;
     }
+
+    // Check if cart has items before processing payment
+    try {
+      final cartSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cartItems')
+          .get();
+
+      if (cartSnapshot.docs.isEmpty) {
+        displaySnackBar(
+          context,
+          "Your cart is empty. Please add items before checkout.",
+        );
+        return;
+      }
+    } catch (e) {
+      displaySnackBar(context, "Error checking cart. Please try again.");
+      return;
+    }
+
     setState(() {
       _isProcessingOrder = true;
     });
@@ -53,22 +75,29 @@ class _CardScreenState extends State<CardScreen> {
       );
       if (payment == true) {
         try {
-          final success = await OrderService().createOrderFromCart(userId);
-
-          if (success) {
-            displaySnackBar(context, "Order placed successfully!");
-            Future.microtask(() {
-              Duration(seconds: 2);
-              Navigator.pop(context);
-            });
-          } else {
-            displaySnackBar(
-              context,
-              "Failed to place order. Please try again.",
-            );
-          }
+          await OrderService().createOrderFromCart(userId);
+          displaySnackBar(context, "Order placed successfully!");
+          Future.microtask(() {
+            Duration(seconds: 2);
+            Navigator.pop(context);
+          });
         } catch (e) {
-          displaySnackBar(context, "Error: ${e.toString()}");
+          String errorMessage = "Failed to place order. ";
+
+          // Check for specific error types
+          String errorString = e.toString().toLowerCase();
+          if (errorString.contains('insufficient stock')) {
+            errorMessage += "Some items are out of stock.";
+          } else if (errorString.contains('cart is empty')) {
+            errorMessage += "Your cart is empty.";
+          } else if (errorString.contains('product not found')) {
+            errorMessage += "Some products are no longer available.";
+          } else {
+            errorMessage += "Please try again.";
+          }
+
+          displaySnackBar(context, errorMessage);
+          print('Order creation error: $e');
         } finally {
           setState(() {
             _isProcessingOrder = false;
@@ -91,137 +120,152 @@ class _CardScreenState extends State<CardScreen> {
     //there is no card information available yet, so we will show a placeholder
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Card Information'),
         centerTitle: true,
         automaticallyImplyLeading: true,
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CreditCardWidget(
-              cardBgColor: Colors.deepOrangeAccent,
-              cardNumber: cardNumber,
-              expiryDate: expiryDate,
-              cardHolderName: cardHolderName,
-              cvvCode: cvvCode,
-              showBackView: false,
-              enableFloatingCard: true,
-              floatingConfig: FloatingConfig(
-                isGlareEnabled: true,
-                isShadowEnabled: true,
+      body: GestureDetector(
+        onTap: () {
+          // Dismiss keyboard when tapping outside of text fields
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CreditCardWidget(
+                cardBgColor: Colors.deepOrangeAccent,
+                cardNumber: cardNumber,
+                expiryDate: expiryDate,
+                cardHolderName: cardHolderName,
+                cvvCode: cvvCode,
+                showBackView: false,
+                enableFloatingCard: true,
+                floatingConfig: FloatingConfig(
+                  isGlareEnabled: true,
+                  isShadowEnabled: true,
+                ),
+                onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
               ),
-              onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
-            ),
-            CreditCardForm(
-              formKey: formKeyOne, // Required
-              cardNumber: cardNumber, // Required
-              expiryDate: expiryDate, // Required
-              cardHolderName: cardHolderName, // Required
-              cvvCode: cvvCode, // Required
-              cardNumberKey: cardNumberKey,
-              cvvCodeKey: cvvKey,
-              expiryDateKey: expDate,
-              cardHolderKey: cardHolder,
-              onCreditCardModelChange: onCreditCardModelChange,
-              obscureCvv: true,
-              obscureNumber: true,
-              isHolderNameVisible: true,
-              isCardNumberVisible: true,
-              isExpiryDateVisible: true,
-              enableCvv: true,
-              cvvValidationMessage: 'Please input a valid CVV',
-              dateValidationMessage: 'Please input a valid date',
-              numberValidationMessage: 'Please input a valid number',
-              cardNumberValidator: (String? cardNumber) {
-                return null;
-              },
-              expiryDateValidator: (String? expiryDate) {
-                return null;
-              },
-              cvvValidator: (String? cvv) {
-                return null;
-              },
-              cardHolderValidator: (String? cardHolderName) {
-                return null;
-              },
-              isCardHolderNameUpperCase: true,
-              onFormComplete: () {
-                // callback to execute at the end of filling card data
-              },
-              autovalidateMode: AutovalidateMode.always,
-              disableCardNumberAutoFillHints: false,
-              inputConfiguration: const InputConfiguration(
-                cardNumberDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Number',
-                  hintText: 'XXXX XXXX XXXX XXXX',
-                ),
-                expiryDateDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Expired Date',
-                  hintText: 'XX/XX',
-                ),
-                cvvCodeDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'CVV',
-                  hintText: 'XXX',
-                ),
-                cardHolderDecoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Card Holder',
-                ),
-                cardNumberTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                cardHolderTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                expiryDateTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                ),
-                cvvCodeTextStyle: TextStyle(fontSize: 10, color: Colors.black),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: TextFormField(
-                controller: billingAddressController,
-                focusNode: billingAddressFocusNode,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Billing Address',
-                  hintText: 'Enter your billing address',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your billing address';
-                  }
+              CreditCardForm(
+                formKey: formKeyOne, // Required
+                cardNumber: cardNumber, // Required
+                expiryDate: expiryDate, // Required
+                cardHolderName: cardHolderName, // Required
+                cvvCode: cvvCode, // Required
+                cardNumberKey: cardNumberKey,
+                cvvCodeKey: cvvKey,
+                expiryDateKey: expDate,
+                cardHolderKey: cardHolder,
+                onCreditCardModelChange: onCreditCardModelChange,
+                obscureCvv: true,
+                obscureNumber: true,
+                isHolderNameVisible: true,
+                isCardNumberVisible: true,
+                isExpiryDateVisible: true,
+                enableCvv: true,
+                cvvValidationMessage: 'Please input a valid CVV',
+                dateValidationMessage: 'Please input a valid date',
+                numberValidationMessage: 'Please input a valid number',
+                cardNumberValidator: (String? cardNumber) {
                   return null;
                 },
-                onChanged: (value) {
-                  billingAddress = value;
+                expiryDateValidator: (String? expiryDate) {
+                  return null;
                 },
+                cvvValidator: (String? cvv) {
+                  return null;
+                },
+                cardHolderValidator: (String? cardHolderName) {
+                  return null;
+                },
+                isCardHolderNameUpperCase: true,
+                onFormComplete: () {
+                  // callback to execute at the end of filling card data
+                },
+                autovalidateMode: AutovalidateMode.always,
+                disableCardNumberAutoFillHints: false,
+                inputConfiguration: const InputConfiguration(
+                  cardNumberDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Number',
+                    hintText: 'XXXX XXXX XXXX XXXX',
+                  ),
+                  expiryDateDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Expired Date',
+                    hintText: 'XX/XX',
+                  ),
+                  cvvCodeDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'CVV',
+                    hintText: 'XXX',
+                  ),
+                  cardHolderDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Card Holder',
+                  ),
+                  cardNumberTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  cardHolderTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  expiryDateTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                  cvvCodeTextStyle: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                  ),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: CustomButtonElevated(
-                btntext: _isProcessingOrder ? "Validating" : "Paypal",
-                icon: Icon(Icons.paypal_outlined, size: 28),
-                onpress: _isProcessingOrder ? null : _handleCheckout,
-                bgcolor: _isProcessingOrder ? Colors.grey : Colors.orangeAccent,
-                textcolor: Colors.white,
-                isBoldtext: true,
-                size: 16,
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: TextFormField(
+                  controller: billingAddressController,
+                  focusNode: billingAddressFocusNode,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Billing Address',
+                    hintText: 'Enter your billing address',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your billing address';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    billingAddress = value;
+                  },
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: CustomButtonElevated(
+                  btntext: _isProcessingOrder ? "Validating" : "Paypal",
+                  icon: Icon(Icons.paypal_outlined, size: 28),
+                  onpress: _isProcessingOrder ? null : _handleCheckout,
+                  bgcolor: _isProcessingOrder
+                      ? Colors.grey
+                      : Colors.orangeAccent,
+                  textcolor: Colors.white,
+                  isBoldtext: true,
+                  size: 16,
+                ),
+              ),
+              // Add extra space at bottom for keyboard
+              SizedBox(height: 50),
+            ],
+          ),
         ),
       ),
     );

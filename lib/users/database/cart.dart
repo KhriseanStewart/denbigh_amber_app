@@ -24,7 +24,7 @@ class Cart_Service {
     if (existingItem.docs.isNotEmpty) {
       final docId = existingItem.docs.first.id;
       await cartRef.doc(docId).update({
-        'quantity': FieldValue.increment(quantity),
+        'customerQuantity': FieldValue.increment(quantity),
       });
     } else {
       //add the item

@@ -396,52 +396,88 @@ class _CartScreenState extends State<CartScreen> {
                                             as Map<String, dynamic>?;
                                   }
 
-                                  if (farmerSnapshot.hasData &&
-                                      farmerSnapshot.data!.exists) {
-                                    final farmersData =
-                                        farmerSnapshot.data!.data()
-                                            as Map<String, dynamic>?;
+                            if (farmerSnapshot.hasData &&
+                                farmerSnapshot.data!.exists) {
+                              final farmersData =
+                                  farmerSnapshot.data!.data()
+                                      as Map<String, dynamic>?;
 
-                                    // Safely get farmer name with type checking
-                                    final farmerNameField =
-                                        farmersData?['farmerName'];
-                                    final nameField = farmersData?['name'];
-                                    final firstNameField =
-                                        farmersData?['firstName'];
+                              // Safely get farmer name with type checking
+                              final farmerNameField =
+                                  farmersData?['farmerName'];
+                              final nameField = farmersData?['name'];
+                              final firstNameField = farmersData?['firstName'];
 
-                                    if (farmerNameField != null &&
-                                        farmerNameField is String) {
-                                      farmerName = farmerNameField;
-                                    } else if (nameField != null &&
-                                        nameField is String) {
-                                    } else if (firstNameField != null &&
-                                        firstNameField is String) {
-                                      farmerName = firstNameField;
-                                    }
-                                  }
+                              if (farmerNameField != null &&
+                                  farmerNameField is String) {
+                                farmerName = farmerNameField;
+                              } else if (nameField != null &&
+                                  nameField is String) {
+                                farmerName = nameField;
+                              } else if (firstNameField != null &&
+                                  firstNameField is String) {
+                                farmerName = firstNameField;
+                              }
+                            }
 
-                                  return Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade100,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'By: $farmerName',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green.shade700,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade100,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      'By: $farmerName',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.green.shade700,
-                                        fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        size: 12,
+                                        color: Colors.grey.shade700,
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                                      SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          data['location'] ?? 'No location',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade700,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),

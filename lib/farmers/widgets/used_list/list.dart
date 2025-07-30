@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final List<String> categories = [
- 'All',
+  'All',
   'Vegetables',
   'Fruits',
   'Dairy',
@@ -9,6 +9,7 @@ final List<String> categories = [
   'Meat',
   'Poultry',
   'Seafood',
+  'Uncategorized', // Fallback for empty categories
 ];
 
 final List<String> units = [
@@ -20,6 +21,7 @@ final List<String> units = [
   'pack',
   'LBS',
   'ounce',
+  'unit', // Fallback for empty units
 ];
 
 final Map<String, Color> categoryColors = {
@@ -29,9 +31,12 @@ final Map<String, Color> categoryColors = {
   'Dairy': Colors.blue.shade100,
   'Grains': Colors.brown.shade100,
   'Meat': Colors.red.shade100,
+  'Poultry': Colors.yellow.shade100,
   'Bakery': Colors.amber.shade100,
   'Beverages': Colors.cyan.shade100,
   'Seafood': Colors.teal.shade100,
+  'Uncategorized':
+      Colors.grey.shade200, // Fallback color for uncategorized items
 };
 
 final Map<String, Color> statuses = {
