@@ -34,7 +34,6 @@ class PaypalInfo {
       final data = jsonDecode(response.body);
       return data['access_token'];
     } else {
-      print('Failed to get access token: ${response.body}');
       return null;
     }
   }
@@ -95,10 +94,9 @@ class PaypalInfo {
 
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      print('PAYPAL: Credit card payment successful: ${data['id']}');
+
       return true;
     } else {
-      print('PAYPAL: Error processing credit card payment: ${response.body}');
       return false;
     }
   }
@@ -136,10 +134,9 @@ class PaypalInfo {
 
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      print('PAYPAL: Payment created: ${data['id']}');
+
       return true;
     } else {
-      print('PAYPAL: Error creating payment: ${response.body}');
       return false;
     }
   }

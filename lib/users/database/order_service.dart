@@ -9,8 +9,6 @@ class OrderService {
   /// Create orders from user's cart items - SIMPLIFIED
   Future<bool> createOrderFromCart(String userId) async {
     try {
-      print('DEBUG: Starting createOrderFromCart for user: $userId');
-
       // Get cart items
       final cartSnapshot = await _db
           .collection('users')
@@ -18,17 +16,13 @@ class OrderService {
           .collection('cartItems')
           .get();
 
-      print('DEBUG: Found ${cartSnapshot.docs.length} cart items');
-
       if (cartSnapshot.docs.isEmpty) {
-        print('Cart is empty');
         return false;
       }
 
       // Generate a unique order session ID for grouping related orders
       final orderSessionId =
           DateTime.now().millisecondsSinceEpoch.toString() + '_' + userId;
-      print('DEBUG: Generated order session ID: $orderSessionId');
 
       // First, validate stock for all items before creating any orders
       for (var cartItem in cartSnapshot.docs) {
@@ -48,13 +42,11 @@ class OrderService {
               .doc(productId)
               .get();
           if (!productDoc.exists) {
-            print('ERROR: Product not found: $productId');
             throw Exception('Product not found: ${data['name']}');
           }
 
           final productData = productDoc.data();
           final availableStock = (productData?['stock'] as num?)?.toInt() ?? 0;
-          print('DEBUG: Product $productId has stock: $availableStock');
 
           if (availableStock < quantity) {
             print(
@@ -74,15 +66,12 @@ class OrderService {
         if (data == null) continue;
 
         final farmerId = data['farmerId'] ?? 'unknown';
-        print('DEBUG: Cart item farmerId: $farmerId');
-        print('DEBUG: Cart item data: $data');
+
         if (!itemsByFarmer.containsKey(farmerId)) {
           itemsByFarmer[farmerId] = [];
         }
         itemsByFarmer[farmerId]!.add(cartItem);
       }
-
-      print('DEBUG: Grouped items by ${itemsByFarmer.keys.length} farmers');
 
       // Create order for each farmer with the same session ID
       for (var entry in itemsByFarmer.entries) {
@@ -97,17 +86,14 @@ class OrderService {
           farmerItems,
           orderSessionId,
         );
-        print('DEBUG: Successfully created order for farmer $farmerId');
       }
 
       // Clear cart
-      print('DEBUG: Clearing cart');
+
       await _clearCart(userId);
-      print('Orders created successfully');
+
       return true;
     } catch (e) {
-      print('Error creating order: $e');
-      print('Stack trace: ${StackTrace.current}');
       return false;
     }
   }
@@ -117,13 +103,11 @@ class OrderService {
       final productDoc = await _db.collection('products').doc(productId).get();
 
       if (!productDoc.exists) {
-        print("Product not found: $productId");
         return false;
       }
 
       final data = productDoc.data();
       if (data == null) {
-        print("Product data is null for: $productId");
         return false;
       }
 
@@ -152,7 +136,6 @@ class OrderService {
       );
       return true;
     } catch (e) {
-      print("Error calculating/updating stock for product $productId: $e");
       return false;
     }
   }
@@ -181,11 +164,7 @@ class OrderService {
 
       // Save receipt to Firestore under 'receipts' collection
       await _db.collection('receipts').add(receiptData);
-
-      print('Receipt created successfully for order: $orderId');
-    } catch (e) {
-      print('Failed to create receipt: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _createOrderForFarmer(
@@ -209,22 +188,16 @@ class OrderService {
         .doc(customerId);
 
     try {
-      print('DEBUG: Fetching user data for $customerId');
       final snapshot = await docRef.get();
       if (snapshot.exists) {
         final data = snapshot.data() as Map<String, dynamic>;
         username = data['name'] ?? 'Unknown Customer';
         location = data['location'] ?? 'No Location';
-
-        print('Username: $username');
-        print('Location: $location');
       } else {
-        print('User document does not exist');
         username = 'Unknown Customer';
         location = 'No Location';
       }
     } catch (error) {
-      print('Error fetching user data: $error');
       username = 'Unknown Customer';
       location = 'No Location';
     }
@@ -249,14 +222,11 @@ class OrderService {
       // Handle stock deduction for this specific product
       if (productId != null) {
         try {
-          print('DEBUG: Updating stock for product $productId');
           final stockUpdated = await calculateStock(productId, quantity);
           if (!stockUpdated) {
             throw Exception('Insufficient stock for product: ${data['name']}');
           }
-          print('DEBUG: Successfully updated stock for product $productId');
         } catch (e) {
-          print('Failed to update stock for product $productId: $e');
           throw Exception('Failed to process order due to stock issues');
         }
       }
@@ -290,10 +260,8 @@ class OrderService {
       'customerLocation': location,
     };
 
-    print('DEBUG: Adding order to Firestore for farmer $farmerId');
     // Add to main orders collection
     await _db.collection('orders').add(orderData);
-    print('DEBUG: Successfully added order to Firestore for farmer $farmerId');
   }
 
   /// Clear user's cart after successful order creation
@@ -464,7 +432,6 @@ class OrderService {
         }
       }
     } catch (e) {
-      print('Failed to send status update notification: $e');
       // Don't fail the status update if notification fails
     }
   }
@@ -492,7 +459,6 @@ class OrderService {
       await updateOrderStatus(orderId, 'cancelled');
       return true;
     } catch (e) {
-      print('Error cancelling order: $e');
       return false;
     }
   }

@@ -32,8 +32,6 @@ class SalesAndOrdersService {
             try {
               return Sale.fromMap(doc.data(), doc.id);
             } catch (e) {
-              print('Error parsing sale document ${doc.id}: $e');
-              print('Document data: ${doc.data()}');
               // Return a default sale or null, filter out nulls later
               rethrow;
             }
@@ -68,7 +66,6 @@ class SalesAndOrdersService {
               }
               groupedSales[groupKey]!.add(sale);
             } catch (e) {
-              print('Error parsing sale document ${doc.id}: $e');
               continue;
             }
           }
@@ -80,7 +77,6 @@ class SalesAndOrdersService {
               try {
                 result.add(SalesGroup.fromSales(salesGroup));
               } catch (e) {
-                print('Error creating SalesGroup: $e');
                 continue;
               }
             }
@@ -122,9 +118,7 @@ class SalesAndOrdersService {
           'totalEarnings': currentTotalEarnings + sale.totalPrice.toInt(),
         });
       }
-    } catch (e) {
-      print('Error updating product from sale: $e');
-    }
+    } catch (e) {}
   }
 
   // Method to convert order to sale and update product automatically
@@ -164,9 +158,7 @@ class SalesAndOrdersService {
       await _db.collection('orders').doc(orderId).update({
         'status': 'completed',
       });
-    } catch (e) {
-      print('Error converting order to sale: $e');
-    }
+    } catch (e) {}
   }
 
   // ------------------- ORDERS METHODS -------------------
@@ -174,7 +166,6 @@ class SalesAndOrdersService {
   Stream<List<model_orders.Orderlist>> getFilteredOrdersForFarmerManual(
     String farmerId,
   ) {
-    print('DEBUG: Farmer querying for orders with farmerId: $farmerId');
     return _db
         .collection('orders')
         .where('farmerId', isEqualTo: farmerId)
@@ -190,12 +181,10 @@ class SalesAndOrdersService {
 
           for (var doc in snapshot.docs) {
             final data = doc.data();
-            print('DEBUG: Processing individual order: ${doc.id}');
 
             try {
               result.add(model_orders.Orderlist.fromMap(data, doc.id));
             } catch (e) {
-              print('ERROR: Failed to parse order ${doc.id}: $e');
               continue;
             }
           }

@@ -68,7 +68,6 @@ class Cart_Service {
       await cartRef.doc(docId).update({'customerQuantity': newQuantity});
     } else {
       // Handle the case where the item isn't found, if necessary
-      print('Item with productId $productId not found in cart.');
     }
   }
 
@@ -86,6 +85,7 @@ class Cart_Service {
       await cartRef.doc(docSnapshot.docs.first.id).delete();
     }
   }
+
   Future<bool> isProductInCart(String userId, String productId) async {
     final cartRef = FirebaseFirestore.instance
         .collection('users')
@@ -98,6 +98,7 @@ class Cart_Service {
 
     return querySnapshot.docs.isNotEmpty;
   }
+
   Stream<QuerySnapshot> readCart(String uid) {
     return _db.collection("users").doc(uid).collection("cartItems").snapshots();
   }

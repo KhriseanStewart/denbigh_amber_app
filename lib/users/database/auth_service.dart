@@ -14,7 +14,6 @@ class AuthService {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return true; // Returns user object if successful
     } catch (e) {
-      print("Error signing in: $e");
       return null; // Returns null if sign-in fails
     }
   }
@@ -29,7 +28,6 @@ class AuthService {
       );
       return userCredential.user; // Returns user object if successful
     } catch (e) {
-      print("Error signing in with Google: $e");
       return null; // Returns null if sign-in fails
     }
   }
@@ -73,7 +71,6 @@ class AuthService {
 
       return true;
     } catch (e) {
-      print('Error signing up: $e');
       return false;
     }
   }
@@ -116,7 +113,6 @@ class AuthService {
 
       return cred.user;
     } catch (e) {
-      print('Error signing up: $e');
       return null;
     }
   }
@@ -135,9 +131,7 @@ class AuthService {
         'location': location,
         'telephone': telephone,
       });
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
   }
 
   // Sign out
@@ -170,7 +164,6 @@ class AuthService {
       await user.updatePassword(newPassword);
       return true;
     } catch (e) {
-      print('Password change failed: $e');
       return false;
     }
   }
@@ -193,7 +186,6 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error getting user role: $e');
       return null;
     }
   }

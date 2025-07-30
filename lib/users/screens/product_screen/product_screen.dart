@@ -28,7 +28,6 @@ class _ProductScreenState extends State<ProductScreen> {
     super.didChangeDependencies();
     final arguments = ModalRoute.of(context)?.settings.arguments;
     if (arguments == null) {
-      print('Error: No arguments passed to ProductScreen');
       return;
     }
 
@@ -38,7 +37,6 @@ class _ProductScreenState extends State<ProductScreen> {
         try {
           quantity = args['minUnitNum'] ?? 1;
         } catch (e) {
-          print('Error accessing minUnitNum: $e');
           quantity = 1;
         }
       });
@@ -135,34 +133,19 @@ class _ProductScreenState extends State<ProductScreen> {
             auth!.uid,
             args['productId'],
           );
-          print(args['productId']);
-          print(exists);
+          showCenteredBottomSheet(context);
           // Show the Lottie popup after successful add to cart
+          await Future.delayed(Duration(seconds: 3), () {
+            Navigator.pop(context);
+          });
           setState(() {
             _showLottieAnimation = true;
           });
-          // showDialog(
-          //   context: context,
-          //   barrierDismissible: false, // Prevent dismiss by tapping outside
-          //   builder: (context) => Center(
-          //     child: Lottie.asset(
-          //       'assets/AddToCart.json', // replace with your Lottie file path
-          //     ),
-          //   ),
-          // );
 
-          // Wait for the animation duration or a fixed delay
-          await Future.delayed(
-            Duration(seconds: 1),
-          ); // Adjust duration as needed
-
-          // Close the dialog
-          // Navigator.of(context).pop();
           setState(() {
             isLoading = false;
           });
         } catch (e) {
-          print('Error adding to cart: $e');
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('Failed to add to cart')));
@@ -420,7 +403,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                     children: [
                                       IconButton(
                                         onPressed: () {
-                                          print(quantity);
                                           setState(() {
                                             quantity--;
                                           });
@@ -432,7 +414,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                           : Text("$quantity"),
                                       IconButton(
                                         onPressed: () {
-                                          print(quantity);
                                           setState(() {
                                             quantity++;
                                           });
@@ -553,36 +534,62 @@ class _ProductScreenState extends State<ProductScreen> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      exists
-                          ? CustomButtonElevated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 10.0,
+                  ),
+                  child: args['stock'] > 0
+                      ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            exists
+                                ? CustomButtonElevated(
+                                    icon: Icon(
+                                      Icons.shopping_bag_outlined,
+                                      size: 24,
+                                      color: Colors.black,
+                                    ),
+                                    btntext: "Item in Cart",
+                                    bgcolor: Colors.lightGreen,
+                                    textcolor: Colors.black,
+                                    isBoldtext: false,
+                                    size: 18,
+                                  )
+                                : CustomButtonElevated(
+                                    btntext: isLoading
+                                        ? 'Adding..'
+                                        : "Add to Cart",
+                                    // Inside your _ProductScreenState class
+                                    onpress: isLoading ? null : handleAddToCart,
+                                    bgcolor: isLoading
+                                        ? Colors.grey
+                                        : Colors.lightGreen,
+                                    textcolor: Colors.white,
+                                    isBoldtext: true,
+                                    size: 18,
+                                  ),
+                          ],
+                        )
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CustomButtonElevated(
                               icon: Icon(
-                                Icons.shopping_bag_outlined,
+                                Icons.error,
                                 size: 24,
-                                color: Colors.black,
+                                color: Colors.white,
                               ),
-                              btntext: "Item in Cart",
-                              bgcolor: Colors.lightGreen,
-                              textcolor: Colors.black,
+                              btntext: "Out of Stock",
+                              onpress: () {
+                                showAlertDialog(context);
+                              },
+                              bgcolor: Colors.redAccent,
+                              textcolor: Colors.white,
                               isBoldtext: false,
                               size: 18,
-                            )
-                          : CustomButtonElevated(
-                              btntext: isLoading ? 'Adding..' : "Add to Cart",
-                              // Inside your _ProductScreenState class
-                              onpress: isLoading ? null : handleAddToCart,
-                              bgcolor: isLoading
-                                  ? Colors.grey
-                                  : Colors.lightGreen,
-                              textcolor: Colors.white,
-                              isBoldtext: true,
-                              size: 18,
                             ),
-                    ],
-                  ),
+                          ],
+                        ),
                 ),
               ),
             ],
@@ -590,7 +597,6 @@ class _ProductScreenState extends State<ProductScreen> {
         ),
       );
     } catch (e) {
-      print('Error in ProductScreen build: $e');
       return Scaffold(
         appBar: AppBar(
           title: Text('Error'),
@@ -617,5 +623,53 @@ class _ProductScreenState extends State<ProductScreen> {
         ),
       );
     }
+  }
+
+  void showAlertDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Item out of Stock"),
+          content: Text("Try again later"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Okay"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showCenteredBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          // Optional: add some padding or decoration
+          padding: EdgeInsets.all(16),
+          // Center the content
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Wrap content height
+              children: [
+                Lottie.asset(
+                  "assets/AddToCartSuccess.json",
+                  width: 200,
+                  height: 200,
+                  repeat: false,
+                ),
+                SizedBox(height: 16),
+                Text('Item added to cart!', style: TextStyle(fontSize: 18)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

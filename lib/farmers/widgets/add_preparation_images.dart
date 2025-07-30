@@ -47,9 +47,7 @@ class _AddPreparationImagesState extends State<AddPreparationImages> {
           });
         }
       }
-    } catch (e) {
-      print('Error loading existing preparation images: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _pickAndUploadImage({

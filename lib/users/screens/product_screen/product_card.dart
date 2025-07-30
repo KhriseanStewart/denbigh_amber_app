@@ -72,9 +72,7 @@ class _UserProductCardState extends State<UserProductCard> {
         setState(() {
           farmerCount = snapshot.docs.length;
         });
-      } catch (e) {
-        print('Error loading farmer count: $e');
-      }
+      } catch (e) {}
     }
   }
 

@@ -107,7 +107,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 }
 
                 if (productSnapshot.hasError) {
-                  print('Error loading products: ${productSnapshot.error}');
                   return buildSnapShotError(productSnapshot.error);
                 }
 
@@ -442,9 +441,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               try {
                 await farmer_auth.AuthService().signOut();
                 Navigator.pushReplacementNamed(context, '/farmerlogin');
-              } catch (e) {
-                print('Logout error: $e');
-              }
+              } catch (e) {}
             },
             child: Text('Go to Login'),
           ),
@@ -505,7 +502,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       await farmer_auth.AuthService().signOut();
                       Navigator.pushReplacementNamed(context, '/farmerlogin');
                     } catch (e) {
-                      print('Logout error: $e');
                       // Show error message if needed
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Logout failed: $e')),
