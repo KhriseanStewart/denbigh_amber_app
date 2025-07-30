@@ -22,7 +22,6 @@ void main() async {
         home: Scaffold(body: Center(child: Text('Firebase init failed: $e'))),
       ),
     );
-    print(e);
   }
 }
 

@@ -32,8 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
       if (_signinkey.currentState?.validate() ?? false) {
         final email = emailController.text.trim();
         final password = passwordController.text;
-        print(email);
-        print(password);
+
         try {
           final result = await AuthService().signInWithEmail(email, password);
           if (result == true) {

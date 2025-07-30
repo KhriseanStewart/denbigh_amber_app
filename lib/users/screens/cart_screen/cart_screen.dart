@@ -41,9 +41,7 @@ class _CartScreenState extends State<CartScreen> {
           .collection('cartItems')
           .doc(cartItemId)
           .update({'customerQuantity': newQuantity});
-      print('Updated cart item $cartItemId quantity to $newQuantity');
     } catch (e) {
-      print('Error updating cart item quantity: $e');
       // Show error to user
       displaySnackBar(context, "Failed to update quantity. Please try again.");
     }
@@ -181,7 +179,6 @@ class _CartScreenState extends State<CartScreen> {
                           cartQuantities[doc.id] =
                               data?['customerQuantity'] ?? 1;
                         } catch (e) {
-                          print('Error accessing cart item data: $e');
                           cartQuantities[doc.id] = 1;
                         }
                       }
@@ -224,10 +221,10 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget buildProductCard(QueryDocumentSnapshot<Object?> item) {
     try {
+      String farmerName = 'Loading...';
       // Safely access item data with null checks
       final data = item.data() as Map<String, dynamic>?;
       if (data == null) {
-        print('Item data is null for item ID: ${item.id}');
         return SizedBox.shrink();
       }
 
@@ -381,13 +378,23 @@ class _CartScreenState extends State<CartScreen> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .collection('farmersData')
-                              .doc(data['farmerId'])
-                              .get(),
-                          builder: (context, farmerSnapshot) {
-                            String farmerName = 'Unknown Farmer';
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('farmersData')
+                                    .doc(data['farmerId'])
+                                    .get(),
+                                builder: (context, farmerSnapshot) {
+                                  if (farmerSnapshot.hasData &&
+                                      farmerSnapshot.data!.exists) {
+                                    final farmersData =
+                                        farmerSnapshot.data!.data()
+                                            as Map<String, dynamic>?;
+                                  }
 
                             if (farmerSnapshot.hasData &&
                                 farmerSnapshot.data!.exists) {
@@ -509,7 +516,6 @@ class _CartScreenState extends State<CartScreen> {
                         onPressed: (data['quantity'] ?? 0) == 0
                             ? null
                             : () async {
-                                print(currentQuantity);
                                 if (currentQuantity >
                                     (data['minUnitNum'] ?? 1)) {
                                   final newQuantity = currentQuantity - 1;
@@ -541,7 +547,6 @@ class _CartScreenState extends State<CartScreen> {
                       IconButton(
                         icon: Icon(Icons.add),
                         onPressed: () async {
-                          print(currentQuantity);
                           final newQuantity = currentQuantity + 1;
                           setState(() {
                             cartQuantities[id] = newQuantity;
@@ -559,7 +564,6 @@ class _CartScreenState extends State<CartScreen> {
         ),
       );
     } catch (e) {
-      print('Error in buildProductCard: $e');
       return Container(
         padding: EdgeInsets.all(16),
         child: Text('Error loading item', style: TextStyle(color: Colors.red)),
@@ -637,7 +641,6 @@ class _CartScreenState extends State<CartScreen> {
       }
       return 'Unknown Farmer';
     } catch (e) {
-      print('Error fetching farmer name: $e');
       return 'Unknown Farmer';
     }
   }

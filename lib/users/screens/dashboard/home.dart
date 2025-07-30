@@ -5,9 +5,11 @@ import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
 import 'package:denbigh_app/users/database/customer_service.dart'
     hide AuthService;
+import 'package:denbigh_app/users/screens/chat_feedback_report/chat_hub.dart';
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
 import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,12 +25,16 @@ final auth = AuthService().currentUser;
 
 class _HomeScreenState extends State<HomeScreen> {
   String _categoryFilter = 'All'; // default category
+  double _maxPriceFilter = 100; // max price filter
   String? _deliveryZoneFilter = 'default'; // delivery zone filter
+  double _tempSliderPrice = 100; // initialize with default value
   double _currentSliderPrice = 0;
+  TextEditingController _priceFilter = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _tempSliderPrice = _maxPriceFilter;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.green),
     );
@@ -46,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         return await CustomerService().getUserInformation(auth!.uid);
       } catch (e) {
-        print('Error fetching user data: $e');
         return null;
       }
     }
@@ -98,6 +103,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Feedback or Report Farmer',
+        backgroundColor: Colors.white,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatHub()),
+          );
+        },
+        child: Icon(FeatherIcons.messageCircle, size: 28),
+      ),
     );
   }
 
@@ -127,96 +143,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.hasError) {
-                    return AppBar(
-                      backgroundColor: Colors.transparent,
-                      titleSpacing: 10,
-                      leading: Container(
-                        decoration: BoxDecoration(shape: BoxShape.circle),
-                        child: PicCard(),
-                      ),
-                      actions: [Container()],
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Welcome",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w300,
-                            ),
-                          ),
-                          Text(
-                            FirebaseAuth.instance.currentUser?.displayName ??
-                                FirebaseAuth.instance.currentUser?.email
-                                    ?.split('@')
-                                    .first ??
-                                "User",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData ||
-                      snapshot.data == null ||
-                      !snapshot.data!.exists) {
-                    return AppBar(
-                      backgroundColor: Colors.transparent,
-                      titleSpacing: 10,
-                      leading: Container(
-                        decoration: BoxDecoration(shape: BoxShape.circle),
-                        child: PicCard(),
-                      ),
-                      actions: [Container()],
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Welcome",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w300,
-                            ),
-                          ),
-                          Text(
-                            FirebaseAuth.instance.currentUser?.displayName ??
-                                FirebaseAuth.instance.currentUser?.email
-                                    ?.split('@')
-                                    .first ??
-                                "User",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
                   final data = snapshot.data!.data() as Map<String, dynamic>?;
-                  return AppBar(
-                    backgroundColor:
-                        Colors.transparent, // make AppBar transparent
-                    titleSpacing: 10,
-                    leading: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28.0),
-                      child: Container(
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: AppBar(
+                      backgroundColor:
+                          Colors.transparent, // make AppBar transparent
+                      titleSpacing: 10,
+                      leading: Container(
                         decoration: BoxDecoration(shape: BoxShape.circle),
                         child: PicCard(),
                       ),
-                    ),
-                    actions: [Container()],
-                    title: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Column(
+                      actions: [Container()],
+                      title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -506,115 +445,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.local_shipping,
-                          color: Color(0xFF4CAF50),
-                          size: 18,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          "Delivery Zone",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2E7D32),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Color(0xFF4CAF50).withOpacity(0.5),
-                        ),
-                      ),
-                      child: DropdownButton<String>(
-                        value: _deliveryZoneFilter,
-                        isExpanded: true,
-                        underline: SizedBox(),
-                        icon: Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Color(0xFF4CAF50),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'default',
-                            child: Text(
-                              'Default',
-                              style: TextStyle(color: Color(0xFF2E7D32)),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'zone-one',
-                            child: Text(
-                              'Zone 1',
-                              style: TextStyle(color: Color(0xFF2E7D32)),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'zone-two',
-                            child: Text(
-                              'Zone 2',
-                              style: TextStyle(color: Color(0xFF2E7D32)),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'zone-three',
-                            child: Text(
-                              'Zone 3',
-                              style: TextStyle(color: Color(0xFF2E7D32)),
-                            ),
-                          ),
-                        ],
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _deliveryZoneFilter = newValue;
-                          });
-                        },
-                      ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      decoration: InputDecoration(hintText: 'Filter Price'),
+                      keyboardType: TextInputType.number,
+                      controller: _priceFilter,
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  onPressed: () {
-                    setState(() {});
-                    Navigator.pop(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.check, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        "Apply Filter",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+              // Delivery zone dropdown
+              DropdownButton<String>(
+                value: _deliveryZoneFilter,
+                items: [
+                  DropdownMenuItem(value: 'default', child: Text('Default')),
+                  DropdownMenuItem(value: 'zone-one', child: Text('Zone 1')),
+                  DropdownMenuItem(value: 'zone-two', child: Text('Zone 2')),
+                  DropdownMenuItem(value: 'zone-three', child: Text('Zone 3')),
+                ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _deliveryZoneFilter = newValue;
+                  });
+                },
+              ),
+              Divider(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {});
+                      Navigator.pop(context);
+                      double priceNum = double.parse(_priceFilter.text);
+                      _currentSliderPrice = priceNum;
+                      print(priceNum);
+                    },
+                    child: const Text("Apply Filter"),
                   ),
                 ),
               ),

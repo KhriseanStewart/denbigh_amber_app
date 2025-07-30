@@ -85,7 +85,7 @@ class _UserProductCardState extends State<UserProductCard> {
         setState(() {
           farmerCount = 1; // Default fallback
         });
-      }
+      } catch (e) {}
     }
   }
 

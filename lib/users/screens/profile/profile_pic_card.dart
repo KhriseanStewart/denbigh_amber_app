@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -84,14 +85,16 @@ class _ProfilePictureUploaderState extends State<ProfilePictureUploader> {
             child: CircleAvatar(
               radius: 80,
               backgroundColor: Colors.grey[300],
-              child:  Icon(Icons.person, size: 80, color: Colors.white70),
+              child: Icon(Icons.person, size: 80, color: Colors.white70),
             ),
           ),
           SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: null,
+          CustomButtonElevated(
+            btntext: 'Change Profile Picture',
             icon: Icon(Icons.upload),
-            label: Text('Change Profile Picture'),
+            onpress: () {
+              null;
+            },
           ),
         ],
       );
@@ -132,16 +135,19 @@ class _ProfilePictureUploaderState extends State<ProfilePictureUploader> {
               ),
             ),
             SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _uploading ? null : _pickAndUploadImage,
+            CustomButtonElevated(
+              width: 240,
+              height: 40,
+              btntext: 'Change Profile Picture',
+              textcolor: Colors.white,
+              onpress: _uploading ? null : _pickAndUploadImage,
               icon: _uploading
                   ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(Icons.upload),
-              label: Text('Change Profile Picture'),
+                  : Icon(Icons.upload, color: Colors.white),
             ),
           ],
         );

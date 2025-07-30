@@ -1,6 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/users/database/auth_service.dart';
+import 'package:denbigh_app/users/database/customer_service.dart'
+    hide AuthService;
 import 'package:denbigh_app/users/screens/dashboard/home.dart';
+import 'package:denbigh_app/users/screens/profile/pic_card.dart';
 import 'package:denbigh_app/utils/validators_%20and_widgets.dart';
+import 'package:denbigh_app/widgets/autoCompleter.dart';
+import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:denbigh_app/widgets/textField.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +28,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
+  String? location;
   bool _isSaving = false;
 
   void _save() async {
@@ -49,8 +56,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
         );
       }
     } on FirebaseException catch (e) {
-      print(e);
-
       setState(() {
         _isSaving = false;
       });
@@ -75,64 +80,95 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
     super.dispose();
   }
 
+  Future<DocumentSnapshot?> getUserData() async {
+    if (auth?.uid != null) {
+      try {
+        return await CustomerService().getUserInformation(auth!.uid);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Account Information')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomTextFormField(
-                controller: _nameController,
-                label: 'Full Name',
-                hintText: 'Jason Mitch',
-                inputType: TextInputType.text,
-                validator: validateNotEmpty,
-              ),
-              SizedBox(height: 16),
-              CustomTextFormField(
-                controller: _emailController,
-                label: 'Email Address',
-                hintText: 'jason.mitch@example.com',
-                inputType: TextInputType.emailAddress,
-                validator: emailValidator,
-              ),
-              SizedBox(height: 16),
-              CustomTextFormField(
-                controller: _phoneController,
-                label: 'Phone Number',
-                hintText: '8761234567',
-                inputType: TextInputType.phone,
-                validator: phoneNumberValidator,
-              ),
-              SizedBox(height: 16),
-              CustomTextFormField(
-                controller: _locationController,
-                label: 'Location',
-                inputType: TextInputType.text,
-                validator: validateNotEmpty,
-                hintText: 'May Pen, Jamaica',
-              ),
-              SizedBox(height: 32),
-              _isSaving
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 32.0,
-                        ),
-                        textStyle: TextStyle(fontSize: 16.0),
-                      ),
-                      onPressed: _save,
-                      child: Text('Save Changes'),
+      appBar: AppBar(
+        title: Text('Account Information'),
+        surfaceTintColor: Colors.white,
+        shadowColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        child: FutureBuilder(
+          future: getUserData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData) {
+              Future.microtask(() {
+                Navigator.pop(context);
+              });
+            }
+
+            final data = snapshot.data;
+            location = data!['location'];
+            return Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    PicCard(),
+                    SizedBox(height: 26),
+                    CustomTextFormField(
+                      controller: _nameController,
+                      label: '${data!['name']}',
+                      hintText: 'Jason Mitch',
+                      inputType: TextInputType.text,
+                      validator: validateNotEmpty,
                     ),
-            ],
-          ),
+                    SizedBox(height: 16),
+                    CustomTextFormField(
+                      enabled: false,
+                      controller: _emailController,
+                      label: '${data!['email']}',
+                      hintText: '${data['email']}',
+                      inputType: TextInputType.emailAddress,
+                      validator: emailValidator,
+                    ),
+                    SizedBox(height: 16),
+                    CustomTextFormField(
+                      controller: _phoneController,
+                      label: '${data['telephone']}',
+                      hintText: '8761234567',
+                      inputType: TextInputType.phone,
+                      validator: phoneNumberValidator,
+                    ),
+                    SizedBox(height: 16),
+                    LocationAutoComplete(
+                      onCategorySelected: (p0) {
+                        location = p0;
+                        print(location);
+                      },
+                    ),
+                    SizedBox(height: 32),
+                    _isSaving
+                        ? CircularProgressIndicator()
+                        : CustomButtonElevated(
+                            btntext: "Save changes",
+                            textcolor: Colors.white,
+                            size: 18,
+                            isBoldtext: true,
+                            onpress: _save,
+                          ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
