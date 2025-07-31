@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/cart.dart';
+import 'package:denbigh_app/users/screens/orders/user_orders_screen.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -15,53 +17,26 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  Map<String, TextEditingController> controllers = {};
   Map<String, int> cartQuantities = {};
   bool _isProcessingOrder = false;
+  double totalCost = 0;
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  /// Handle checkout process - redirect to payment screen
-  Future<void> _handleCheckout() async {
-    if (_isProcessingOrder) return;
+  @override
+  void dispose() {
+    // Dispose all controllers
+    controllers.forEach((key, controller) => controller.dispose());
+    super.dispose();
+  }
 
-    setState(() {
-      _isProcessingOrder = true;
-    });
-
-    try {
-      // Calculate total cost to pass to payment screen
-      double totalCost = 0;
-      final cartItems = await Cart_Service().readCart(userId).first;
-      int itemCost = 0;
-      for (var item in cartItems.docs) {
-        try {
-          final data = item.data() as Map<String, dynamic>?;
-          final quantity =
-              cartQuantities[item.id] ?? (data?['customerQuantity'] ?? 1);
-          itemCost += ((data?['price'] as num? ?? 0) * quantity).toInt();
-        } catch (e) {
-          print('Error calculating item cost: $e');
-          continue;
-        }
-      }
-      int subTax = (itemCost * 0.08).toInt();
-      int deliveryFee = 10;
-      totalCost = (itemCost + subTax + deliveryFee).toDouble();
-
-      // Navigate to card/payment screen
-      Navigator.pushNamed(
-        context,
-        AppRouter.card,
-        arguments: <String, dynamic>{'totalCost': totalCost},
-      );
-    } catch (e) {
-      print('Error calculating total cost: $e');
-      displaySnackBar(context, "Error calculating total. Please try again.");
-    } finally {
-      setState(() {
-        _isProcessingOrder = false;
-      });
-    }
+  void handleCheckout() async {
+    Navigator.pushNamed(
+      context,
+      AppRouter.card,
+      arguments: <String, dynamic>{'totalCost': totalCost},
+    );
   }
 
   Future<void> _updateCartItemQuantity(
@@ -81,6 +56,19 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  // Helper to initialize controllers
+  void initializeControllers(List<QueryDocumentSnapshot> cartItems) {
+    for (var item in cartItems) {
+      final id = item.id;
+      if (!controllers.containsKey(id)) {
+        final data = item.data() as Map<String, dynamic>?;
+        final currentQty =
+            (cartQuantities[id] ?? data?['customerQuantity'] ?? 1).toString();
+        controllers[id] = TextEditingController(text: currentQty);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // this logic is to be change to suit the cart items from the database
@@ -95,7 +83,7 @@ class _CartScreenState extends State<CartScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: 20,
           ),
         ),
         backgroundColor: Colors.white,
@@ -108,27 +96,51 @@ class _CartScreenState extends State<CartScreen> {
             return Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("Your cart is empty"));
+            return Center(
+              child: Column(
+                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    FeatherIcons.shoppingCart,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
+                  Text("Your cart is empty"),
+                  CustomButtonElevated(
+                    width: MediaQuery.sizeOf(context).width * 0.5,
+                    btntext: "View My Orders",
+                    textcolor: Colors.white,
+                    bgcolor: Colors.lightGreen,
+                    onpress: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserOrdersScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
           }
 
           final cartItems = snapshot.data!.docs;
+          initializeControllers(cartItems);
 
           int itemCost = 0;
           for (var item in cartItems) {
-            try {
-              final data = item.data() as Map<String, dynamic>?;
-              final quantity =
-                  cartQuantities[item.id] ?? (data?['customerQuantity'] ?? 1);
-              itemCost += ((data?['price'] as num? ?? 0) * quantity).toInt();
-            } catch (e) {
-              // Skip this item if there's an error accessing its data
-              continue;
-            }
+            final id = item.id;
+            final data = item.data() as Map<String, dynamic>?;
+            final quantity =
+                cartQuantities[id] ?? data?['customerQuantity'] ?? 1;
+            itemCost += ((data?['price'] as num? ?? 0) * quantity).toInt();
           }
 
           int subTax = (itemCost * 0.08).toInt();
-          int deliveryFee = 10;
-          int totalCost = itemCost + subTax + deliveryFee;
+          double deliveryFee = 10;
+          totalCost = itemCost + subTax + deliveryFee;
           return Column(
             children: [
               Container(
@@ -157,12 +169,12 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Text(
                       "Item Cost: \$${itemCost.toStringAsFixed(2)}",
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 15),
                     ),
                     SizedBox(height: 6),
                     Text(
                       "Sub-Tax: \$${subTax.toStringAsFixed(2)}",
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 15),
                     ),
                     SizedBox(height: 6),
                     Row(
@@ -170,16 +182,13 @@ class _CartScreenState extends State<CartScreen> {
                       children: [
                         Text(
                           "Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}",
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(fontSize: 15),
                         ),
                         Text(
                           itemCost == 0
                               ? ""
                               : "Total: \$${totalCost.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 15),
                         ),
                       ],
                     ),
@@ -189,13 +198,13 @@ class _CartScreenState extends State<CartScreen> {
                         btntext: _isProcessingOrder
                             ? "Processing..."
                             : "Continue to Checkout",
-                        onpress: _isProcessingOrder ? null : _handleCheckout,
+                        onpress: _isProcessingOrder ? null : handleCheckout,
                         isBoldtext: true,
                         bgcolor: _isProcessingOrder
                             ? Colors.grey
-                            : Colors.green,
+                            : Colors.lightGreen,
                         textcolor: Colors.white,
-                        size: 18,
+                        size: 16,
                       ),
                     ),
                   ],
@@ -222,7 +231,6 @@ class _CartScreenState extends State<CartScreen> {
                           cartQuantities[doc.id] =
                               data?['customerQuantity'] ?? 1;
                         } catch (e) {
-                          print('Error accessing cart item data: $e');
                           cartQuantities[doc.id] = 1;
                         }
                       }
@@ -237,7 +245,7 @@ class _CartScreenState extends State<CartScreen> {
                       if (!itemsByFarmer.containsKey(farmerId)) {
                         itemsByFarmer[farmerId] = [];
                       }
-                      itemsByFarmer[farmerId]?.add(item);
+                      itemsByFarmer[farmerId]!.add(item);
                     }
 
                     return ListView.builder(
@@ -248,7 +256,7 @@ class _CartScreenState extends State<CartScreen> {
                       itemCount: itemsByFarmer.keys.length,
                       itemBuilder: (context, index) {
                         final farmerId = itemsByFarmer.keys.elementAt(index);
-                        final farmerItems = itemsByFarmer[farmerId] ?? [];
+                        final farmerItems = itemsByFarmer[farmerId]!;
 
                         return buildFarmerSection(farmerId, farmerItems);
                       },
@@ -265,10 +273,10 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget buildProductCard(QueryDocumentSnapshot<Object?> item) {
     try {
+      String farmerName = 'Loading...';
       // Safely access item data with null checks
       final data = item.data() as Map<String, dynamic>?;
       if (data == null) {
-        print('Item data is null for item ID: ${item.id}');
         return SizedBox.shrink();
       }
 
@@ -279,8 +287,14 @@ class _CartScreenState extends State<CartScreen> {
       final id = item.id;
       final currentQuantity = cartQuantities[id] ?? customerQuantity;
       final dynamic categoryData = data['category'] ?? 'Uncategorized';
+      final controller = controllers[id]!;
 
       String category;
+
+      // Ensure controller text is always current
+      if (controller.text != currentQuantity.toString()) {
+        controller.text = currentQuantity.toString();
+      }
 
       if (categoryData is List && categoryData.isNotEmpty) {
         // If it's a list, take the first element
@@ -380,7 +394,7 @@ class _CartScreenState extends State<CartScreen> {
                           data['name'] ?? 'Unknown Product',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 18,
+                            fontSize: 17,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -396,7 +410,7 @@ class _CartScreenState extends State<CartScreen> {
                           child: Text(
                             category,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 11,
                               color: Color(0xff828282),
                             ),
                           ),
@@ -408,14 +422,14 @@ class _CartScreenState extends State<CartScreen> {
                               "\$$totalPrice",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 22,
+                                fontSize: 16,
                               ),
                             ),
                             SizedBox(width: 4),
                             Text(
                               "/$unitType",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: Colors.grey,
                               ),
                             ),
@@ -430,29 +444,12 @@ class _CartScreenState extends State<CartScreen> {
                               FutureBuilder<DocumentSnapshot>(
                                 future: FirebaseFirestore.instance
                                     .collection('farmersData')
-                                    .doc(
-                                      data['farmerId']?.toString() ?? 'unknown',
-                                    )
+                                    .doc(data['farmerId'])
                                     .get(),
                                 builder: (context, farmerSnapshot) {
-                                  print(
-                                    'DEBUG: Cart item farmerId: ${data['farmerId']}',
-                                  );
-                                  print(
-                                    'DEBUG: Farmer snapshot hasData: ${farmerSnapshot.hasData}',
-                                  );
-                                  print(
-                                    'DEBUG: Farmer snapshot exists: ${farmerSnapshot.data?.exists}',
-                                  );
                                   if (farmerSnapshot.hasData &&
-                                      farmerSnapshot.data!.exists) {
-                                    final farmersData =
-                                        farmerSnapshot.data!.data()
-                                            as Map<String, dynamic>?;
-                                    print('DEBUG: Farmer data: $farmersData');
-                                  }
+                                      farmerSnapshot.data!.exists) {}
 
-                                  String farmerName = 'Unknown Farmer';
                                   if (farmerSnapshot.hasData &&
                                       farmerSnapshot.data!.exists) {
                                     final farmersData =
@@ -471,7 +468,6 @@ class _CartScreenState extends State<CartScreen> {
                                       farmerName = farmerNameField;
                                     } else if (nameField != null &&
                                         nameField is String) {
-                                      farmerName = nameField;
                                     } else if (firstNameField != null &&
                                         firstNameField is String) {
                                       farmerName = firstNameField;
@@ -490,7 +486,7 @@ class _CartScreenState extends State<CartScreen> {
                                     child: Text(
                                       'By: $farmerName',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 12,
                                         color: Colors.green.shade700,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -515,10 +511,7 @@ class _CartScreenState extends State<CartScreen> {
                   icon: const Icon(Icons.delete_outline, color: Colors.black54),
                   onPressed: () {
                     //logic to remove the item from the cart to add here
-                    Cart_Service().removeFromCart(
-                      userId,
-                      data['productId'] ?? item.id,
-                    );
+                    Cart_Service().removeFromCart(userId, data['productId']);
                   },
                 ),
                 SizedBox(height: 30),
@@ -541,7 +534,6 @@ class _CartScreenState extends State<CartScreen> {
                         onPressed: (data['quantity'] ?? 0) == 0
                             ? null
                             : () async {
-                                print(currentQuantity);
                                 if (currentQuantity >
                                     (data['minUnitNum'] ?? 1)) {
                                   final newQuantity = currentQuantity - 1;
@@ -563,17 +555,32 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       // Show quantity only if quantity >= 1
                       if ((data['quantity'] ?? 0) >= 1)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            '$currentQuantity',
-                            style: TextStyle(fontSize: 24),
+                        SizedBox(
+                          width: 50,
+                          child: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                            onSubmitted: (value) async {
+                              final int? newQty = int.tryParse(value);
+                              if (newQty != null) {
+                                setState(() {
+                                  cartQuantities[id] = newQty;
+                                });
+                                await _updateCartItemQuantity(id, newQty);
+                              } else {
+                                // Optional: Reset to last known quantity if input invalid
+                                controller.text =
+                                    cartQuantities[id]?.toString() ??
+                                    data['customerQuantity'].toString();
+                              }
+                            },
                           ),
                         ),
                       IconButton(
                         icon: Icon(Icons.add),
                         onPressed: () async {
-                          print(currentQuantity);
                           final newQuantity = currentQuantity + 1;
                           setState(() {
                             cartQuantities[id] = newQuantity;
@@ -591,7 +598,6 @@ class _CartScreenState extends State<CartScreen> {
         ),
       );
     } catch (e) {
-      print('Error in buildProductCard: $e');
       return Container(
         padding: EdgeInsets.all(16),
         child: Text('Error loading item', style: TextStyle(color: Colors.red)),
@@ -629,7 +635,7 @@ class _CartScreenState extends State<CartScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: Colors.green.shade700,
-                      fontSize: 20,
+                      fontSize: 16,
                     ),
                   ),
                   Spacer(),
@@ -637,7 +643,7 @@ class _CartScreenState extends State<CartScreen> {
                     '${farmerItems.length} items',
                     style: TextStyle(
                       color: Colors.green.shade600,
-                      fontSize: 16,
+                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -669,7 +675,6 @@ class _CartScreenState extends State<CartScreen> {
       }
       return 'Unknown Farmer';
     } catch (e) {
-      print('Error fetching farmer name: $e');
       return 'Unknown Farmer';
     }
   }

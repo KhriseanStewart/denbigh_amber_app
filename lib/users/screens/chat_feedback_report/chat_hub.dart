@@ -1,5 +1,5 @@
 import 'package:denbigh_app/users/database/chat_service.dart';
-import 'package:denbigh_app/users/screens/chat_feedback_report/chat_list.dart';
+import 'package:denbigh_app/users/screens/chat_feedback_report/feedback.dart';
 import 'package:denbigh_app/users/screens/chat_feedback_report/user_chat.dart';
 import 'package:denbigh_app/users/screens/dashboard/home.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +52,14 @@ class _ChatHubState extends State<ChatHub> {
               subtitle: Text(
                 "This app is still in development, leave a feedback for any errors. Thank you for testing!",
               ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FeedbackPage()),
+                );
+              },
             ),
+            SizedBox(height: 10),
             ListTile(
               title: Text("Report a Farmer"),
               leading: Icon(Icons.report_problem),

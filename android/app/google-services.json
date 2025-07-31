@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:300840934452:android:6c2a478d04d68e8aeefe61",
+        "mobilesdk_app_id": "1:300840934452:android:e40d820b63f4b5bfeefe61",
         "android_client_info": {
-          "package_name": "com.example.denbigh_app"
+          "package_name": "com.example.agriconnect_admin_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "300840934452-usks84902p3krbi6hqpo1e7ci8ltd89d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.agriconnect_admin_app",
+            "certificate_hash": "1cf2470d3e66d0a5e7dc88378c8cff42f095b6cd"
+          }
+        },
+        {
+          "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAgAej9FXPUUcXkmfzJlYJFGmGvb1E1ICY"
@@ -20,7 +33,91 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "300840934452-cl5kq6k2oe9j7ad3kk2au7hhij5a76mu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.groceryPracticeApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300840934452:android:6da8106d59128fffeefe61",
+        "android_client_info": {
+          "package_name": "com.example.grocery_practice_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgAej9FXPUUcXkmfzJlYJFGmGvb1E1ICY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "300840934452-cl5kq6k2oe9j7ad3kk2au7hhij5a76mu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.groceryPracticeApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300840934452:android:f5d8fdf9ebee5e0ceefe61",
+        "android_client_info": {
+          "package_name": "com.githubkhriseanstewart.agriconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgAej9FXPUUcXkmfzJlYJFGmGvb1E1ICY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "300840934452-fdb2f5sll8hd1qlc235pct5l40r46bh7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "300840934452-cl5kq6k2oe9j7ad3kk2au7hhij5a76mu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.groceryPracticeApp"
+              }
+            }
+          ]
         }
       }
     }

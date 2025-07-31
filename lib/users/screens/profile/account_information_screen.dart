@@ -24,7 +24,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
@@ -45,9 +44,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
       if (uid == null) {
         return;
       } else {
-        // await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(
-        //   _emailController.text,
-        // );
         AuthService().updateInformation(
           uid: uid,
           name: _nameController.text,
@@ -56,6 +52,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
         );
       }
     } on FirebaseException catch (e) {
+      displaySnackBar(context, e.message ?? 'An error occurred');
       setState(() {
         _isSaving = false;
       });
@@ -69,7 +66,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
 
   void disposeText() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _locationController.dispose();
   }
@@ -114,15 +110,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
             }
 
             final data = snapshot.data;
-            final docData = data?.data() as Map<String, dynamic>?;
-            location = docData?['location'];
-
-            // Extract user data with fallbacks
-            final userName = docData?['name']?.toString() ?? 'Name';
-            final userEmail = docData?['email']?.toString() ?? 'Email';
-            final userPhone =
-                docData?['telephone']?.toString() ?? 'Phone Number';
-
+            location = data!['location'];
             return Padding(
               padding: EdgeInsets.all(16.0),
               child: Form(
@@ -133,7 +121,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     SizedBox(height: 26),
                     CustomTextFormField(
                       controller: _nameController,
-                      label: userName,
+                      label: '${data['name']}',
                       hintText: 'Jason Mitch',
                       inputType: TextInputType.text,
                       validator: validateNotEmpty,
@@ -141,16 +129,14 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     SizedBox(height: 16),
                     CustomTextFormField(
                       enabled: false,
-                      controller: _emailController,
-                      label: userEmail,
-                      hintText: userEmail,
+                      label: '${data['email']}',
+                      hintText: '${data['email']}',
                       inputType: TextInputType.emailAddress,
-                      validator: emailValidator,
                     ),
                     SizedBox(height: 16),
                     CustomTextFormField(
                       controller: _phoneController,
-                      label: userPhone,
+                      label: '${data['telephone']}',
                       hintText: '8761234567',
                       inputType: TextInputType.phone,
                       validator: phoneNumberValidator,
@@ -159,7 +145,9 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     LocationAutoComplete(
                       onCategorySelected: (p0) {
                         location = p0;
-                        print(location);
+                        _locationController.text =
+                            p0 ?? 'Unknown'; // update the controller's text
+                        print('Selected location: $p0');
                       },
                     ),
                     SizedBox(height: 32),

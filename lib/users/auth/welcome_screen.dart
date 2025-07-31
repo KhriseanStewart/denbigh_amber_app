@@ -1,6 +1,8 @@
+import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/auth/signin_screen.dart';
 import 'package:denbigh_app/users/auth/signup_screen.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class FarmerWelcomeScreen extends StatefulWidget {
@@ -19,6 +21,20 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
     'assets/png2.png',
     'assets/png3.png',
   ];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final _currentuser = FirebaseAuth.instance.currentUser;
+      if (_currentuser != null) {
+        Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRouter.login);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +131,7 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => SignUpScreen()),
+                      MaterialPageRoute(builder: (context) => SignInScreen()),
                     );
 
                     // Navigate to sign in
