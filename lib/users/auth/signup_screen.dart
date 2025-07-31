@@ -171,7 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       "Enter Your Telephone",
                       Icons.phone,
                     ),
-                    validator: emailValidator,
+                    validator: phoneNumberValidator,
                   ),
                   const SizedBox(height: 16),
 
