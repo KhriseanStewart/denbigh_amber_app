@@ -14,7 +14,6 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
-
     final data = widget.data;
 
     // --- Start of Changes ---

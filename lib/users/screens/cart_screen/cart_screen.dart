@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/cart.dart';
+import 'package:denbigh_app/users/screens/orders/user_orders_screen.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -94,7 +96,34 @@ class _CartScreenState extends State<CartScreen> {
             return Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("Your cart is empty"));
+            return Center(
+              child: Column(
+                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    FeatherIcons.shoppingCart,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
+                  Text("Your cart is empty"),
+                  CustomButtonElevated(
+                    width: MediaQuery.sizeOf(context).width * 0.5,
+                    btntext: "View My Orders",
+                    textcolor: Colors.white,
+                    bgcolor: Colors.lightGreen,
+                    onpress: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserOrdersScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
           }
 
           final cartItems = snapshot.data!.docs;

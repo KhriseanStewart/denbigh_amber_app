@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutUsScreen extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,6 +41,7 @@ class AboutUsScreen extends StatelessWidget {
                 name: 'Khrisean Stewart',
                 role: 'Project Leader',
                 email: 'stewartkhrisean8@gmail.com',
+                url: 'https://terobytez.com',
                 description:
                     'Guiding the project with strategic vision, Khrisean led the team through planning, coordination, and execution, ensuring timely delivery of key features.',
               ),
@@ -102,6 +105,7 @@ class TeamCard extends StatefulWidget {
   final String role;
   final String email;
   final String description;
+  final String? url;
 
   const TeamCard({
     Key? key,
@@ -109,6 +113,7 @@ class TeamCard extends StatefulWidget {
     required this.role,
     required this.email,
     required this.description,
+    this.url,
   }) : super(key: key);
 
   @override
@@ -232,6 +237,16 @@ class _TeamCardState extends State<TeamCard>
   }
 
   Widget _buildBackCard() {
+    Future<void> _launchURL(String url) async {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        // Handle error
+        print('Could not launch $url');
+      }
+    }
+
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateY(3.14159),
@@ -283,6 +298,23 @@ class _TeamCardState extends State<TeamCard>
                   ),
                 ),
               ),
+              widget.url == null
+                  ? SizedBox.shrink()
+                  : Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          _launchURL(widget.url!);
+                        },
+                        child: Text(
+                          widget.url!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ],

@@ -24,7 +24,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
@@ -45,9 +44,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
       if (uid == null) {
         return;
       } else {
-        // await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(
-        //   _emailController.text,
-        // );
         AuthService().updateInformation(
           uid: uid,
           name: _nameController.text,
@@ -70,7 +66,6 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
 
   void disposeText() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _locationController.dispose();
   }
@@ -134,11 +129,9 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     SizedBox(height: 16),
                     CustomTextFormField(
                       enabled: false,
-                      controller: _emailController,
                       label: '${data['email']}',
                       hintText: '${data['email']}',
                       inputType: TextInputType.emailAddress,
-                      validator: emailValidator,
                     ),
                     SizedBox(height: 16),
                     CustomTextFormField(
@@ -152,7 +145,9 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                     LocationAutoComplete(
                       onCategorySelected: (p0) {
                         location = p0;
-                        print(location);
+                        _locationController.text =
+                            p0 ?? 'Unknown'; // update the controller's text
+                        print('Selected location: $p0');
                       },
                     ),
                     SizedBox(height: 32),

@@ -34,6 +34,7 @@ dependencies:
   flutter_paypal_payment: ^1.0.8
   lottie: ^3.3.1
   flutter_launcher_icons: ^0.14.4
+  icons_launcher: ^3.0.1
 
 dev_dependencies:
   flutter_test:

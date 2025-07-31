@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.cover,
             image: AssetImage('assets/images/header_background_dashboard.jpeg'),
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min, // Added this to prevent overflow
@@ -405,7 +405,10 @@ class _HomeScreenState extends State<HomeScreen> {
               DropdownButton<String>(
                 value: _deliveryZoneFilter,
                 items: [
-                  DropdownMenuItem(value: 'default', child: Text('Default')),
+                  DropdownMenuItem(
+                    value: 'default',
+                    child: Text('Not Available Yet'),
+                  ),
                   DropdownMenuItem(value: 'zone-one', child: Text('Zone 1')),
                   DropdownMenuItem(value: 'zone-two', child: Text('Zone 2')),
                   DropdownMenuItem(value: 'zone-three', child: Text('Zone 3')),
