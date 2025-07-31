@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/database/multi_farmer_product_service.dart';
@@ -17,6 +18,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final MultiFarmerProductService _multiFarmerService =
       MultiFarmerProductService();
+
   String _searchQuery = '';
   bool _isSearching = false;
 
@@ -34,9 +36,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        onPressed: () => Navigator.pop(context),
                         icon: Icon(Icons.arrow_back),
                       ),
                       Expanded(
@@ -58,16 +58,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       Builder(
                         builder: (context) => IconButton(
-                          onPressed: () {
-                            Scaffold.of(context).openEndDrawer();
-                          },
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
                           icon: Icon(FeatherIcons.sliders, size: 28),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
-                  // Search suggestions or results info
                   if (_searchQuery.isNotEmpty)
                     Container(
                       padding: EdgeInsets.symmetric(
@@ -86,14 +83,15 @@ class _SearchScreenState extends State<SearchScreen> {
                             size: 16,
                           ),
                           SizedBox(width: 8),
-                          Text(
-                            'Searching for "$_searchQuery"',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              'Searching for "$_searchQuery"',
+                              style: TextStyle(
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                          Spacer(),
                           IconButton(
                             icon: Icon(Icons.clear, size: 16),
                             onPressed: () {
@@ -124,9 +122,7 @@ class _SearchScreenState extends State<SearchScreen> {
       children: [
         Builder(
           builder: (context) => IconButton(
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
+            onPressed: () => Scaffold.of(context).openEndDrawer(),
             icon: Icon(FeatherIcons.sliders, size: 28),
           ),
         ),
@@ -135,34 +131,34 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget buildGridViewProducts() {
-    // Use different streams based on whether searching or not
-    Stream<dynamic> stream;
+    // Using ProductService().getProducts() as the main stream
+    final streamList = ProductService().getProducts();
 
-    if (_isSearching && _searchQuery.isNotEmpty) {
-      // Use search with farmer info
-      stream = _multiFarmerService.searchProductsWithFarmers(_searchQuery);
-    } else {
-      // Use regular product stream
-      stream = ProductService().getProducts();
-    }
-
-    return StreamBuilder(
-      stream: stream,
+    return StreamBuilder<QuerySnapshot>(
+      stream: streamList,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(child: Text("No Products Found"));
         }
 
-        List<dynamic> items;
+        final items = snapshot.data!.docs;
 
         if (_isSearching && _searchQuery.isNotEmpty) {
-          // Handle search results with farmer info
-          items = snapshot.data as List<Map<String, dynamic>>;
+          // Filter items based on search query
+          final filteredItems = items.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final name = (data['name'] ?? '').toString().toLowerCase();
+            final farmerName = (data['farmerName'] ?? '')
+                .toString()
+                .toLowerCase();
+            return name.contains(_searchQuery.toLowerCase()) ||
+                farmerName.contains(_searchQuery.toLowerCase());
+          }).toList();
 
-          if (items.isEmpty) {
+          if (filteredItems.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -185,6 +181,32 @@ class _SearchScreenState extends State<SearchScreen> {
 
           return GridView.builder(
             padding: EdgeInsets.symmetric(horizontal: 8),
+            itemCount: filteredItems.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 4,
+              childAspectRatio: 0.65,
+            ),
+            itemBuilder: (context, index) {
+              final doc = filteredItems[index];
+              final data = doc.data() as Map<String, dynamic>;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    AppRouter.productdetail,
+                    arguments: doc,
+                  );
+                },
+                child: _buildSearchResultCard(data),
+              );
+            },
+          );
+        } else {
+          // Show all products
+          return GridView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 8),
             itemCount: items.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -193,44 +215,17 @@ class _SearchScreenState extends State<SearchScreen> {
               childAspectRatio: 0.65,
             ),
             itemBuilder: (context, index) {
-              final item = items[index];
-              // Create a mock QueryDocumentSnapshot for compatibility
-              return GestureDetector(
-                onTap: () {
-                  // Handle navigation - you might need to adjust this based on your routing
-                  Navigator.pushNamed(
-                    context,
-                    AppRouter.productdetail,
-                    arguments: item, // This might need adjustment
-                  );
-                },
-                child: _buildSearchResultCard(item),
-              );
-            },
-          );
-        } else {
-          // Handle regular product display
-          final productdata = snapshot.data!.docs;
-          return GridView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            itemCount: productdata.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
-              childAspectRatio: 0.65,
-            ),
-            itemBuilder: (context, index) {
-              final data = productdata[index];
+              final doc = items[index];
+              final data = doc.data() as Map<String, dynamic>;
               return GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(
                     context,
                     AppRouter.productdetail,
-                    arguments: data,
+                    arguments: doc,
                   );
                 },
-                child: UserProductCard(data: data),
+                child: UserProductCard(data: doc),
               );
             },
           );
@@ -261,7 +256,9 @@ class _SearchScreenState extends State<SearchScreen> {
             flex: 3,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: item['imageUrl'] != null && item['imageUrl'].isNotEmpty
+              child:
+                  item['imageUrl'] != null &&
+                      (item['imageUrl'] as String).isNotEmpty
                   ? Image.network(
                       item['imageUrl'],
                       fit: BoxFit.cover,
