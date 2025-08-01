@@ -1,6 +1,7 @@
 # Agri-Connect
 
 **Agri-Connect** is a Flutter-based agricultural marketplace app designed to connect registered farmers directly with consumers. It provides an easy-to-use platform for farmers to manage and sell their products, while buyers can browse, filter, and purchase agricultural goods securely.
+---
 
 ##Agri-Connect
 
