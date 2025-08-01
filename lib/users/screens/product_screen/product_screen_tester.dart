@@ -10,14 +10,14 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
-class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+class ProductScreenTester extends StatefulWidget {
+  const ProductScreenTester({super.key});
 
   @override
-  State<ProductScreen> createState() => _ProductScreenState();
+  State<ProductScreenTester> createState() => _ProductScreenTesterState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _ProductScreenTesterState extends State<ProductScreenTester> {
   int quantity = 0;
   bool isLoading = false;
   bool exists = false;

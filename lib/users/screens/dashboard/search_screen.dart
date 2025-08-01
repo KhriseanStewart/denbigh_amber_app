@@ -3,6 +3,7 @@ import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/database/product_services.dart';
 import 'package:denbigh_app/users/database/multi_farmer_product_service.dart';
 import 'package:denbigh_app/users/screens/product_screen/product_card.dart';
+import 'package:denbigh_app/users/screens/product_screen/product_screen_tester.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -193,13 +194,15 @@ class _SearchScreenState extends State<SearchScreen> {
               final data = doc.data() as Map<String, dynamic>;
               return GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(
+                  Navigator.push(
                     context,
-                    AppRouter.productdetail,
-                    arguments: doc,
+                    MaterialPageRoute(
+                      builder: (context) => ProductScreenTester(),
+                      settings: RouteSettings(arguments: doc),
+                    ),
                   );
                 },
-                child: _buildSearchResultCard(data),
+                child: UserProductCard(data: doc),
               );
             },
           );

@@ -7,11 +7,10 @@ const apiKey =
 const userName = 'sb-cv78g44948678@business.example.com';
 const key =
     'EEp3MPfQFIu9TbcK8UREZgc0ULPnWpH-SWeDF-dtM4RxcBY3v7vl5AtwqsFZv65Dou0u8CIGsoywxMXC';
-// const password = "KL85$Tm-";
 const clientId =
-    'AfbtBqnNdym_jci4XUpBW6BXFfDEotMTn3dUS19UcVPqv4k1VpuXjWHgbPjTKp1-tzlQUw9H0HP4K3KY';
+    'AbjCdJBRfitg8zKU29ulX6fu7k4fgdAzGczbdzfqsbAd2pU7j37QyObkXVRkH5e2M5Ijzp0aa4zNNCI7';
 const secret =
-    'EPCCkHyIdN7O6EBdqamerz4huIEkkUpcRwWD_6SjkaOkdkYBIo96d1FzOVEwNVFzSYk1gDGB5hkiZ9oY';
+    'EKwmuif3IiPToS_EZaC_YR8KlGB6VdgfghX0GpwMGwDGCOfXFhDg472rD8KLh-rdtoL2vmf5jxheAMf_';
 
 class PaypalInfo {
   Future<String?> getPaypalAccessToken() async {
