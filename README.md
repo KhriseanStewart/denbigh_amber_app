@@ -7,7 +7,6 @@
 
 is an innovative Flutter-based agricultural marketplace app that bridges the gap between farmers and consumers. Designed to empower local farmers, the app allows registered farmers to effortlessly manage and sell their products directly to buyers. Consumers can easily browse, filter, and purchase fresh agricultural goods securely through the platform. With features like product management, order tracking, and secure payments, Agri-Connect aims to create a seamless, efficient, and trustworthy marketplace that supports sustainable farming communities.
 
-How this sound
 ---
 
 ## Features
