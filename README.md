@@ -1,16 +1,56 @@
-# denbigh_app
+# Agri-Connect
 
-A new Flutter project.
+**Agri-Connect** is a Flutter-based agricultural marketplace app designed to connect registered farmers directly with consumers. It provides an easy-to-use platform for farmers to manage and sell their products, while buyers can browse, filter, and purchase agricultural goods securely.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- **Farmer Dashboard:** Manage products, view sales, and analytics
+- **Product Management:** Add, edit, and track products with images and descriptions
+- **Customer Experience:** Search and filter products by price, location, and category
+- **Order Tracking:** View and manage orders and payments
+- **Secure Payments:** Integrated with PayPal
+- **Account Management:** Update profile, farm details, and login via email
+- **Moderation & Security:** Admin controls for suspending or banning accounts
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Future Enhancements
+
+- Product approval and quality control
+- Flagging & policy violation system
+- Advanced sales analytics
+- Real-time notifications
+
+---
+
+## Technologies
+
+- Flutter
+- Firebase (Auth, Firestore, Storage)
+
+---
+
+## Platform Support
+
+- Android (live)
+- iOS (coming soon)
+
+---
+
+## Demo
+
+Explore the app on Google Play:  
+[Link to Demo](https://play.google.com/apps/internaltest/4700552093081602257)  
+*Sign up with email to get started.*
+
+---
+
+## License
+
+This project is for demonstration purposes and is not publicly licensed. For contributions or questions, please contact the repository maintainer.
+
+---
+
+**Thank you for supporting local farmers!**
