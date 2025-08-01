@@ -27,7 +27,7 @@ How this sound
 - Flagging & policy violation system
 - Advanced sales analytics
 - Real-time notifications
-- Delivery Option
+- Delivery Option (Stepper)
 
 ---
 
