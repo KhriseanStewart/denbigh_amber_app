@@ -275,6 +275,7 @@ class _CardScreenState extends State<CardScreen> {
 
   void showCenteredBottomSheet(BuildContext context) {
     showModalBottomSheet(
+      isDismissible: false,
       context: context,
       builder: (context) {
         return Container(

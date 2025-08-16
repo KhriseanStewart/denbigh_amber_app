@@ -140,6 +140,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return AppBar(
+                      backgroundColor: Colors.transparent,
+                      title: Text("Welcome User"),
+                      centerTitle: true,
+                    );
+                  }
                   final data = snapshot.data!.data() as Map<String, dynamic>?;
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -164,8 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            data!['name'] ??
-                                data['firstName'] ??
+                            data?['name'] ??
+                                data?['firstName'] ??
                                 FirebaseAuth
                                     .instance
                                     .currentUser

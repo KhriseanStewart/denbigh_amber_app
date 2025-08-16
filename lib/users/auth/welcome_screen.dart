@@ -26,14 +26,15 @@ class _FarmerWelcomeScreenState extends State<FarmerWelcomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final _currentuser = FirebaseAuth.instance.currentUser;
-      if (_currentuser != null) {
-        Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
-      } else {
-        Navigator.pushReplacementNamed(context, AppRouter.login);
-      }
-    });
+    //TODO: ADD BETTER LOG IN METHOD
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final _currentuser = FirebaseAuth.instance.currentUser;
+    //   if (_currentuser != null) {
+    //     Navigator.pushReplacementNamed(context, AppRouter.mainlayout);
+    //   } else {
+    //     Navigator.pushReplacementNamed(context, AppRouter.login);
+    //   }
+    // });
   }
 
   @override
