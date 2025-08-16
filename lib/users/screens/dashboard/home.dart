@@ -456,9 +456,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final itemHeight = itemWidth * 1.55; // or a fixed ratio
 
     Stream<QuerySnapshot> getFilteredProducts() {
-      CollectionReference productsRef = FirebaseFirestore.instance.collection(
-        'products',
-      );
+      Query<Map<String, dynamic>> productsRef = FirebaseFirestore.instance
+          .collection("products")
+          .where('isComplete', isEqualTo: true) // Only show completed products
+          .where('isActive', isEqualTo: true);
 
       // Start with base query
       Query query = productsRef;

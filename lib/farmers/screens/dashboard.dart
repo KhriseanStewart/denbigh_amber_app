@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:denbigh_app/farmers/model/products.dart';
 import 'package:denbigh_app/farmers/screens/add_pruducts.dart'
     as add_product_screen;
+import 'package:denbigh_app/farmers/screens/chat_feedback_report/ffarmer_chat_hub.dart';
 import 'package:denbigh_app/farmers/screens/components/summary_card.dart';
 import 'package:denbigh_app/farmers/screens/product_detail.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
@@ -25,7 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     void submitProduct() async {
-      final productsRef = FirebaseFirestore.instance.collection('products');
+      final productsRef = FirebaseFirestore.instance.collection('draft');
       final newDoc = await productsRef.add({
         'createdAt': Timestamp.now(),
         'isComplete': false, // Mark as incomplete initially
@@ -123,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .where('farmerId', isEqualTo: auth.farmer!.id)
                       .snapshots(),
                   builder: (context, salesSnapshot) {
-                    // Calculate totals from sales data
+                    // Calculate totals from sales data (handle both consolidated and individual sales)
                     int totalRevenueFromSales = 0;
                     int totalQuantitySold = 0;
 
@@ -131,10 +132,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         salesSnapshot.data!.docs.isNotEmpty) {
                       for (final doc in salesSnapshot.data!.docs) {
                         final saleData = doc.data() as Map<String, dynamic>;
-                        totalRevenueFromSales +=
-                            (saleData['totalPrice'] as num?)?.toInt() ?? 0;
-                        totalQuantitySold +=
-                            (saleData['quantity'] as num?)?.toInt() ?? 0;
+
+                        // Handle consolidated sales (with items array)
+                        if (saleData.containsKey('items') &&
+                            saleData['items'] is List) {
+                          final items = saleData['items'] as List<dynamic>;
+
+                          // Calculate revenue from total sale amount
+                          totalRevenueFromSales +=
+                              (saleData['totalPrice'] as num?)?.toInt() ?? 0;
+
+                          // Calculate quantity from all items in this sale
+                          for (var item in items) {
+                            totalQuantitySold +=
+                                (item['quantity'] as num?)?.toInt() ?? 0;
+                          }
+                        } else {
+                          // Handle individual sales (old format)
+                          totalRevenueFromSales +=
+                              (saleData['totalPrice'] as num?)?.toInt() ?? 0;
+                          totalQuantitySold +=
+                              (saleData['quantity'] as num?)?.toInt() ?? 0;
+                        }
                       }
                     }
 
@@ -424,6 +443,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.chat),
+        backgroundColor: Colors.green,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatHub()),
+          );
+        },
+      ),
     );
   }
 
