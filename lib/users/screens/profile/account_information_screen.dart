@@ -9,7 +9,6 @@ import 'package:denbigh_app/widgets/autoCompleter.dart';
 import 'package:denbigh_app/widgets/custom_btn.dart';
 import 'package:denbigh_app/widgets/misc.dart';
 import 'package:denbigh_app/widgets/textField.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AccountInformationScreen extends StatefulWidget {
