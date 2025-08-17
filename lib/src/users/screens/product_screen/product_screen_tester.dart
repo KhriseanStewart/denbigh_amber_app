@@ -35,7 +35,7 @@ class _ProductScreenTesterState extends State<ProductScreenTester> {
       setState(() {
         try {
           final data = args;
-          quantity = data?['minUnitNum'] ?? 1;
+          quantity = data['minUnitNum'] ?? 1;
         } catch (e) {
           quantity = 1;
         }
