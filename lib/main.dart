@@ -1,9 +1,9 @@
 import 'package:denbigh_app/firebase_options.dart';
-import 'package:denbigh_app/routes.dart';
+import 'package:denbigh_app/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
+import 'package:denbigh_app/src/farmers/services/auth.dart' as farmer_auth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

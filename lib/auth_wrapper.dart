@@ -1,8 +1,8 @@
-import 'package:denbigh_app/users/auth/welcome_screen.dart';
-import 'package:denbigh_app/users/database/auth_service.dart';
-import 'package:denbigh_app/users/screens/main_layout/main_layout.dart'
+import 'package:denbigh_app/src/users/auth/welcome_screen.dart';
+import 'package:denbigh_app/src/users/database/auth_service.dart';
+import 'package:denbigh_app/src/users/screens/main_layout/main_layout.dart'
     as user_layout;
-import 'package:denbigh_app/users/screens/main_layout/main_layout_farmers.dart'
+import 'package:denbigh_app/src/users/screens/main_layout/main_layout_farmers.dart'
     as farmer_layout;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
