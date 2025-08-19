@@ -302,6 +302,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               });
                               _checkAllFieldsFilled();
                             },
+                            onTextChanged: (text) {
+                              setState(() {
+                                _name = text;
+                              });
+                              _checkAllFieldsFilled();
+                            },
+                            onFieldSubmitted: (text) {
+                              setState(() {
+                                _name = text;
+                              });
+                              _checkAllFieldsFilled();
+                            },
                           ),
                           SizedBox(height: 16),
                           DropdownButtonFormField<String>(

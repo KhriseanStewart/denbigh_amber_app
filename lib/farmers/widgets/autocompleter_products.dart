@@ -5,8 +5,16 @@ import 'package:flutter/material.dart';
 
 class AutocompleterProducts extends StatefulWidget {
   final Function(String?) onNameSelected;
+  final Function(String)? onTextChanged;
+  final Function(String)? onFieldSubmitted;
   final bool? underlineBorder;
-  const AutocompleterProducts({super.key, required this.onNameSelected, this.underlineBorder});
+  AutocompleterProducts({
+    Key? key,
+    required this.onNameSelected,
+    this.underlineBorder,
+    this.onTextChanged,
+    this.onFieldSubmitted,
+  }) : super(key: key);
 
   @override
   _AutocompleterProductsState createState() => _AutocompleterProductsState();
@@ -43,15 +51,20 @@ class _AutocompleterProductsState extends State<AutocompleterProducts> {
               decoration: InputDecoration(
                 label: Text('Product'),
                 labelStyle: TextStyle(color: Colors.black),
-                hintText:'e.g., Fresh Tomatoes',
+                hintText: 'e.g., Fresh Tomatoes',
                 hintStyle: TextStyle(color: Colors.black),
-              
                 border: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey, width: .5),
                 ),
-             
               ),
               validator: validateNotEmpty,
+              onChanged: (text) {
+                if (widget.onTextChanged != null) widget.onTextChanged!(text);
+              },
+              onFieldSubmitted: (text) {
+                if (widget.onFieldSubmitted != null)
+                  widget.onFieldSubmitted!(text);
+              },
             );
           },
     );
