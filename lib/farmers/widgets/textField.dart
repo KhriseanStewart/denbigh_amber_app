@@ -16,6 +16,7 @@ class CustomTextFormField extends StatelessWidget {
   final bool underlineborder;
   final String? initialValue;
   final Function(String?)? onSaved;
+  final Function(String?)? onChanged;
   final InputDecoration? decoration;
   final int? maxLines;
 
@@ -35,6 +36,7 @@ class CustomTextFormField extends StatelessWidget {
     this.underlineborder = false,
     this.initialValue,
     this.onSaved,
+    this.onChanged,
     this.decoration,
     this.maxLines,
   });
@@ -93,6 +95,7 @@ class CustomTextFormField extends StatelessWidget {
         maxLines: obscureText ? 1 : (maxLines ?? 1),
         initialValue: initialValue,
         onSaved: onSaved,
+        onChanged: onChanged,
         style: TextStyle(fontSize: 16, color: Color(0xFF2E7D32)),
         decoration:
             decoration ??

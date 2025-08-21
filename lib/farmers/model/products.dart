@@ -17,6 +17,7 @@ class Product {
   final String customerLocation;
   final bool isComplete;
   final bool isActive;
+  final bool isTool; // New field to distinguish farming tools/equipment
 
   Product({
     required this.productId,
@@ -33,8 +34,9 @@ class Product {
     this.totalSold = 0,
     this.totalEarnings = 0.0,
     this.customerLocation = 'change in model',
-    this.isComplete = true, 
-    this.isActive = true, 
+    this.isComplete = true,
+    this.isActive = true,
+    this.isTool = false, // Default to false for regular products
   });
 
   Map<String, dynamic> toMap() {
@@ -55,6 +57,7 @@ class Product {
       'totalEarnings': totalEarnings,
       'isComplete': isComplete,
       'isActive': isActive,
+      'isTool': isTool,
     };
   }
 
@@ -69,12 +72,12 @@ class Product {
     String? minUnitNum,
     DateTime? createdAt,
     String? customerLocation,
-
     String? productId,
     String? imageUrl,
     int? stock,
     int? totalSold,
     double? totalEarnings,
+    bool? isTool,
   }) {
     return Product(
       productId: productId ?? this.productId,
@@ -91,6 +94,7 @@ class Product {
       createdAt: createdAt ?? this.createdAt,
       totalSold: totalSold ?? this.totalSold,
       totalEarnings: totalEarnings ?? this.totalEarnings,
+      isTool: isTool ?? this.isTool,
     );
   }
   // --------------------------------------
@@ -119,11 +123,9 @@ class Product {
       totalSold: map['totalSold'] ?? 0,
       totalEarnings: (map['totalEarnings'] ?? 0).toDouble(),
       customerLocation: map['customerLocation'] ?? 'change in model',
-      isComplete:
-          map['isComplete'] ??
-          true, 
-      isActive:
-          map['isActive'] ?? true,
+      isComplete: map['isComplete'] ?? true,
+      isActive: map['isActive'] ?? true,
+      isTool: map['isTool'] ?? false,
     );
   }
 }

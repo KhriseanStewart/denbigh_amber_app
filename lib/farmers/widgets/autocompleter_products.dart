@@ -49,7 +49,7 @@ class _AutocompleterProductsState extends State<AutocompleterProducts> {
               focusNode: focusNode,
               style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
-                label: Text('Product'),
+                label: Text('Enter Product name'),
                 labelStyle: TextStyle(color: Colors.black),
                 hintText: 'e.g., Fresh Tomatoes',
                 hintStyle: TextStyle(color: Colors.black),

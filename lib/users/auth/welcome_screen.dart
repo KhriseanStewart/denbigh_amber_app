@@ -1,7 +1,5 @@
-import 'package:denbigh_app/routes.dart';
 import 'package:denbigh_app/users/auth/signin_screen.dart';
 import 'package:denbigh_app/widgets/misc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class FarmerWelcomeScreen extends StatefulWidget {
