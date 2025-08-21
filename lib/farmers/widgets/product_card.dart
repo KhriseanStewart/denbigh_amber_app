@@ -245,6 +245,9 @@ class ProductCard extends StatelessWidget {
                                         ? 'Available'
                                         : product.isTool && product.stock <= 1
                                         ? 'Available'
+                                        : product.stock <= minUnitNum &&
+                                              minUnitNum > 0
+                                        ? 'Not Available'
                                         : 'Stock: ${product.stock}',
                                     style: TextStyle(
                                       fontSize: 14,
@@ -253,6 +256,9 @@ class ProductCard extends StatelessWidget {
                                           product.isSingleItem &&
                                               product.isInCart
                                           ? Color(0xFF2196F3)
+                                          : product.stock <= minUnitNum &&
+                                                minUnitNum > 0
+                                          ? Color(0xFFE57373)
                                           : isLowStock
                                           ? Color(0xFFE57373)
                                           : Color(0xFF2E7D32),
