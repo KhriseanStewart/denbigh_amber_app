@@ -98,6 +98,10 @@ class _ProductScreenState extends State<ProductScreen> {
     try {
       final data = args.data() as Map<String, dynamic>?;
       final num priceNum = data?['price'] ?? 0;
+      final bool isTool =
+          data?['isTool'] ?? false; // Check if it's a farming tool
+      final bool isSingleItem = data?['isSingleItem'] ?? false;
+      final bool isInCart = data?['isInCart'] ?? false;
       final int totalNum = priceNum.toInt();
       final formatter = NumberFormat('#,###');
       final firebasePrice = formatter.format(totalNum);
@@ -118,6 +122,11 @@ class _ProductScreenState extends State<ProductScreen> {
         category = categoryData;
       } else {
         // Fallback in case it's something else
+        category = 'Uncategorized';
+      }
+
+      // Enhanced fallback for empty categories
+      if (category.trim().isEmpty) {
         category = 'Uncategorized';
       }
 
@@ -421,7 +430,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                         icon: Icon(Icons.remove),
                                       ),
                                       args["stock"] < 0
-                                          ? Text("Out of Stock")
+                                          ? Text(
+                                              isTool
+                                                  ? "Not Available"
+                                                  : "Out of Stock",
+                                            )
                                           : Text("$quantity"),
                                       IconButton(
                                         onPressed: () {
@@ -549,7 +562,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     horizontal: 8.0,
                     vertical: 10.0,
                   ),
-                  child: args['stock'] > 0
+                  child: args['stock'] > 0 && !(isSingleItem && isInCart)
                       ? Stack(
                           alignment: Alignment.center,
                           children: [
@@ -590,9 +603,17 @@ class _ProductScreenState extends State<ProductScreen> {
                                 size: 24,
                                 color: Colors.white,
                               ),
-                              btntext: "Out of Stock",
+                              btntext: (isSingleItem && isInCart)
+                                  ? "In Another Cart"
+                                  : isTool
+                                  ? "Not Available"
+                                  : "Out of Stock",
                               onpress: () {
-                                showAlertDialog(context);
+                                showAlertDialog(
+                                  context,
+                                  isTool,
+                                  isSingleItem && isInCart,
+                                );
                               },
                               bgcolor: Colors.redAccent,
                               textcolor: Colors.white,
@@ -636,13 +657,28 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
-  void showAlertDialog(BuildContext context) {
+  void showAlertDialog(
+    BuildContext context, [
+    bool isTool = false,
+    bool isInAnotherCart = false,
+  ]) {
+    String title = "Item out of Stock";
+    String content = "Try again later";
+
+    if (isInAnotherCart) {
+      title = "Item in Another Cart";
+      content = "This item is currently in another customer's cart";
+    } else if (isTool) {
+      title = "Equipment Not Available";
+      content = "This equipment is currently not available";
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Item out of Stock"),
-          content: Text("Try again later"),
+          title: Text(title),
+          content: Text(content),
           actions: [
             TextButton(
               onPressed: () {

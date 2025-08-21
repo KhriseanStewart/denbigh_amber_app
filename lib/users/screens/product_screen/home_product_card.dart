@@ -22,7 +22,13 @@ class _ProductCardState extends State<ProductCard> {
     final String name = data['name'] ?? 'No Name Available';
     final String imageUrl = data['imageUrl'] ?? ''; // Default to empty string
     final int price = data['price'] ?? 0;
-    final String category = data['category'] ?? 'Uncategorized';
+
+    // Enhanced fallback for empty categories
+    String category = data['category'] ?? 'Uncategorized';
+    if (category.trim().isEmpty) {
+      category = 'Uncategorized';
+    }
+
     final String unitType = data['unitType'] ?? 'unit';
 
     // Format the price safely

@@ -78,4 +78,24 @@ class ProductService {
 
     return product.copyWith(productId: docRef.id);
   }
+
+  // Update single item cart status
+  Future<void> updateSingleItemCartStatus(
+    String productId,
+    bool isInCart,
+  ) async {
+    await _db.collection('products').doc(productId).update({
+      'isInCart': isInCart,
+    });
+  }
+
+  // Mark single item as in cart
+  Future<void> markSingleItemInCart(String productId) async {
+    await updateSingleItemCartStatus(productId, true);
+  }
+
+  // Mark single item as not in cart
+  Future<void> markSingleItemNotInCart(String productId) async {
+    await updateSingleItemCartStatus(productId, false);
+  }
 }

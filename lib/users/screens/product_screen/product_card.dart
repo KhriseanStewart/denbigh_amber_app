@@ -86,6 +86,7 @@ class _UserProductCardState extends State<UserProductCard> {
     final String name = data['name'] ?? 'No Name Available';
     final String imageUrl = data['imageUrl'] ?? ''; // Default to empty string
     final double price = data['price'] ?? 0;
+    final bool isTool = data['isTool'] ?? false; // Check if it's a farming tool
     final dynamic categoryData = data['category'] ?? 'Uncategorized';
 
     String category;
@@ -98,6 +99,11 @@ class _UserProductCardState extends State<UserProductCard> {
       category = categoryData;
     } else {
       // Fallback in case it's something else
+      category = 'Uncategorized';
+    }
+
+    // Enhanced fallback for empty categories
+    if (category.trim().isEmpty) {
       category = 'Uncategorized';
     }
     final dynamic unitTypeData = data['unit'] ?? 'unit';
@@ -157,6 +163,39 @@ class _UserProductCardState extends State<UserProductCard> {
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.orange.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Farming Tool Indicator
+          if (isTool)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.indigo.shade100,
+                borderRadius: BorderRadius.only(
+                  topLeft: farmerCount > 1 ? Radius.zero : Radius.circular(8),
+                  topRight: farmerCount > 1 ? Radius.zero : Radius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.agriculture,
+                    size: 14,
+                    color: Colors.indigo.shade700,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'Farming Equipment',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.indigo.shade700,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -287,7 +326,7 @@ class _UserProductCardState extends State<UserProductCard> {
                                   ),
                                 )
                               : Text(
-                                  "Out of Stock",
+                                  isTool ? "Not Available" : "Out of Stock",
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,

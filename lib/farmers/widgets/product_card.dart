@@ -18,8 +18,10 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if stock is low (at or below minimum sales amount)
+    // For farming tools (single items), don't show low stock warnings
     final minUnitNum = int.tryParse(product.minUnitNum) ?? 0;
-    final isLowStock = product.stock <= minUnitNum && minUnitNum > 0;
+    final isLowStock =
+        !product.isTool && product.stock <= minUnitNum && minUnitNum > 0;
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
@@ -74,6 +76,39 @@ class ProductCard extends StatelessWidget {
                             SizedBox(width: 4),
                             Text(
                               'Low Stock',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Single item in cart indicator
+                    if (product.isSingleItem && product.isInCart)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF2196F3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'In Customer Cart',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -203,11 +238,22 @@ class ProductCard extends StatelessWidget {
                                   ),
                                   SizedBox(width: 4),
                                   Text(
-                                    'Stock: ${product.stock}',
+                                    // Handle single items in cart status
+                                    product.isSingleItem && product.isInCart
+                                        ? 'In Cart'
+                                        : product.isSingleItem
+                                        ? 'Available'
+                                        : product.isTool && product.stock <= 1
+                                        ? 'Available'
+                                        : 'Stock: ${product.stock}',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: isLowStock
+                                      color:
+                                          product.isSingleItem &&
+                                              product.isInCart
+                                          ? Color(0xFF2196F3)
+                                          : isLowStock
                                           ? Color(0xFFE57373)
                                           : Color(0xFF2E7D32),
                                     ),
@@ -226,7 +272,9 @@ class ProductCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    product.category.first,
+                                    product.category.first.isNotEmpty
+                                        ? product.category.first
+                                        : 'Uncategorized',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Color(0xFF2E7D32),
@@ -242,8 +290,6 @@ class ProductCard extends StatelessWidget {
                   ],
                 ),
               ),
-
-              
             ],
           ),
         ),

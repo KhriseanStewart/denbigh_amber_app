@@ -9,6 +9,13 @@ final List<String> categories = [
   'Meat',
   'Poultry',
   'Seafood',
+  'Farm Equipment',
+  'Seeds',
+  'Fertilizers',
+  'Pesticides',
+  'Tools',
+  'Irrigation Equipment',
+  'Harvesting Tools',
   'Uncategorized', // Fallback for empty categories
 ];
 
@@ -21,8 +28,34 @@ final List<String> units = [
   'pack',
   'LBS',
   'ounce',
-  'unit', 
-  'Flat'
+  'unit',
+  'Flat',
+];
+
+// Tool/Equipment specific categories
+final List<String> toolCategories = [
+  'Farm Equipment',
+  'Seeds',
+  'Fertilizers',
+  'Pesticides',
+  'Tools',
+  'Irrigation Equipment',
+  'Harvesting Tools',
+  'Other',
+];
+
+// Tool/Equipment specific units
+final List<String> toolUnits = [
+  'piece',
+  'hour',
+  'day',
+  'week',
+  'month',
+  'kg',
+  'litre',
+  'bag',
+  'box',
+  'set',
 ];
 
 final Map<String, Color> categoryColors = {
@@ -36,6 +69,13 @@ final Map<String, Color> categoryColors = {
   'Bakery': Colors.amber.shade100,
   'Beverages': Colors.cyan.shade100,
   'Seafood': Colors.teal.shade100,
+  'Farm Equipment': Colors.indigo.shade100,
+  'Seeds': Colors.lightGreen.shade100,
+  'Fertilizers': Colors.deepOrange.shade100,
+  'Pesticides': Colors.purple.shade100,
+  'Tools': Colors.blueGrey.shade100,
+  'Irrigation Equipment': Colors.lightBlue.shade100,
+  'Harvesting Tools': Colors.deepPurple.shade100,
   'Uncategorized':
       Colors.grey.shade200, // Fallback color for uncategorized items
 };

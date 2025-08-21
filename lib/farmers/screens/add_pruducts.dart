@@ -1,6 +1,5 @@
 import 'package:denbigh_app/farmers/model/products.dart';
 import 'package:denbigh_app/farmers/services/auth.dart' as farmer_auth;
-import 'package:denbigh_app/farmers/widgets/add_product_image.dart';
 import 'package:denbigh_app/farmers/widgets/autocompleter_products.dart';
 import 'package:denbigh_app/farmers/widgets/textField.dart';
 import 'package:denbigh_app/farmers/widgets/used_list/list.dart';
@@ -10,6 +9,454 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+
+/// Widget for displaying product images with consistent styling
+class ProductImageDisplay extends StatelessWidget {
+  final String imageUrl;
+  final double height;
+  final double borderRadius;
+
+  const ProductImageDisplay({
+    super.key,
+    required this.imageUrl,
+    this.height = 300,
+    this.borderRadius = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      margin: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.2),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          width: double.infinity,
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom app bar widget for consistent styling
+class CustomGradientAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  final String title;
+  final List<Widget> tabs;
+
+  const CustomGradientAppBar({
+    super.key,
+    required this.title,
+    required this.tabs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 20,
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: IconThemeData(color: Colors.white),
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF66BB6A), Color(0xFF4CAF50), Color(0xFF2E7D32)],
+          ),
+        ),
+      ),
+      bottom: TabBar(
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white.withOpacity(0.7),
+        tabs: tabs,
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + kTextTabBarHeight);
+}
+
+/// Custom form container widget with gradient background
+class CustomFormContainer extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
+
+  const CustomFormContainer({
+    super.key,
+    required this.child,
+    this.margin,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: 540,
+        child: Container(
+          margin: margin ?? EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Color(0xFFFAFCFA)],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 20,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: padding ?? EdgeInsets.all(32.0),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Enhanced section header with icon and description
+class SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const SectionHeader({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: Colors.white, size: 24),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+              Text(
+                description,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Custom toggle switch with enhanced styling
+class SingleItemToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const SingleItemToggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF1F8E9), Color(0xFFE8F5E8)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3), width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Color(0xFF4CAF50),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.construction, color: Colors.white, size: 20),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Single Item',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E7D32),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'For unique items like tractors, combine harvesters',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          Transform.scale(
+            scale: 1.2,
+            child: Switch(
+              value: value,
+              activeColor: Color(0xFF4CAF50),
+              activeTrackColor: Color(0xFF4CAF50).withOpacity(0.3),
+              inactiveThumbColor: Colors.grey[400],
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Custom info box for single item mode
+class SingleItemInfoBox extends StatelessWidget {
+  const SingleItemInfoBox({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFF1F8E9), Color(0xFFE8F5E8)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Color(0xFF4CAF50).withOpacity(0.3), width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Color(0xFF4CAF50),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.info, color: Colors.white, size: 16),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Single Item Mode: This is a unique item that sells as one unit',
+              style: TextStyle(
+                color: Color(0xFF2E7D32),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Custom button with consistent styling
+class CustomElevatedButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool loading;
+  final IconData? icon;
+  final Color? backgroundColor;
+
+  const CustomElevatedButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.loading = false,
+    this.icon,
+    this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor ?? Colors.green,
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      onPressed: loading ? null : onPressed,
+      icon: loading
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : (icon != null ? Icon(icon) : SizedBox.shrink()),
+      label: Text(text),
+    );
+  }
+}
+
+/// Custom image picker button with upload functionality
+class ImageUploadButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool uploading;
+
+  const ImageUploadButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.uploading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: uploading ? null : onPressed,
+        icon: uploading
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(Icons.upload),
+        label: Text(text),
+      ),
+    );
+  }
+}
+
+/// Custom dropdown field with consistent styling
+class CustomDropdownField<T> extends StatelessWidget {
+  final T? value;
+  final List<T> items;
+  final String labelText;
+  final FormFieldValidator<T>? validator;
+  final ValueChanged<T?>? onChanged;
+  final FormFieldSetter<T>? onSaved;
+
+  const CustomDropdownField({
+    super.key,
+    this.value,
+    required this.items,
+    required this.labelText,
+    this.validator,
+    this.onChanged,
+    this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      value: value,
+      items: items
+          .map(
+            (item) =>
+                DropdownMenuItem(value: item, child: Text(item.toString())),
+          )
+          .toList(),
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: UnderlineInputBorder(),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF4CAF50)),
+        ),
+      ),
+      validator: validator,
+      onChanged: onChanged,
+      onSaved: onSaved,
+    );
+  }
+}
+
+/// Location field widget with label
+class LocationField extends StatelessWidget {
+  final ValueChanged<String?> onLocationSelected;
+
+  const LocationField({super.key, required this.onLocationSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Location *',
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+        ),
+        SizedBox(height: 8),
+        LocationAutoComplete(
+          underlineBorder: true,
+          onCategorySelected: onLocationSelected,
+        ),
+      ],
+    );
+  }
+}
 
 class AddProductScreen extends StatefulWidget {
   final String productId;
@@ -456,8 +903,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
           SnackBar(content: Text('Farming tool added successfully!')),
         );
 
-        // Reset the form
-        _resetToolForm();
+        // Navigate back after successful submission
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
@@ -537,834 +984,450 @@ class _AddProductScreenState extends State<AddProductScreen> {
         length: 2,
         child: Scaffold(
           backgroundColor: Color(0xFFF8FBF8),
-          appBar: AppBar(
-            title: Text(
-              _name.isEmpty ? 'Add New Product' : 'Edit Product',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 20,
-              ),
-            ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            iconTheme: IconThemeData(color: Colors.white),
-            flexibleSpace: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF66BB6A),
-                    Color(0xFF4CAF50),
-                    Color(0xFF2E7D32),
-                  ],
-                ),
-              ),
-            ),
-            bottom: TabBar(
-              tabs: [
-                Tab(text: 'Farm Product'),
-                Tab(text: 'Product & Farming Tools'),
-              ],
-            ),
+          appBar: CustomGradientAppBar(
+            title: _name.isEmpty ? 'Add New Product' : 'Edit Product',
+            tabs: [
+              Tab(text: 'Farm Product'),
+              Tab(text: 'Product & Farming Tools'),
+            ],
           ),
           body: TabBarView(
-            children: [
-              // Farm Product Tab (updated with improved code)
-              ListView(
-                children: [
-                  // Image at the top
-                  if (_imageUrl != null && _imageUrl!.isNotEmpty)
-                    ProductImageDisplay(
-                      imageUrl: _imageUrl!,
-                      height: 300,
-                      borderRadius: 12,
-                    ),
-                  Center(
-                    child: SizedBox(
-                      width: 540,
-                      child: Card(
-                        margin: EdgeInsets.all(24),
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: Form(
-                            key: _formKey,
-                            child: ListView(
-                              shrinkWrap: true,
-                              physics: ClampingScrollPhysics(),
-                              children: [
-                                AutocompleterProducts(
-                                  underlineBorder: true,
-                                  onNameSelected: (selectedName) {
-                                    setState(() {
-                                      _name = selectedName ?? '';
-                                    });
-                                    _checkAllFieldsFilled();
-                                  },
-                                ),
-                                SizedBox(height: 16),
-                                DropdownButtonFormField<String>(
-                                  value: _category,
-                                  items: categories
-                                      .map(
-                                        (cat) => DropdownMenuItem(
-                                          value: cat,
-                                          child: Text(cat),
-                                        ),
-                                      )
-                                      .toList(),
-                                  decoration: InputDecoration(
-                                    labelText: 'Category *',
-                                    border: UnderlineInputBorder(),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Color(0xFF4CAF50),
-                                      ),
-                                    ),
-                                  ),
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                  onChanged: (v) {
-                                    setState(() => _category = v);
-                                    _checkAllFieldsFilled();
-                                  },
-                                  onSaved: (v) => _category = v,
-                                ),
-                                SizedBox(height: 16),
-                                CustomTextFormField(
-                                  controller: _descriptionController,
-                                  inputType: TextInputType.multiline,
-                                  underlineborder: true,
-                                  label: 'Description',
-                                  hintText: 'Describe your product...',
-                                  maxLines: 2,
-                                  onSaved: (v) {},
-                                ),
-                                SizedBox(height: 16),
-                                // Location Auto Complete Field
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Location *',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    LocationAutoComplete(
-                                      underlineBorder: true,
-                                      onCategorySelected: (selectedLocation) {
-                                        print(
-                                          'AddProductScreen: Location selected callback called with: $selectedLocation',
-                                        );
-                                        try {
-                                          print(
-                                            'AddProductScreen: Before setState',
-                                          );
-                                          setState(() {
-                                            _location = selectedLocation;
-                                            print(
-                                              'AddProductScreen: Location set to: $_location',
-                                            );
-                                          });
-                                          print(
-                                            'AddProductScreen: After setState',
-                                          );
-                                          _checkAllFieldsFilled();
-                                          print(
-                                            'AddProductScreen: After _checkAllFieldsFilled',
-                                          );
-                                        } catch (e) {
-                                          print(
-                                            'Error in location selection: $e',
-                                          );
-                                          print(
-                                            'Error stack trace: ${e.toString()}',
-                                          );
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Error selecting location: $e',
-                                                ),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: CustomTextFormField(
-                                        hintText: 'e.g., 200',
-                                        underlineborder: true,
-                                        controller: _priceController,
-                                        label: 'Price *',
-                                        inputType:
-                                            TextInputType.numberWithOptions(
-                                              decimal: true,
-                                            ),
-                                        validator: (v) =>
-                                            v == null ||
-                                                double.tryParse(v) == null
-                                            ? 'Required'
-                                            : null,
-                                        onSaved: (v) {},
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Expanded(
-                                      child: DropdownButtonFormField<String>(
-                                        value: _unit,
-                                        items: units
-                                            .map(
-                                              (unit) => DropdownMenuItem(
-                                                value: unit,
-                                                child: Text(unit),
-                                              ),
-                                            )
-                                            .toList(),
-                                        decoration: InputDecoration(
-                                          labelText: 'Unit *',
-                                          border: UnderlineInputBorder(),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Color(0xFF4CAF50),
-                                            ),
-                                          ),
-                                        ),
-                                        validator: (v) => v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
-                                        onChanged: (v) {
-                                          setState(() => _unit = v);
-                                          _checkAllFieldsFilled();
-                                        },
-                                        onSaved: (v) => _unit = v,
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Expanded(
-                                      child: CustomTextFormField(
-                                        underlineborder: true,
-                                        hintText: 'e.g., 100',
-                                        controller: _stockController,
-                                        label: 'Stock Quantity',
-                                        inputType: TextInputType.number,
-                                        validator: (v) =>
-                                            v == null || int.tryParse(v) == null
-                                            ? 'Required'
-                                            : null,
-                                        onSaved: (v) {},
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                CustomTextFormField(
-                                  underlineborder: true,
-                                  controller: _minUnitNumController,
-                                  label: 'Minimum Sale Amount *',
-                                  hintText: 'e.g., 100 , ',
-                                  inputType: TextInputType.text,
-                                  validator: (v) =>
-                                      v == null || int.tryParse(v) == null
-                                      ? 'Required'
-                                      : null,
-                                  onSaved: (v) {},
-                                ),
-                                SizedBox(height: 24),
-                                // Add/Change Image Button - always visible
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    onPressed: _uploadingImage
-                                        ? null
-                                        : _pickAndUploadImage,
-                                    icon: _uploadingImage
-                                        ? SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : Icon(Icons.upload),
-                                    label: Text(
-                                      _imageUrl != null && _imageUrl!.isNotEmpty
-                                          ? 'Change Item Picture'
-                                          : 'Add Item Picture',
-                                    ),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                        onPressed:
-                                            _loading ||
-                                                _category == null ||
-                                                categories.isEmpty ||
-                                                _unit == null ||
-                                                units.isEmpty ||
-                                                _location == null ||
-                                                _location!.isEmpty ||
-                                                _imageUrl ==
-                                                    null || // Image must be uploaded
-                                                _imageUrl!
-                                                    .isEmpty // Image URL must not be empty
-                                            ? null
-                                            : _submit,
-                                        child: _loading
-                                            ? SizedBox(
-                                                width: 18,
-                                                height: 18,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                                              )
-                                            : Text(
-                                                widget.product == null
-                                                    ? 'Save Product Info'
-                                                    : 'Save Changes',
-                                              ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed: _loading
-                                            ? null
-                                            : () async {
-                                                // this part is for deleting the product
-                                                if (widget.product == null) {
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection('products')
-                                                      .doc(widget.productId)
-                                                      .delete();
-                                                }
-                                                Navigator.of(
-                                                  context,
-                                                ).pop(); // Navigate back in both cases
-                                              },
-                                        child: Text('Cancel'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Product & Farming Tools Tab (complete implementation)
-              ListView(
-                children: [
-                  // Image at the top for tools
-                  if (_toolImageUrl != null && _toolImageUrl!.isNotEmpty)
-                    ProductImageDisplay(
-                      imageUrl: _toolImageUrl!,
-                      height: 300,
-                      borderRadius: 12,
-                    ),
-                  Center(
-                    child: SizedBox(
-                      width: 540,
-                      child: Card(
-                        margin: EdgeInsets.all(24),
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: Form(
-                            key: _toolsFormKey,
-                            child: ListView(
-                              shrinkWrap: true,
-                              physics: ClampingScrollPhysics(),
-                              children: [
-                                Text(
-                                  'Add Farming Tool or Equipment',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Color(0xFF4CAF50),
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-
-                                // Single Item Toggle
-                                Card(
-                                  elevation: 2,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.construction,
-                                          color: Color(0xFF4CAF50),
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Single Item (like a tractor, combine harvester)',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                        Switch(
-                                          value: _isSingleItem,
-                                          activeColor: Color(0xFF4CAF50),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _isSingleItem = value;
-                                              // Clear unit-related fields when switching to single item
-                                              if (_isSingleItem) {
-                                                _toolUnit = null;
-                                                _toolStock = 1;
-                                                _toolMinUnitNum = '1';
-                                                _toolStockController.text = '1';
-                                                _toolMinUnitController.text =
-                                                    '1';
-                                              }
-                                            });
-                                            _checkToolAllFieldsFilled();
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-
-                                // Tool Name Field
-                                CustomTextFormField(
-                                  controller: _toolNameController,
-                                  label: 'Tool/Equipment Name *',
-                                  hintText: 'e.g., Tractor, Plow, Seeds',
-                                  underlineborder: true,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _toolName = value ?? '';
-                                    });
-                                    _checkToolAllFieldsFilled();
-                                  },
-                                  onSaved: (v) {},
-                                ),
-                                SizedBox(height: 16),
-
-                                // Category Dropdown for Tools
-                                DropdownButtonFormField<String>(
-                                  value: _toolCategory,
-                                  items:
-                                      [
-                                            'Farm Equipment',
-                                            'Seeds',
-                                            'Fertilizers',
-                                            'Pesticides',
-                                            'Tools',
-                                            'Irrigation Equipment',
-                                            'Harvesting Tools',
-                                            'Other',
-                                          ]
-                                          .map(
-                                            (cat) => DropdownMenuItem(
-                                              value: cat,
-                                              child: Text(cat),
-                                            ),
-                                          )
-                                          .toList(),
-                                  decoration: InputDecoration(
-                                    labelText: 'Category *',
-                                    border: UnderlineInputBorder(),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Color(0xFF4CAF50),
-                                      ),
-                                    ),
-                                  ),
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                  onChanged: (v) {
-                                    setState(() => _toolCategory = v);
-                                    _checkToolAllFieldsFilled();
-                                  },
-                                  onSaved: (v) => _toolCategory = v,
-                                ),
-                                SizedBox(height: 16),
-
-                                // Description Field
-                                CustomTextFormField(
-                                  controller: _toolDescriptionController,
-                                  inputType: TextInputType.multiline,
-                                  underlineborder: true,
-                                  label: 'Description *',
-                                  hintText: 'Describe the tool/equipment...',
-                                  maxLines: 3,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                  onSaved: (v) {},
-                                ),
-                                SizedBox(height: 16),
-
-                                // Location Auto Complete Field
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Location *',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    LocationAutoComplete(
-                                      underlineBorder: true,
-                                      onCategorySelected: (selectedLocation) {
-                                        setState(() {
-                                          _toolLocation = selectedLocation;
-                                        });
-                                        _checkToolAllFieldsFilled();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-
-                                // Price, Unit, Stock Row
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: CustomTextFormField(
-                                        hintText: _isSingleItem
-                                            ? 'e.g., 50000'
-                                            : 'e.g., 500',
-                                        underlineborder: true,
-                                        controller: _toolPriceController,
-                                        label: 'Price *',
-                                        inputType:
-                                            TextInputType.numberWithOptions(
-                                              decimal: true,
-                                            ),
-                                        validator: (v) =>
-                                            v == null ||
-                                                double.tryParse(v) == null
-                                            ? 'Required'
-                                            : null,
-                                        onSaved: (v) {},
-                                      ),
-                                    ),
-                                    if (!_isSingleItem) ...[
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: DropdownButtonFormField<String>(
-                                          value: _toolUnit,
-                                          items:
-                                              [
-                                                    'piece',
-                                                    'hour',
-                                                    'day',
-                                                    'week',
-                                                    'month',
-                                                    'kg',
-                                                    'litre',
-                                                    'bag',
-                                                    'box',
-                                                    'set',
-                                                  ]
-                                                  .map(
-                                                    (unit) => DropdownMenuItem(
-                                                      value: unit,
-                                                      child: Text(unit),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          decoration: InputDecoration(
-                                            labelText: 'Unit *',
-                                            border: UnderlineInputBorder(),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Color(0xFF4CAF50),
-                                              ),
-                                            ),
-                                          ),
-                                          validator: (v) =>
-                                              v == null || v.isEmpty
-                                              ? 'Required'
-                                              : null,
-                                          onChanged: (v) {
-                                            setState(() => _toolUnit = v);
-                                            _checkToolAllFieldsFilled();
-                                          },
-                                          onSaved: (v) => _toolUnit = v,
-                                        ),
-                                      ),
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: CustomTextFormField(
-                                          underlineborder: true,
-                                          hintText: 'e.g., 10',
-                                          controller: _toolStockController,
-                                          label: 'Available Quantity *',
-                                          inputType: TextInputType.number,
-                                          validator: (v) =>
-                                              v == null ||
-                                                  int.tryParse(v) == null
-                                              ? 'Required'
-                                              : null,
-                                          onSaved: (v) {},
-                                        ),
-                                      ),
-                                    ] else ...[
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
-                                          child: Text(
-                                            'Single Item',
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
-                                          child: Text(
-                                            'Qty: 1',
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-
-                                // Minimum Order/Rental Amount - only show for non-single items
-                                if (!_isSingleItem) ...[
-                                  CustomTextFormField(
-                                    underlineborder: true,
-                                    controller: _toolMinUnitController,
-                                    label: 'Minimum Order/Rental Amount *',
-                                    hintText: 'e.g., 1',
-                                    inputType: TextInputType.number,
-                                    validator: (v) =>
-                                        v == null || int.tryParse(v) == null
-                                        ? 'Required'
-                                        : null,
-                                    onSaved: (v) {},
-                                  ),
-                                ] else ...[
-                                  Container(
-                                    padding: EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Colors.grey[300]!,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          color: Colors.grey[600],
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Single item - minimum purchase: 1 unit',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                SizedBox(height: 24),
-
-                                // Add Image Button for Tools
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    onPressed: _toolUploadingImage
-                                        ? null
-                                        : _pickAndUploadToolImage,
-                                    icon: _toolUploadingImage
-                                        ? SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : Icon(Icons.upload),
-                                    label: Text(
-                                      _toolImageUrl != null &&
-                                              _toolImageUrl!.isNotEmpty
-                                          ? 'Change Tool Picture'
-                                          : 'Add Tool Picture',
-                                    ),
-                                  ),
-                                ),
-
-                                // Save and Reset Buttons
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                        onPressed:
-                                            _toolLoading ||
-                                                _toolCategory == null ||
-                                                (_toolUnit == null &&
-                                                    !_isSingleItem) ||
-                                                _toolLocation == null ||
-                                                _toolLocation!.isEmpty ||
-                                                _toolImageUrl == null ||
-                                                _toolImageUrl!.isEmpty
-                                            ? null
-                                            : _submitTool,
-                                        child: _toolLoading
-                                            ? SizedBox(
-                                                width: 18,
-                                                height: 18,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                                              )
-                                            : Text('Save Farming Tool'),
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed: _toolLoading
-                                            ? null
-                                            : _resetToolForm,
-                                        child: Text('Reset Form'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            children: [_buildFarmProductTab(), _buildToolsTab()],
           ),
         ),
       ),
+    );
+  }
+
+  /// Build Farm Product Tab - Main product form
+  Widget _buildFarmProductTab() {
+    return ListView(
+      children: [
+        // Display product image if available
+        if (_imageUrl != null && _imageUrl!.isNotEmpty)
+          ProductImageDisplay(imageUrl: _imageUrl!),
+
+        CustomFormContainer(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              children: [
+                // Product name autocompleter
+                AutocompleterProducts(
+                  underlineBorder: true,
+                  onNameSelected: (selectedName) {
+                    setState(() => _name = selectedName ?? '');
+                    _checkAllFieldsFilled();
+                  },
+                ),
+                SizedBox(height: 16),
+
+                // Category dropdown
+                CustomDropdownField<String>(
+                  value: _category,
+                  items: categories,
+                  labelText: 'Category *',
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  onChanged: (v) {
+                    setState(() => _category = v);
+                    _checkAllFieldsFilled();
+                  },
+                  onSaved: (v) => _category = v,
+                ),
+                SizedBox(height: 16),
+
+                // Description field
+                CustomTextFormField(
+                  controller: _descriptionController,
+                  inputType: TextInputType.multiline,
+                  underlineborder: true,
+                  label: 'Description',
+                  hintText: 'Describe your product...',
+                  maxLines: 2,
+                  onSaved: (v) {},
+                ),
+                SizedBox(height: 16),
+
+                // Location field
+                LocationField(
+                  onLocationSelected: (selectedLocation) {
+                    try {
+                      setState(() => _location = selectedLocation);
+                      _checkAllFieldsFilled();
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error selecting location: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                SizedBox(height: 16),
+
+                // Price, Unit, Stock row
+                _buildPriceUnitStockRow(),
+                SizedBox(height: 16),
+
+                // Minimum sale amount field
+                CustomTextFormField(
+                  underlineborder: true,
+                  controller: _minUnitNumController,
+                  label: 'Minimum Sale Amount *',
+                  hintText: 'e.g., 100',
+                  inputType: TextInputType.text,
+                  validator: (v) =>
+                      v == null || int.tryParse(v) == null ? 'Required' : null,
+                  onSaved: (v) {},
+                ),
+                SizedBox(height: 24),
+
+                // Image upload button
+                ImageUploadButton(
+                  text: _imageUrl != null && _imageUrl!.isNotEmpty
+                      ? 'Change Item Picture'
+                      : 'Add Item Picture',
+                  onPressed: _pickAndUploadImage,
+                  uploading: _uploadingImage,
+                ),
+
+                // Action buttons row
+                _buildActionButtonsRow(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build Tools Tab - Farming tools form
+  Widget _buildToolsTab() {
+    return ListView(
+      children: [
+        // Display tool image if available
+        if (_toolImageUrl != null && _toolImageUrl!.isNotEmpty)
+          ProductImageDisplay(imageUrl: _toolImageUrl!),
+
+        CustomFormContainer(
+          child: Form(
+            key: _toolsFormKey,
+            child: ListView(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              children: [
+                // Header section
+                SectionHeader(
+                  icon: Icons.agriculture,
+                  title: 'Add Farming Tool or Equipment',
+                  description: 'List your farming equipment for sale',
+                ),
+                SizedBox(height: 24),
+
+                // Single item toggle
+                SingleItemToggle(
+                  value: _isSingleItem,
+                  onChanged: (value) {
+                    setState(() {
+                      _isSingleItem = value;
+                      if (_isSingleItem) {
+                        _toolUnit = null;
+                        _toolStock = 1;
+                        _toolMinUnitNum = '1';
+                        _toolStockController.text = '1';
+                        _toolMinUnitController.text = '1';
+                      }
+                    });
+                    _checkToolAllFieldsFilled();
+                  },
+                ),
+                SizedBox(height: 20),
+
+                // Tool name field
+                CustomTextFormField(
+                  controller: _toolNameController,
+                  label: 'Tool/Equipment Name *',
+                  hintText: 'e.g., Tractor, Plow, Seeds',
+                  underlineborder: true,
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  onChanged: (value) {
+                    setState(() => _toolName = value ?? '');
+                    _checkToolAllFieldsFilled();
+                  },
+                  onSaved: (v) {},
+                ),
+                SizedBox(height: 16),
+
+                // Category dropdown for tools
+                CustomDropdownField<String>(
+                  value: _toolCategory,
+                  items: toolCategories,
+                  labelText: 'Category *',
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  onChanged: (v) {
+                    setState(() => _toolCategory = v);
+                    _checkToolAllFieldsFilled();
+                  },
+                  onSaved: (v) => _toolCategory = v,
+                ),
+                SizedBox(height: 16),
+
+                // Description field
+                CustomTextFormField(
+                  controller: _toolDescriptionController,
+                  inputType: TextInputType.multiline,
+                  underlineborder: true,
+                  label: 'Description *',
+                  hintText: 'Describe the tool/equipment...',
+                  maxLines: 3,
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  onSaved: (v) {},
+                ),
+                SizedBox(height: 16),
+
+                // Location field for tools
+                LocationField(
+                  onLocationSelected: (selectedLocation) {
+                    setState(() => _toolLocation = selectedLocation);
+                    _checkToolAllFieldsFilled();
+                  },
+                ),
+                SizedBox(height: 16),
+
+                // Price, Unit, Stock row for tools
+                _buildToolPriceUnitStockRow(),
+                SizedBox(height: 16),
+
+                // Minimum order/rental amount or single item info
+                if (!_isSingleItem) ...[
+                  CustomTextFormField(
+                    underlineborder: true,
+                    controller: _toolMinUnitController,
+                    label: 'Minimum Order/Rental Amount *',
+                    hintText: 'e.g., 1',
+                    inputType: TextInputType.number,
+                    validator: (v) => v == null || int.tryParse(v) == null
+                        ? 'Required'
+                        : null,
+                    onSaved: (v) {},
+                  ),
+                ] else ...[
+                  SingleItemInfoBox(),
+                ],
+                SizedBox(height: 24),
+
+                // Tool image upload button
+                ImageUploadButton(
+                  text: _toolImageUrl != null && _toolImageUrl!.isNotEmpty
+                      ? 'Change Tool Picture'
+                      : 'Add Tool Picture',
+                  onPressed: _pickAndUploadToolImage,
+                  uploading: _toolUploadingImage,
+                ),
+
+                // Tool action buttons row
+                _buildToolActionButtonsRow(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build price, unit, and stock row for main product form
+  Widget _buildPriceUnitStockRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomTextFormField(
+            hintText: 'e.g., 200',
+            underlineborder: true,
+            controller: _priceController,
+            label: 'Price *',
+            inputType: TextInputType.numberWithOptions(decimal: true),
+            validator: (v) =>
+                v == null || double.tryParse(v) == null ? 'Required' : null,
+            onSaved: (v) {},
+          ),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: CustomDropdownField<String>(
+            value: _unit,
+            items: units,
+            labelText: 'Unit *',
+            validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+            onChanged: (v) {
+              setState(() => _unit = v);
+              _checkAllFieldsFilled();
+            },
+            onSaved: (v) => _unit = v,
+          ),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: CustomTextFormField(
+            underlineborder: true,
+            hintText: 'e.g., 100',
+            controller: _stockController,
+            label: 'Stock Quantity',
+            inputType: TextInputType.number,
+            validator: (v) =>
+                v == null || int.tryParse(v) == null ? 'Required' : null,
+            onSaved: (v) {},
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build price, unit, and stock row for tools form
+  Widget _buildToolPriceUnitStockRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomTextFormField(
+            hintText: _isSingleItem ? 'e.g., 50000' : 'e.g., 500',
+            underlineborder: true,
+            controller: _toolPriceController,
+            label: 'Price *',
+            inputType: TextInputType.numberWithOptions(decimal: true),
+            validator: (v) =>
+                v == null || double.tryParse(v) == null ? 'Required' : null,
+            onSaved: (v) {},
+          ),
+        ),
+        if (!_isSingleItem) ...[
+          SizedBox(width: 16),
+          Expanded(
+            child: CustomDropdownField<String>(
+              value: _toolUnit,
+              items: toolUnits,
+              labelText: 'Unit *',
+              validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              onChanged: (v) {
+                setState(() => _toolUnit = v);
+                _checkToolAllFieldsFilled();
+              },
+              onSaved: (v) => _toolUnit = v,
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: CustomTextFormField(
+              underlineborder: true,
+              hintText: 'e.g., 10',
+              controller: _toolStockController,
+              label: 'Available Quantity *',
+              inputType: TextInputType.number,
+              validator: (v) =>
+                  v == null || int.tryParse(v) == null ? 'Required' : null,
+              onSaved: (v) {},
+            ),
+          ),
+        ] else ...[
+          SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Single Item',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Qty: 1',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Build action buttons row for main product form
+  Widget _buildActionButtonsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomElevatedButton(
+            text: widget.product == null ? 'Save Product Info' : 'Save Changes',
+            loading: _loading,
+            onPressed:
+                _loading ||
+                    _category == null ||
+                    categories.isEmpty ||
+                    _unit == null ||
+                    units.isEmpty ||
+                    _location == null ||
+                    _location!.isEmpty ||
+                    _imageUrl == null ||
+                    _imageUrl!.isEmpty
+                ? null
+                : _submit,
+          ),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _loading
+                ? null
+                : () async {
+                    if (widget.product == null) {
+                      await FirebaseFirestore.instance
+                          .collection('products')
+                          .doc(widget.productId)
+                          .delete();
+                    }
+                    Navigator.of(context).pop();
+                  },
+            child: Text('Cancel'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build action buttons row for tools form
+  Widget _buildToolActionButtonsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomElevatedButton(
+            text: 'Save Farming Tool',
+            loading: _toolLoading,
+            onPressed:
+                _toolLoading ||
+                    _toolCategory == null ||
+                    (_toolUnit == null && !_isSingleItem) ||
+                    _toolLocation == null ||
+                    _toolLocation!.isEmpty ||
+                    _toolImageUrl == null ||
+                    _toolImageUrl!.isEmpty
+                ? null
+                : _submitTool,
+          ),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _toolLoading ? null : _resetToolForm,
+            child: Text('Reset Form'),
+          ),
+        ),
+      ],
     );
   }
 }

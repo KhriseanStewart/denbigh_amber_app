@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:denbigh_app/farmers/services/product_service.dart';
 
 class Cart_Service {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final ProductService _productService = ProductService();
   final user = FirebaseAuth.instance.currentUser;
 
   Future<void> addToCart(
@@ -43,6 +45,12 @@ class Cart_Service {
         'location': productData['location'],
         'farmerId': productData['farmerId'], // Add farmerId for order grouping
       });
+
+      // If this is a single item, mark it as in cart
+      final isSingleItem = productData['isSingleItem'] ?? false;
+      if (isSingleItem) {
+        await _productService.markSingleItemInCart(productData['productId']);
+      }
     }
   }
 
@@ -83,18 +91,71 @@ class Cart_Service {
 
     if (docSnapshot.docs.isNotEmpty) {
       await cartRef.doc(docSnapshot.docs.first.id).delete();
+
+      // If this was a single item, mark it as not in cart
+      // We need to check the product data to see if it's a single item
+      try {
+        final productDoc = await FirebaseFirestore.instance
+            .collection('products')
+            .doc(productId)
+            .get();
+
+        if (productDoc.exists) {
+          final productData = productDoc.data() as Map<String, dynamic>;
+          final isSingleItem = productData['isSingleItem'] ?? false;
+          if (isSingleItem) {
+            await _productService.markSingleItemNotInCart(productId);
+          }
+        }
+      } catch (e) {
+        print('Error updating single item cart status: $e');
+      }
     }
   }
 
   // Remove cart item by document ID directly
   Future<void> removeCartItem(String userId, String cartItemId) async {
     try {
-      await FirebaseFirestore.instance
+      // First get the cart item data to check if it's a single item
+      final cartItemDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('cartItems')
           .doc(cartItemId)
-          .delete();
+          .get();
+
+      if (cartItemDoc.exists) {
+        final cartItemData = cartItemDoc.data() as Map<String, dynamic>;
+        final productId = cartItemData['productId'];
+
+        // Delete the cart item
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('cartItems')
+            .doc(cartItemId)
+            .delete();
+
+        // Check if it was a single item and update its status
+        if (productId != null) {
+          try {
+            final productDoc = await FirebaseFirestore.instance
+                .collection('products')
+                .doc(productId)
+                .get();
+
+            if (productDoc.exists) {
+              final productData = productDoc.data() as Map<String, dynamic>;
+              final isSingleItem = productData['isSingleItem'] ?? false;
+              if (isSingleItem) {
+                await _productService.markSingleItemNotInCart(productId);
+              }
+            }
+          } catch (e) {
+            print('Error updating single item cart status: $e');
+          }
+        }
+      }
     } catch (e) {
       throw Exception('Failed to remove cart item: $e');
     }

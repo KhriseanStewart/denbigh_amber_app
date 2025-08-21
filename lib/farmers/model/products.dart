@@ -18,6 +18,8 @@ class Product {
   final bool isComplete;
   final bool isActive;
   final bool isTool; // New field to distinguish farming tools/equipment
+  final bool isInCart; // Track if single item is currently in someone's cart
+  final bool isSingleItem; // Track if this is a single item like tractors
 
   Product({
     required this.productId,
@@ -37,6 +39,8 @@ class Product {
     this.isComplete = true,
     this.isActive = true,
     this.isTool = false, // Default to false for regular products
+    this.isInCart = false, // Default to false - not in cart
+    this.isSingleItem = false, // Default to false - not a single item
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +62,8 @@ class Product {
       'isComplete': isComplete,
       'isActive': isActive,
       'isTool': isTool,
+      'isInCart': isInCart,
+      'isSingleItem': isSingleItem,
     };
   }
 
@@ -78,6 +84,8 @@ class Product {
     int? totalSold,
     double? totalEarnings,
     bool? isTool,
+    bool? isInCart,
+    bool? isSingleItem,
   }) {
     return Product(
       productId: productId ?? this.productId,
@@ -95,6 +103,8 @@ class Product {
       totalSold: totalSold ?? this.totalSold,
       totalEarnings: totalEarnings ?? this.totalEarnings,
       isTool: isTool ?? this.isTool,
+      isInCart: isInCart ?? this.isInCart,
+      isSingleItem: isSingleItem ?? this.isSingleItem,
     );
   }
   // --------------------------------------
@@ -126,6 +136,8 @@ class Product {
       isComplete: map['isComplete'] ?? true,
       isActive: map['isActive'] ?? true,
       isTool: map['isTool'] ?? false,
+      isInCart: map['isInCart'] ?? false,
+      isSingleItem: map['isSingleItem'] ?? false,
     );
   }
 }

@@ -162,6 +162,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       (sum, p) => sum + p.stock,
                     );
 
+                    // Separate products and tools for statistics
+                    final farmProducts = products
+                        .where((p) => !p.isTool)
+                        .toList();
+                    final farmingTools = products
+                        .where((p) => p.isTool)
+                        .toList();
+
                     return SingleChildScrollView(
                       padding: EdgeInsets.all(20),
                       child: Column(
@@ -238,14 +246,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 spacing: 4,
                                 children: [
                                   SummaryCard(
-                                    'Total \nProducts',
-                                    '${products.length}',
+                                    'Farm \nProducts',
+                                    '${farmProducts.length}',
                                     Icon(FontAwesomeIcons.chartBar),
                                   ),
                                   SummaryCard(
-                                    'Total \nRevenue',
-                                    '\$${totalRevenueFromSales.toStringAsFixed(2)}',
-                                    Icon(FeatherIcons.dollarSign),
+                                    'Farming \nTools',
+                                    '${farmingTools.length}',
+                                    Icon(FontAwesomeIcons.screwdriverWrench),
                                   ),
                                 ],
                               ),
@@ -253,12 +261,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 spacing: 4,
                                 children: [
                                   SummaryCard(
+                                    'Total \nRevenue',
+                                    '\$${totalRevenueFromSales.toStringAsFixed(2)}',
+                                    Icon(FeatherIcons.dollarSign),
+                                  ),
+                                  SummaryCard(
                                     'Total \nStock',
                                     '$totalStock',
                                     Icon(FontAwesomeIcons.box),
                                   ),
+                                ],
+                              ),
+                              Row(
+                                spacing: 4,
+                                children: [
                                   SummaryCard(
-                                    'Total \nSales',
+                                    'Total \nItems',
+                                    '${products.length}',
+                                    Icon(FontAwesomeIcons.cubes),
+                                  ),
+                                  SummaryCard(
+                                    'Items \nSold',
                                     '$totalQuantitySold',
                                     Icon(FeatherIcons.shoppingCart),
                                   ),
@@ -297,7 +320,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ),
                                         SizedBox(width: 8),
                                         Text(
-                                          'My Products',
+                                          'My Products & Tools',
                                           style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
